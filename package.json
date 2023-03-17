@@ -1,0 +1,58 @@
+{
+  "name": "witnet-solidity",
+  "version": "0.0.43",
+  "description": "Witnet CLI import module for Solidity projects",
+  "author": "Guillermo Diaz <guillermo@otherplane.com>",
+  "license": "MIT",
+  "private": false,
+  "main": "",
+  "bin": {
+    "witnet": "build/bin/witnet.js"
+  },
+  "files": [
+    "assets/**",
+    "build/bin",
+    "contracts/WitnetArtifacts.sol",
+    "migrations/**",
+    "test/**",
+    ".env_witnet",
+    "truffle-config.js"
+  ],
+  "scripts": {
+    "build": "babel src -d build",
+    "compile": "npm run build && truffle compile",
+    "console": "truffle console",
+    "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\" --fix",
+    "migrate": "truffle migrate --network",
+    "prepare": "npm run build",
+    "postinstall": "npx witnet-toolkit update",
+    "test": "truffle test"
+  },
+  "keywords": [
+    "solidity", "oracle", "witnet", "evm",
+    "www", "randomness", "data feeds", "data requests"
+  ],
+  "dependencies": {
+    "cbor": "^9.0.0",
+    "dotenv": "^16.3.1",
+    "lodash": "^4.17.21",
+    "truffle": "^5.10.0",
+    "web3-jsonrpc-gateway": "^1.7.24",
+    "witnet-requests": "^0.9.11",
+    "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#460ba32fb6853e53f87c344f9f5263a93ac438ab"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.15.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.42.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "solhint": "^3.4.1",
+    "truffle-assertions": "^0.9.2"
+  }
+}

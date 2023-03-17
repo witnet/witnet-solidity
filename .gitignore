@@ -1,0 +1,16 @@
+# Dependency directories
+node_modules
+yarn.lock
+
+# Build artifacts
+build/
+dist/
+
+# Flattened contracts
+flattened/
+
+# Environmental configuration files
+.env
+
+# Tmp files
+*.tmp
