@@ -1,0 +1,20 @@
+{
+    "reducers": {
+        "mode-no-filters": "0x7fd784182e4ee25820fef9dd2f438836a658dabba24e32a494dca9695e631e0e",
+        "price-aggregator": "0xf18a522de467fdc0cb2712b0c5b3d827ab894ca11caa09a21404aaea10a5eca5",
+        "price-tally": "0xdf914428d1026f5cbcf22755326712d32fc7b72a5921883d8a4dc38b89e695fc"
+    },
+    "retrievals": {
+        "subgraphs/name/beamswap/beamswap-dex": "0x6b2e174372602f85f4347da4ddfdca0d6cc3a18baa9deb7f6074b9d0cdf7e013",
+        "subgraphs/name/kuswap/swap": "0x92677a2babbe5b6dabe579237b4299351108e915199000b04d46002ccda6e929",
+        "subgraphs/name/sushiswap/matic-exchange": "0xc9870c9be82030f9b7ef329474a188c0cb26a0d8ef1ccead17cc45239c11614e",
+        "subgraphs/name/mojito/swap": "0x9216111bc61245edccb74b3e2647328cd381f3b9784187ef3066c18158dc2359",
+        "subgraphs/name/oolongswap/oolongswap-mainnet": "0xc192207f7794fbf0f470034beeae4c0212f33b5f9eb7dde5a7b54b9303531b87",
+        "subgraphs/name/stellaswap/stella-swap": "0x355ac0a9ce4b55df92db0af60790f673bedc049293ecbda27c96f604d9c2333f",
+        "subgraphs/name/ubeswap/ubeswap": "0xfe8ceec9dab3322c0c9c55f728694997ad4762e57d638f9de61cc8243b4963b0",
+        "subgraphs/name/jesse-sawa/uniswap-celo": "0xb98d7f31f91b6984b9a2dd1d02a3f3d03f8dc1dc84ea20db511a6b7fe0242188",
+        "subgraphs/name/uniswap/uniswap-v3": "0x583a3bba3804d09658ec52869681abe705bff6bb76fc380bee6f8d7f30c6bb56",
+        "subgraphs/name/sameepsi/quickswap-v3": "0x3cd6a011d9a1138ec8b0fdbfe754daeea992709c5ef7b3511305b1ab818a9cee",
+        "subgraphs/name/sameepsi/quickswap-v3_9": "0xb6cf301f860bc1ef866ec47fc5af218c1125004525fee52bf1a2f2779a344aef"
+    }
+}
