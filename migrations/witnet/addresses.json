@@ -1,2 +1,11 @@
 {
+    "default": {},
+    "polygon": {
+        "polygon.goerli": {
+            "templates": {},
+            "requests": {
+                "WitnetRequestRandomness": "0x7AA289564E38ECbD9eE621547f835dB0AF974989"
+            }
+        }
+    }
 }

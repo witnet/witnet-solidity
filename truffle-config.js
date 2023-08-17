@@ -1,7 +1,7 @@
 const { merge } = require("lodash")
 const settings = require("witnet-solidity-bridge/migrations/witnet.settings")
-const utils = require("./assets/witnet/utils/js")
-const rn = utils.getRealmNetworkFromArgs()
+const Witnet = require("witnet-utils")
+const rn = Witnet.Utils.getRealmNetworkFromArgs()
 const realm = rn[0]; const network = rn[1]
 if (!settings.networks[realm] || !settings.networks[realm][network]) {
   if (network !== "develop" && network !== "test" && network !== "development") {

@@ -1,11 +1,7 @@
-const utils = require("../../assets/witnet/utils/js")
-const witnet = require("../../assets/witnet")
-
+const Witnet = require("witnet-utils")
 const addresses = require("../witnet/addresses")
-const hashes = require("../witnet/hashes")
-const templates = require("../witnet/templates")
-
-const selection = utils.getWitnetArtifactsFromArgs()
+const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
+const templates = require("../../assets/witnet/templates")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
@@ -13,15 +9,12 @@ const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = network === "test" || network.split("-")[1] === "fork" || network.split("-")[0] === "develop"
-  const ecosystem = utils.getRealmNetworkFromArgs()[0]
+  const ecosystem = Witnet.Utils.getRealmNetworkFromArgs()[0]
   network = network.split("-")[0]
 
   if (!addresses[ecosystem]) addresses[ecosystem] = {}
   if (!addresses[ecosystem][network]) addresses[ecosystem][network] = {}
   if (!addresses[ecosystem][network].templates) addresses[ecosystem][network].templates = {}
-
-  if (!hashes.reducers) hashes.reducers = {}
-  if (!hashes.retrievals) hashes.retrievals = {}
 
   await deployWitnetRequestTemplates(from, isDryRun, ecosystem, network, templates) 
 }
@@ -29,40 +22,35 @@ module.exports = async function (_deployer, network, [from, ]) {
 async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network, templates) {
   for (const key in templates) {
     const template = templates[key]
-    if (template?.retrievals) {
+    if (template?.specs) {
+      const targetAddr = addresses[ecosystem][network].templates[key] ?? null
       if (
-        addresses[ecosystem][network].templates[key] !== undefined ||
-        selection.includes(key) ||
-        (selection.length == 0 && isDryRun)        
+        (selection.length == 0 && isDryRun) 
+          || selection.includes(key)
+          || targetAddr === "" 
+          || (await web3.eth.getCode(targetAddr)).length <= 3
       ) {
-        let templateAddr = utils.findArtifactAddress(addresses[ecosystem][network].templates, key)
-        if (
-          utils.isNullAddress(templateAddr) ||
-          (await web3.eth.getCode(templateAddr)).length <= 3
-        ) {
-          templateAddr = await utils.buildWitnetRequestTemplate(
+        try {
+          const templateAddr = await Witnet.Utils.deployWitnetRequestTemplate(
             web3,
             from,
-            key, 
-            template, 
             await WitnetBytecodes.deployed(),
             await WitnetRequestFactory.deployed(),
-            witnet?.radons,
-            hashes,
+            template,
+            key,
           )
-          if (utils.isNullAddress(templateAddr)) {
-            throw `artifact '${key}' could not get deployed`
-          } else {
-            const templateContract = await WitnetRequestTemplate.at(templateAddr)
-            console.info("  ", `> Template address:  \x1b[1;37m${templateContract.address}\x1b[0m`)
-            console.info("  ", "> Template registry:", await templateContract.registry.call())
-          }
+          const templateContract = await WitnetRequestTemplate.at(templateAddr)
+          console.info("  ", "> Template registry:", await templateContract.registry.call())
+          console.info("  ", `> Template address:  \x1b[1;37m${templateContract.address}\x1b[0m`)
           addresses[ecosystem][network].templates[key] = templateAddr
-          utils.saveAddresses(addresses)
-        } else {
-          utils.traceHeader(`Skipping '${key}'`)
-          console.info("  ", `> Template address:  \x1b[1;37m${templateAddr}\x1b[0m`)
+          Witnet.Utils.saveAddresses(addresses)
+        } catch (e) {
+          Witnet.Utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
+          process.exit(0)
         }
+      } else if (!Witnet.Utils.isNullAddress(targetAddr)) {
+        Witnet.Utils.traceHeader(`Skipping '\x1b[1;37m${key}\x1b[0m'`)
+        console.info("  ", `> Template address:  \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
       await deployWitnetRequestTemplates (from, isDryRun, ecosystem, network, template)

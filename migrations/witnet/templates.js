@@ -1,74 +1,35 @@
-const priceTicker = {
-    aggregator: 'price-aggregator',
-    tally: 'price-tally', 
-}
+const Witnet = require("witnet-utils")
+const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
+
 module.exports = {
     dexes: {
-        WitnetRequestTemplateBeamswap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/beamswap/beamswap-dex',
+        WitnetRequestTemplateBeamswap: Witnet.PriceTickerTemplate({
+            retrieve: [
+                retrievals['beamswap/ticker'],
             ],
-        },
-        WitnetRequestTemplateKuswap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/kuswap/swap',
-            ],
-        },
-        WitnetRequestTemplateMaticExchange: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/sushiswap/matic-exchange',
-            ],
-        },
-        WitnetRequestTemplateMojitoSwap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/mojito/swap'
-            ],
-        },
-        WitnetRequestTemplateOolongswap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/oolongswap/oolongswap-mainnet'
-            ],
-        },
-        WitnetRequestTemplateQuickswap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/sameepsi/quickswap-v3'
-            ],
-        },
-        WitnetRequestTemplateQuickswap_9: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/sameepsi/quickswap-v3_9'
-            ],
-        },
-        WitnetRequestTemplateStellaSwap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/stellaswap/stella-swap'
-            ],
-        },
-        WitnetRequestTemplateUbeswap: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/ubeswap/ubeswap',
-            ],
-        },
-        WitnetRequestTemplateUniswapCelo: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/jesse-sawa/uniswap-celo'
-            ],
-        },
-        WitnetRequestTemplateUniswapV3: {
-            ...priceTicker,
-            retrievals: [
-                'subgraphs/name/uniswap/uniswap-v3'
-            ],
-        },
+            tests: { 
+                "GLINT/USDC must work": [
+                    [ "0x61b4cec9925b1397b64dece8f898047eed0f7a07", "0", ], 
+                ],
+            },
+        }),
     },
+    /////// REQUEST TEMPLATES ///////////////////////////////////////////////////////
+    // path: { ... path: {
+    //      WitnetRequestTemplateXXX: Witnet.RequestTemplate({
+    //          specs: {
+    //              retrieve: [ retrievals['retrieval-artifact-name-x'], ... ],
+    //              aggregate?: Witnet.Reducers..,
+    //              tally?: Witnet.Reducers..,
+    //          },
+    //          tests?: {
+    //              "test-description-1": [
+    //                  [ "..", ... ], // retrieval #0 args (string[])
+    //                  ...
+    //              ],
+    //              ...
+    //          }
+    //      },
+    //      ...
+    // }, ... },
 };

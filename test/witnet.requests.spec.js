@@ -1,15 +1,13 @@
-const { execSync } = require("child_process")
-const utils = require("../assets/witnet/utils/js")
-
+const Witnet = require("witnet-utils");
 const addresses = require("../migrations/witnet/addresses")
 const requests = require("../migrations/witnet/requests")
-
-const selection = utils.getWitnetArtifactsFromArgs()
+const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
 
 contract("migrations/witnet/requests", async () => {
+  let summary = []
   describe("My Witnet Requests...", async () => {
     const crafts = findWitnetRequestCrafts(requests)
     crafts.forEach(async (craft) => {
@@ -21,19 +19,38 @@ contract("migrations/witnet/requests", async () => {
           )
       ) {
         describe(`${craft.artifact}`, async () => {
-          let output
+          let bytecode, radHash
           it("request was actually deployed", async () => {
             const request = await WitnetRequest.at(craft.address)
-            await request.radHash.call()
+            radHash = await request.radHash.call()
           })
           it("request dryruns successfully", async () => {
             const request = await WitnetRequest.at(craft.address)
             const registry = await WitnetBytecodes.at(await request.registry.call())
-            const bytecode = await registry.bytecodeOf.call(await request.radHash.call())
-            output = await dryRunBytecode(bytecode)
+            bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
+            const output = await Witnet.Utils.dryRunBytecode(bytecode)
+            let json
+            try {
+              json = JSON.parse(output)
+            } catch {
+              assert(false, "Invalid JSON: " + output)
+            }
+            const result = Witnet.Utils.processDryRunJson(json)
+            summary.push({
+              "Artifact": craft.artifact,
+              "RAD hash": radHash.slice(2),
+              "Status": result.status,
+              "Sources": `${result.totalRetrievals - result.nokRetrievals} / ${result.totalRetrievals}`,
+              "Running Time": result.runningTime,
+              "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
+            })
+            if (result.status !== "OK") {
+              throw Error(result?.error || "Dry-run failed!")
+            }
           })
           after(async () => {
             if (process.argv.includes("--verbose")) {
+              const output = await Witnet.Utils.dryRunBytecodeVerbose(bytecode)
               console.info(output.split("\n").slice(0, -1).join("\n"))
               console.info("-".repeat(120))
             }
@@ -41,17 +58,17 @@ contract("migrations/witnet/requests", async () => {
         })
       }
     })
+    after(async () => {
+      console.log(`\n${"=".repeat(148)}\n> TESTED WITNET REQUESTS:\n`)
+      console.table(summary)
+    })
   })
-
-  async function dryRunBytecode (bytecode) {
-    return (await execSync(`npx witnet-toolkit try-query --hex ${bytecode}`)).toString()
-  }
 
   function findWitnetRequestCrafts (tree, headers) {
     if (!headers) headers = []
     const matches = []
     for (const key in tree) {
-      if (tree[key]?.retrievals || tree[key]?.template) {
+      if (tree[key]?.specs) {
         matches.push({
           artifact: key,
           address: findWitnetRequestAddress(key),
@@ -77,4 +94,5 @@ contract("migrations/witnet/requests", async () => {
     }
     return ""
   }
+
 })
