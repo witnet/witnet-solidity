@@ -40,8 +40,9 @@ contract("migrations/witnet/requests", async () => {
               "Artifact": craft.artifact,
               "RAD hash": radHash.slice(2),
               "Status": result.status,
-              "Sources": `${result.totalRetrievals - result.nokRetrievals} / ${result.totalRetrievals}`,
-              "Running Time": result.runningTime,
+              "✓ Sources": result.totalRetrievals - result.nokRetrievals,
+              "∑ Sources": result.totalRetrievals,
+              "Time (ms)": result.runningTime,
               "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
             })
             if (result.status !== "OK") {
