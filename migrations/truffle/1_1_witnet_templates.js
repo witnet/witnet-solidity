@@ -28,7 +28,7 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
         (selection.length == 0 && isDryRun) 
           || selection.includes(key)
           || targetAddr === "" 
-          || (await web3.eth.getCode(targetAddr)).length <= 3
+          || (!Witnet.Utils.isNullAddress(targetAddr) && (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
           const templateAddr = await Witnet.Utils.deployWitnetRequestTemplate(
