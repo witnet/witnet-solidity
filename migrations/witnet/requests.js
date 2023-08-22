@@ -1,6 +1,6 @@
 const Witnet = require("witnet-utils")
 const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
-const templates = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/templates"))
+const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("../../assets/witnet/templates"))
 
 module.exports = {
     WitnetRequestRandomness: Witnet.StaticRequest({
