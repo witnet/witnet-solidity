@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Guillermo Diaz <guillermo@otherplane.com>",
   "license": "MIT",
@@ -44,7 +44,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "truffle": "^5.10.0",
-    "witnet-utils": "^0.1.0"
+    "witnet-utils": "~0.1.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
