@@ -65,8 +65,7 @@ module.exports = {
                     id token\\1\\Price 
                 } 
             }`,
-        script: Witnet.Script().parseJSONMap()
-            .parseJSONMap().getMap("data").getArray("pairs").filter(
+        script: Witnet.Script().parseJSONMap().getMap("data").getArray("pairs").filter(
                 Witnet.InnerScript(Witnet.Types.RadonMap).getString("id").match({ "\\0\\": true }, false)
             ).getMap(0).getFloat("token\\1\\Price").multiply(1e6).round(),
     }),
