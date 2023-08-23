@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Guillermo Diaz <guillermo@otherplane.com>",
   "license": "MIT",
