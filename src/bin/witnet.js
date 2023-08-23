@@ -251,7 +251,7 @@ function avail() {
     if (process.argv.includes("--chains")) {
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
-        })    
+        })
         // add `WITNET_SIDECHAIN` to selection, should no --chains list be provided from CLI
         if (!selection || selection.length == 0) {
             selection = [ process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", ".") ]
