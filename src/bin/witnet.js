@@ -251,7 +251,7 @@ function avail() {
     if (process.argv.includes("--chains")) {
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
-        })    
+        })
         // add `WITNET_SIDECHAIN` to selection, should no --chains list be provided from CLI
         if (!selection || selection.length == 0) {
             selection = [ process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", ".") ]
@@ -539,19 +539,20 @@ function traceWitnetArtifacts(crafts, selection) {
                     }
                 } else {
                     console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}()\x1b[0m`)
-                }                
-                traceWitnetArtifactRetrieval(specs)
+                }
+            } else {
+                console.info("  ", `[1] RETRIEVE:`)
             }
             specs?.retrieve.map((value, index) => {
                 if (specs?.retrieve.length > 1) {
                     if (value?.argsCount) {
                         if (!value?.args) {
-                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+                            console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
                         } else {
-                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(value.args)}\x1b[1;32m)\x1b[0m`)
+                            console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(value.args)}\x1b[1;32m)\x1b[0m`)
                         }
                     } else {
-                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
+                        console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
                     }
                 }
                 traceWitnetArtifactRetrieval(value)
