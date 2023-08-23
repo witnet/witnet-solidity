@@ -1,6 +1,7 @@
 # Dependency directories
 node_modules
-yarn.lock
+package-lock.json
+yarn-error.log
 
 # Build artifacts
 build/
@@ -14,3 +15,4 @@ flattened/
 
 # Tmp files
 *.tmp
+.old/

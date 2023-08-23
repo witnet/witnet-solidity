@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Guillermo Diaz <guillermo@otherplane.com>",
   "license": "MIT",
@@ -44,7 +44,8 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "truffle": "^5.10.0",
-    "witnet-utils": "~1.0.0"
+    "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#0.7.x",
+    "witnet-utils": "~1.0.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
@@ -57,7 +58,6 @@
     "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "solhint": "^3.4.1",
-    "truffle-assertions": "^0.9.2",
-    "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#0.7.x"
+    "truffle-assertions": "^0.9.2"
   }
 }
