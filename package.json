@@ -45,7 +45,7 @@
     "lodash": "^4.17.21",
     "truffle": "^5.10.0",
     "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#0.7.x",
-    "witnet-utils": "~1.0.1"
+    "witnet-utils": "~1.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
