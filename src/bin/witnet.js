@@ -245,7 +245,7 @@ module.exports = {
 
 function avail() {
     if (process.argv.includes("--chains")) {
-        const addresses = require("../../../../assets/witnet")?.addresses
+        const addresses = require("../../../../assets/witnet/address");
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
         })
@@ -305,7 +305,7 @@ function avail() {
             console.info("Sorry, no entries found for chains: ", selection)
         }
     } else if (process.argv.includes("--requests")) {
-        const requests = require("../../../../assets/witnet")?.requests
+        const requests = require("../../../../assets/witnet/requests");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--requests")
         if (!traceWitnetRequestCrafts(requests, selection)) {
             if (selection.length > 0) {
@@ -318,7 +318,7 @@ function avail() {
             process.exit(0)
         }
     } else if (process.argv.includes("--templates")) {
-        const templates = require("../../../../assets/witnet")?.templates
+        const templates = require("../../../../assets/witnet/templates");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--templates")   
         if (!traceWitnetRequestTemplateCrafts(templates, selection)) {
             if (selection.length > 0) {
@@ -331,7 +331,7 @@ function avail() {
             process.exit(0)
         }
     } else if (process.argv.includes("--retrievals")) {
-        const retrievals = require("../../../../assets/witnet")?.retrievals
+        const retrievals = require("../../../../assets/witnet/retrievals");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--retrievals")
         if (selection.length == 0) {
             Witnet.Utils.traceHeader("WITNET RETRIEVALS")
@@ -365,7 +365,7 @@ function avail() {
 function check() {
     Witnet.Utils.traceHeader(`Checking your Witnet assets...`)
     console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require("../../../../assets/witnet/retrievals")));
-    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../assets/witnet/templates")));
+    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../../assets/witnet/templates")));
     console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/itnet/requests")));  
     console.info("\nAll assets checked successfully!")
 }
@@ -411,7 +411,7 @@ function truffleConsole() {
         console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SIDECHAIN.")
         process.exit(0)
     }
-    const addresses = require("../../../../assets/witnet")?.addresses[chain[0]][chain[1]]
+    const addresses = require("../../../../assets/witnet/addresses")[chain[0]][chain[1]]
     Witnet.Utils.traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
     if (traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
@@ -515,7 +515,7 @@ function traceWitnetAddresses(addresses, selection, level) {
 }
 
 function traceWitnetRequestCrafts(crafts, selection) {
-    const templates = require("../../../../assets/witnet")?.templates
+    const templates = require("../../../../assets/witnet/templates")
     let found  = 0
     for (const key in crafts) {
         const craft = crafts[key]
