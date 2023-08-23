@@ -2,8 +2,12 @@
 
 const execSync = require('child_process').execSync;
 const fs = require("fs");
-const path = require('path');
 const Witnet = require("witnet-utils")
+
+const addresses = require("../../../../assets/witnet/addresses");
+const requests = require("../../../../assets/witnet/requests");
+const retrievals = require("../../../../assets/witnet/retrievals");
+const templates = require("../../../../assets/witnet/templates");
 
 if (process.argv.length >= 3) {
     const command = process.argv[2]
@@ -100,8 +104,8 @@ function init() {
     if (!fs.existsSync("./migrations/witnet/addresses.json")) {
         fs.writeFileSync("./migrations/witnet/addresses.json", empty_json)
     }
-    let assets_witnet_addresses = `
-module.exports = {
+    let assets_witnet_addresses = 
+`module.exports = {
     ...require("witnet-solidity/assets/witnet/addresses"),
     ...require("../../migrations/witnet/addresses"),
 };
@@ -109,8 +113,8 @@ module.exports = {
     if (!fs.existsSync("./assets/witnet/addresses.js")) {
         fs.writeFileSync("./assets/witnet/addresses.js", assets_witnet_addresses)
     }
-    let assets_witnet_requests = `
-module.exports = {
+    let assets_witnet_requests = 
+`module.exports = {
     ...require("witnet-solidity/migrations/witnet/requests"),
     ...require("../../migrations/witnet/requests"),
 };
@@ -118,8 +122,8 @@ module.exports = {
     if (!fs.existsSync("./assets/witnet/requests.js")) {
         fs.writeFileSync("./assets/witnet/requests.js", assets_witnet_requests)
     }
-    let assets_witnet_retrievals = `
-module.exports = {
+    let assets_witnet_retrievals = 
+`module.exports = {
     ...require("witnet-solidity/migrations/witnet/retrievals"),
     ...require("../../migrations/witnet/retrievals"),
 };
@@ -127,8 +131,8 @@ module.exports = {
     if (!fs.existsSync("./assets/witnet/retrievals.js")) {
         fs.writeFileSync("./assets/witnet/retrievals.js", assets_witnet_retrievals)
     }
-    let assets_witnet_templates = `
-module.exports = {
+    let assets_witnet_templates = 
+`module.exports = {
     ...require("witnet-solidity/migrations/witnet/templates"),
     ...require("../../migrations/witnet/templates"),
 };
@@ -136,8 +140,8 @@ module.exports = {
     if (!fs.existsSync("./assets/witnet/templates.js")) {
         fs.writeFileSync("./assets/witnet/templates.js", assets_witnet_templates)
     }
-    let migrations_witnet_requests = `
-const Witnet = require("witnet-utils")
+    let migrations_witnet_requests = 
+`const Witnet = require("witnet-utils")
 const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
 const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("../../assets/witnet/templates"))
 
@@ -172,8 +176,8 @@ module.exports = {
     if (!fs.existsSync("./migrations/witnet/requests.js")) {
         fs.writeFileSync("./migrations/witnet/requests.js", migrations_witnet_requests)
     }
-    let migrations_witnet_templates = `
-const Witnet = require("witnet-utils")
+    let migrations_witnet_templates = 
+`const Witnet = require("witnet-utils")
 const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
 
 module.exports = {
@@ -200,8 +204,8 @@ module.exports = {
     if (!fs.existsSync("./migrations/witnet/templates.js")) {
         fs.writeFileSync("./migrations/witnet/templates.js", migrations_witnet_templates)
     }
-    let migrations_witnet_retrievals = `
-const Witnet = require("witnet-utils")
+    let migrations_witnet_retrievals = 
+`const Witnet = require("witnet-utils")
 
 module.exports = {
     // path: { ... path: {
@@ -245,12 +249,11 @@ module.exports = {
 
 function avail() {
     if (process.argv.includes("--chains")) {
-        const addresses = require("../../../../assets/witnet/address");
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
-        })
-        if (process.env.WITNET_SIDECHAIN) {
-            // add `WITNET_SIDECHAIN` to selection, should no --chains list be provided from CLI
+        })    
+        // add `WITNET_SIDECHAIN` to selection, should no --chains list be provided from CLI
+        if (!selection || selection.length == 0) {
             selection = [ process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", ".") ]
         }
         if (!selection || selection.length == 0) {
@@ -305,9 +308,8 @@ function avail() {
             console.info("Sorry, no entries found for chains: ", selection)
         }
     } else if (process.argv.includes("--requests")) {
-        const requests = require("../../../../assets/witnet/requests");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--requests")
-        if (!traceWitnetRequestCrafts(requests, selection)) {
+        if (!traceWitnetArtifacts(requests, selection)) {
             if (selection.length > 0) {
                 console.info()
                 console.info("Sorry, no WitnetRequest artifacts were found by given names:", selection)
@@ -318,9 +320,8 @@ function avail() {
             process.exit(0)
         }
     } else if (process.argv.includes("--templates")) {
-        const templates = require("../../../../assets/witnet/templates");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--templates")   
-        if (!traceWitnetRequestTemplateCrafts(templates, selection)) {
+        if (!traceWitnetArtifacts(templates, selection)) {
             if (selection.length > 0) {
                 console.info()
                 console.info("Sorry, no WitnetRequestTemplate artifacts were found by given names:", selection)
@@ -331,7 +332,6 @@ function avail() {
             process.exit(0)
         }
     } else if (process.argv.includes("--retrievals")) {
-        const retrievals = require("../../../../assets/witnet/retrievals");
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--retrievals")
         if (selection.length == 0) {
             Witnet.Utils.traceHeader("WITNET RETRIEVALS")
@@ -342,18 +342,24 @@ function avail() {
             console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
             console.info()
         } else {
+            const dict = Witnet.Dictionary(Object, retrievals)
             for (const index in selection) {
                 const key = selection[index]
-                Witnet.Utils.traceHeader(key)
-                try { 
-                    const specs = Witnet.Utils.findRadonRetrievalSpecs(retrievals, key)
-                    if (specs?.requestMethod) {
-                        traceWitnetRetrievalSpecs(specs)
+                try {
+                    const retrieval = dict[key]
+                    if (retrieval?.method) {
+                        console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
+                        console.info("  ", "=".repeat(key.length))
+                        traceWitnetRetrieval(retrieval)
                     } else {
-                        traceWitnetRetrievalsBreakdown(specs)
+                        console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
+                        console.info("  ", "=".repeat(key.length))
+                        traceWitnetRetrievalsBreakdown(retrieval)
                     }
                 } catch (ex) {
-                    console.info("  ", "> Error:", ex)
+                    console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
+                    console.info("  ", "=".repeat(key.length))
+                    console.info("  ", ">", ex.toString().split('\n')[0])
                 }
             }
         }
@@ -366,7 +372,7 @@ function check() {
     Witnet.Utils.traceHeader(`Checking your Witnet assets...`)
     console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require("../../../../assets/witnet/retrievals")));
     console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../../assets/witnet/templates")));
-    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/itnet/requests")));  
+    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/witnet/requests")));  
     console.info("\nAll assets checked successfully!")
 }
 
@@ -514,60 +520,9 @@ function traceWitnetAddresses(addresses, selection, level) {
     return found
 }
 
-function traceWitnetRequestCrafts(crafts, selection) {
-    const templates = require("../../../../assets/witnet/templates")
-    let found  = 0
-    for (const key in crafts) {
-        const craft = crafts[key]
-        if (craft?.retrievals) {
-            if (selection.length > 0 && !selection.includes(key)) continue;
-            found ++
-            Witnet.Utils.traceHeader(key)
-            console.info("  ", "> Data sources:")
-            const urns = Object.keys(craft.retrievals)
-            for (let j = 0; j < urns.length; j ++) {
-                const tabs = urns[j].length > 14 ? "\t": "\t\t"
-                console.info("  ", " ", `[${j + 1}] ${urns[j]}${tabs}=>`, craft.retrievals[urns[j]]);
-            }
-            if (craft?.aggregator) {
-                console.info("  ", "> Aggregator:\t", craft.aggregator)
-            }
-            if (craft?.tally) {
-                console.info("  ", "> Witness tally:\t", craft.tally)
-            }
-        } else if (craft?.template) {
-            if (selection.length > 0 && !selection.includes(key)) continue;
-            found ++
-            Witnet.Utils.traceHeader(key)
-            console.info("  ", "> Template artifact:  ", craft.template)
-            const template = Witnet.Utils.findTemplateArtifact(templates, craft.template)
-            if (!template) {
-                console.info("  ", "> Unavailable!.")
-            } else {
-                if (template?.retrievals && template?.retrievals.length > 0) {
-                    if (craft?.args && craft.args.length >= template.retrievals.length) {
-                      console.info("  ", "> Request parameters:");
-                      for (let j = 0; j < template.retrievals.length; j++) {
-                        const args = Array.isArray(craft.args[j])
-                          ? craft.args[j]
-                          : Object.keys(craft.args[j]).map(key => craft.args[j][key])
-                        console.info("  ", " ", `[${j + 1}] ${template.retrievals[j]}`, "=>", args);
-                      }
-                    } else {
-                      console.info("  ", "> Request parameters not properly set!.");
-                    }
-                }
-            }
-        } else if (!craft?.args && !craft?.aggregator && !craft?.tally) {
-            found += traceWitnetRequestCrafts(craft, selection)
-        }
-    }
-    return found
-}
-
-function traceWitnetRequestTemplateCrafts(crafts, selection) {
+function traceWitnetArtifacts(crafts, selection) {
     let found = 0 
-    for (const key in crafts) {
+    for (const key in orderKeys(crafts)) {
         const craft = crafts[key]
         const specs = craft?.specs
         if (specs) {
@@ -575,79 +530,96 @@ function traceWitnetRequestTemplateCrafts(crafts, selection) {
             found ++
             console.info(`\n   \x1b[1;37m${key}\x1b[0m`)
             console.info("  ", "=".repeat(key.length))
-            specs?.retrieve.map((value, index) => {
-                if (value?.argsCount) {
-                    console.info("  ", `> RETRIEVAL #${index} (${retrieval?.argsCount} params):`)
+            if (specs?.retrieve.length == 1) {
+                if (specs.retrieve[0]?.argsCount) {
+                    if (!specs.retrieve[0]?.args) {
+                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
+                    } else {
+                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(specs.retrieve[0].args)}\x1b[1;32m\x1b[0m`)
+                    }
                 } else {
-                    console.info("  ", `> RETRIEVAL #${index}:`)
+                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}()\x1b[0m`)
+                }                
+                traceWitnetArtifactRetrieval(specs)
+            }
+            specs?.retrieve.map((value, index) => {
+                if (specs?.retrieve.length > 1) {
+                    if (value?.argsCount) {
+                        if (!value?.args) {
+                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+                        } else {
+                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(value.args)}\x1b[1;32m)\x1b[0m`)
+                        }
+                    } else {
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
+                    }
                 }
-                if (value?.method) {
-                    console.info("  ", `    Method:  \x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}\x1b[0m`)
-                } 
-                if (value?.url) {
-                    console.info("  ", `    URL:     \x1b[1;32m${value.url}\x1b[0m`)
-                }
-                if (value?.body) {
-                    console.info("  ", `    Body:    \x1b[32m${value.body}\x1b[0m`)
-                }
-                if (value?.headers) {
-                    console.info("  ", `    Headers: \x1b[32m${JSON.stringify(value.headers)}\x1b[0m`)
-                }
-                if (value?.script) {
-                    console.info("  ", `    Script:  \x1b[33m${value?.script.toString()}\x1b[0m`)
-                }
+                traceWitnetArtifactRetrieval(value)
             })
             if (specs?.aggregate) {
-                console.info("  ", `> AGGREGATE: \x1b[35m${specs.aggregate.toString()}`)
+                console.info("  ", `[2] AGGREGATE:\t\x1b[1;35m${specs.aggregate.toString()}\x1b[0m`)
             }
             if (specs?.tally) {
-                console.info("  ", `> TALLY:     \x1b[35m${specs.tally.toString()}`)
+                console.info("  ", `[3] TALLY:    \t\x1b[1;35m${specs.tally.toString()}\x1b[0m`)
             }
         } else {
-            found += traceWitnetRequestTemplateCrafts(craft, selection)
+            found += traceWitnetArtifacts(craft, selection)
         }
     }
     return found
-}
 
 
+function traceWitnetArtifactRetrieval(specs) {
+    if (specs?.url) {
+        console.info("  ", `    > URL:     \t\x1b[32m${specs.url}\x1b[0m`)
+    }
+    if (specs?.body) {
+        console.info("  ", `    > Body:    \t\x1b[32m${specs.body}\x1b[0m`)
+    }
+    if (
+        specs?.headers && !Array.isArray(specs?.headers) 
+            || (Array.isArray(specs?.headers) && specs?.headers.length > 0)
+    ) {
+        console.info("  ", `   > Headers: \t\x1b[32m${JSON.stringify(specs.headers)}\x1b[0m`)
+    }
+    if (specs?.script) {
+        console.info("  ", `    > Script:  \t\x1b[33m${specs?.script.toString()}\x1b[0m`)
+    }
+}}
 
 function traceWitnetRetrievalsBreakdown(retrievals, level) {
-    if (retrievals?.requestMethod) return;    
-    for (const key in retrievals) {
-        console.info(" ", " ".repeat(3 * (level || 0)), key)
+    if (retrievals?.method) return;    
+    for (const key in orderKeys(retrievals)) {
+        console.info(" ", " ".repeat(4 * (level || 0)), (retrievals[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
         traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
     }
 }
 
-function traceWitnetRetrievalSpecs(specs) {
-    if (specs?.requestMethod) {
-        console.info("  ", "> Request method: ", Witnet.Utils.stringifyWitnetRequestMethod(specs.requestMethod))
-        if (specs.requestMethod !== Witnet.Types.RETRIEVAL_METHODS.Rng) {
-            const requestPath = `${specs?.requestSchema}${specs?.requestAuthority}/${specs?.requestPath}${specs?.requestQuery ? `?${specs.requestQuery}` : ""}`
-            console.info("  ", "> Request URL:    ", requestPath)
+function traceWitnetRetrieval(value) {
+    if (value?.method) {
+        if (value?.argsCount) {
+            console.info("  ", `> Method:    \x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+        } else {
+            console.info("  ", `> Method:    \x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
         }
-        if (specs?.requestHeaders && specs.requestHeaders.length > 0) {
-            console.info("  ", "> Request headers:", specs.requestHeaders)
+        if (value?.url) {
+            console.info("  ", `> URL:       \x1b[32m${value.url}\x1b[0m`)
         }
-        if (specs?.requestBody) {
-            console.info("  ", "> Request body:   ", specs.requestBody)
+        if (value?.body) {
+            console.info("  ", `> Body:      \x1b[32m${value.body}\x1b[0m`)
         }
-        if (specs?.requestScript) {
-            console.info("  ", "> Witnet script:  ", JSON.stringify(specs.requestScript.script))
+        if (value?.headers && !Array.isArray(value?.headers) || (Array.isArray(value?.headers) && value?.headers.length > 0)) {
+            console.info("  ", `> Headers:   \x1b[32m${JSON.stringify(value.headers)}\x1b[0m`)
         }
-        if (specs?.templateValues) {
-            console.info("  ", "> Customization samples:")
-            if (Array.isArray(specs.templateValues)) {
-                for (var j = 0; j < specs.templateValues.length; j ++) {
-                    console.info("  ", " ", `#${j + 1} =>`, JSON.stringify(specs.templateValues[j]))
-                }
-            } else if (typeof specs.templateValues === "object") {
-                const keys = Object.keys(specs.templateValues)
-                keys.map(key => { 
-                    console.info("  ", " ", key, "=>", JSON.stringify(specs.templateValues[key]))
-                })
-            }
+        if (value?.script) {
+            console.info("  ", `> Script:    \x1b[33m${value?.script.toString()}\x1b[0m`)
+        }
+        if (value?.tuples) {
+            console.info("  ", "> Pre-set tuples:")
+            const keys = Object.keys(value.tuples)
+            keys.map(key => { 
+                console.info("  ", " ", key, "=>", JSON.stringify(value.tuples[key]))
+            })
         }
     }
 }
