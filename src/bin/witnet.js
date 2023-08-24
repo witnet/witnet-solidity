@@ -370,9 +370,9 @@ function avail() {
 
 function check() {
     Witnet.Utils.traceHeader(`Checking your Witnet assets...`)
-    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require("../../../../assets/witnet/retrievals")));
-    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../../assets/witnet/templates")));
-    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/witnet/requests")));  
+    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, requests));
+    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, templates));
+    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, retrievals));    
     console.info("\nAll assets checked successfully!")
 }
 
@@ -526,16 +526,17 @@ function traceWitnetArtifacts(crafts, selection) {
         const craft = crafts[key]
         const specs = craft?.specs
         if (specs) {
+            const args = crafts[key]?.args
             if (selection.length > 0 && !selection.includes(key)) continue;
             found ++
             console.info(`\n   \x1b[1;37m${key}\x1b[0m`)
             console.info("  ", "=".repeat(key.length))
             if (specs?.retrieve.length == 1) {
                 if (specs.retrieve[0]?.argsCount) {
-                    if (!specs.retrieve[0]?.args) {
+                    if (!args || args.length == 0) {
                         console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
                     } else {
-                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(specs.retrieve[0].args)}\x1b[1;32m\x1b[0m`)
+                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
                     }
                 } else {
                     console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}()\x1b[0m`)
@@ -546,13 +547,13 @@ function traceWitnetArtifacts(crafts, selection) {
             specs?.retrieve.map((value, index) => {
                 if (specs?.retrieve.length > 1) {
                     if (value?.argsCount) {
-                        if (!value?.args) {
-                            console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+                        if (!args[index] || args[index].length == 0) {
+                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
                         } else {
-                            console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(value.args)}\x1b[1;32m)\x1b[0m`)
+                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
                         }
                     } else {
-                        console.info("  ", `    [SOURCE #${index}]\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
                     }
                 }
                 traceWitnetArtifactRetrieval(value)
@@ -619,7 +620,7 @@ function traceWitnetRetrieval(value) {
             console.info("  ", "> Pre-set tuples:")
             const keys = Object.keys(value.tuples)
             keys.map(key => { 
-                console.info("  ", " ", key, "=>", JSON.stringify(value.tuples[key]))
+                console.info("  ", `  "${key}" =>`, JSON.stringify(value.tuples[key]))
             })
         }
     }
