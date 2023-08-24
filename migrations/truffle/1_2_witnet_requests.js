@@ -1,7 +1,7 @@
 const Witnet = require("witnet-utils")
 const addresses = require("../witnet/addresses")
-const requests = require("../../assets/witnet/requests")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
+const requests = selection?.length > 0 ? require("../../assets/witnet/requests") : require("../witnet/requests")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")

@@ -1,7 +1,7 @@
 const Witnet = require("witnet-utils");
 const addresses = require("../migrations/witnet/addresses")
-const requests = require("../migrations/witnet/requests")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
+const requests = selection?.length > 0 ? require("../assets/witnet/requests") : require("../migrations/witnet/requests")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
