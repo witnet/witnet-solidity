@@ -105,9 +105,13 @@ function init() {
         fs.writeFileSync("./migrations/witnet/addresses.json", empty_json)
     }
     let assets_witnet_addresses = 
-`module.exports = {
-    ...require("witnet-solidity/assets/witnet/addresses"),
-    ...require("../../migrations/witnet/addresses"),
+`
+const { merge } = require("lodash")
+module.exports = {
+    ...merge(
+        require("witnet-solidity/assets/witnet/addresses"),
+        require("../../migrations/witnet/addresses"),
+    ),
 };
 `
     if (!fs.existsSync("./assets/witnet/addresses.js")) {
