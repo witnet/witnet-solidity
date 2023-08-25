@@ -42,7 +42,7 @@
   ],
   "dependencies": {
     "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#0.7.x",
-    "witnet-utils": "~1.0.7"
+    "witnet-utils": "~1.0.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
