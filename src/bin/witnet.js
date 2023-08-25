@@ -4,11 +4,6 @@ const execSync = require('child_process').execSync;
 const fs = require("fs");
 const Witnet = require("witnet-utils")
 
-const addresses = require("../../../../assets/witnet/addresses");
-const requests = require("../../../../assets/witnet/requests");
-const retrievals = require("../../../../assets/witnet/retrievals");
-const templates = require("../../../../assets/witnet/templates");
-
 if (process.argv.length >= 3) {
     const command = process.argv[2]
     if (command === "init") {
@@ -73,9 +68,14 @@ function init() {
     if (!fs.existsSync(".env_witnet")) {
         fs.cpSync("node_modules/witnet-solidity/.env_witnet", ".env_witnet")
     } 
-    if (!fs.existsSync("truffle-config.js")) {
-        fs.cpSync("node_modules/witnet-solidity/truffle-config.js", "truffle-config.js")
-    }    
+    // if (!fs.existsSync("truffle-config.js")) {
+    //     fs.cpSync("node_modules/witnet-solidity/truffle-config.js", "truffle-config.js")
+    // }
+    fs.cpSync(
+        "node_modules/witnet-solidity/assets/witnet/abis/",
+        "./assets/witnet/abis/",
+        { recursive: true, force: true, }
+    )
     fs.cpSync(
         "node_modules/witnet-solidity/contracts/WitnetMigrations.sol",
         "./contracts/WitnetMigrations.sol",
@@ -248,6 +248,12 @@ module.exports = {
 }
 
 function avail() {
+    
+    const addresses = require("../../../../assets/witnet/addresses");
+    const requests = require("../../../../assets/witnet/requests");
+    const retrievals = require("../../../../assets/witnet/retrievals");
+    const templates = require("../../../../assets/witnet/templates");
+
     if (process.argv.includes("--chains")) {
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
@@ -370,9 +376,9 @@ function avail() {
 
 function check() {
     Witnet.Utils.traceHeader(`Checking your Witnet assets...`)
-    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, requests));
-    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, templates));
-    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, retrievals));    
+    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/witnet/requests")));
+    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../../assets/witnet/templates")));
+    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require("../../../../assets/witnet/retrievals")));    
     console.info("\nAll assets checked successfully!")
 }
 
