@@ -167,11 +167,11 @@ module.exports = {
     }),
     "kraken.com/ticker": Witnet.Retrievals.HttpGet({
         url: "https://api.kraken.com/0/public/Ticker?pair=\\0\\\\1\\",
-        script: Witnet.Script().parseJSONMap().getMap("result").getMap("\\0\\\\1\\").getArray("a").getFloat(0).multiply(1e6).round(),
+        script: Witnet.Script().parseJSONMap().getMap("result").valuesAsArray().getMap(0).getArray("a").getFloat(0).multiply(1e6).round(),
     }),
     "kraken.com/ticker#9": Witnet.Retrievals.HttpGet({
         url: "https://api.kraken.com/0/public/Ticker?pair=\\0\\\\1\\",
-        script: Witnet.Script().parseJSONMap().getMap("result").getMap("\\0\\\\1\\").getArray("a").getFloat(0).multiply(1e9).round(),
+        script: Witnet.Script().parseJSONMap().getMap("result").valuesAsArray().getMap(0).getArray("a").getFloat(0).multiply(1e9).round(),
     }),
     "kucoin.com/ticker": Witnet.Retrievals.HttpGet({
         url: "https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=\\0\\-\\1\\",
