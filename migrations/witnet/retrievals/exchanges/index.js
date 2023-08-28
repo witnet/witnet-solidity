@@ -54,6 +54,10 @@ module.exports = {
         url: "https://api.bittrex.com/v3/markets/\\0\\-\\1\\/ticker",
         script: Witnet.Script().parseJSONMap().getFloat("lastTradeRate").multiply(1e6).round(),
     }),
+    "bitvavo.com/ticker": Witnet.Retrievals.HttpGet({
+        url: "https://api.bitvavo.com/v2/ticker/price?market=\\0\\-\\1\\",
+        script: Witnet.Script().parseJSONMap().getFloat("price").multiply(1e6).round(),
+    }),
     "bybit.com/ticker": Witnet.Retrievals.HttpGet({
         url: "https://api.bybit.com/v5/market/tickers?category=inverse&symbol=\\0\\\\1\\",
         script: Witnet.Script().parseJSONMap().getMap("result").getArray("list").getMap(0).getFloat("lastPrice").multiply(1e6).round(),
