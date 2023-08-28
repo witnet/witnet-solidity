@@ -42,7 +42,7 @@
     "truffle"
   ],
   "dependencies": {
-    "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#0.7.x"
+    "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#7bde6dfda48b9ce6998e9b74add6bfef8ca73397"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
