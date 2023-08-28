@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Guillermo Diaz <guillermo@otherplane.com>",
   "license": "MIT",
@@ -25,7 +25,6 @@
     "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\" --fix",
     "migrate": "truffle migrate --network",
     "prepare": "npm run build",
-    "postinstall": "npm install --save-dev witnet-utils && npm install --save-dev web3-jsonrpc-gateway",
     "test": "truffle test"
   },
   "keywords": [
@@ -42,7 +41,9 @@
     "truffle"
   ],
   "dependencies": {
-    "witnet-solidity-bridge": "https://github.com/witnet/witnet-solidity-bridge#7bde6dfda48b9ce6998e9b74add6bfef8ca73397"
+    "web3-jsonrpc-gateway": "^1.7.26",
+    "witnet-solidity-bridge": "witnet/witnet-solidity-bridge#7bde6dfda48b9ce6998e9b74add6bfef8ca73397",
+    "witnet-utils": "^1.0.8"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
@@ -53,8 +54,6 @@
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^16.0.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "web3-jsonrpc-gateway": "^1.7.26",
-    "witnet-utils": "^1.0.8"
+    "eslint-plugin-promise": "^6.1.1"
   }
 }
