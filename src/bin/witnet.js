@@ -118,27 +118,36 @@ module.exports = {
         fs.writeFileSync("./assets/witnet/addresses.js", assets_witnet_addresses)
     }
     let assets_witnet_requests = 
-`module.exports = {
-    ...require("witnet-solidity/migrations/witnet/requests"),
-    ...require("../../migrations/witnet/requests"),
+`const { merge } = require("lodash")
+module.exports = {
+    ...merge(
+        require("witnet-solidity/migrations/witnet/requests"),
+        require("../../migrations/witnet/requests"),
+    ),
 };
 `
     if (!fs.existsSync("./assets/witnet/requests.js")) {
         fs.writeFileSync("./assets/witnet/requests.js", assets_witnet_requests)
     }
     let assets_witnet_retrievals = 
-`module.exports = {
-    ...require("witnet-solidity/migrations/witnet/retrievals"),
-    ...require("../../migrations/witnet/retrievals"),
+`const { merge } = require("lodash")
+module.exports = {
+    ...merge(
+        require("witnet-solidity/migrations/witnet/retrievals"),
+        require("../../migrations/witnet/retrievals"),
+    ),
 };
 `
     if (!fs.existsSync("./assets/witnet/retrievals.js")) {
         fs.writeFileSync("./assets/witnet/retrievals.js", assets_witnet_retrievals)
     }
     let assets_witnet_templates = 
-`module.exports = {
-    ...require("witnet-solidity/migrations/witnet/templates"),
-    ...require("../../migrations/witnet/templates"),
+`const { merge } = require("lodash")
+module.exports = {
+    ...merge(
+        require("witnet-solidity/migrations/witnet/templates"),
+        require("../../migrations/witnet/templates"),
+    ),
 };
 `
     if (!fs.existsSync("./assets/witnet/templates.js")) {
