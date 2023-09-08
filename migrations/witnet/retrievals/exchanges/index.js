@@ -190,7 +190,11 @@ module.exports = {
         script: Witnet.Script()
             .parseJSONArray()
             .filter(
-                Witnet.InnerScript(Witnet.Types.RadonMap).getString("currency").match({ "\\1\\/\\0\\": true }, false)
+                Witnet.InnerScript(Witnet.Types.RadonMap).getString("currency").match(
+                    Witnet.Types.RadonBoolean,
+                    { "\\1\\/\\0\\": true }, 
+                    false
+                )
             ).getMap(0).getFloat("rate").power(-1).multiply(1e9).round()
     }),
     "messari.io/ticker#9": Witnet.Retrievals.HttpGet({

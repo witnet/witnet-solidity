@@ -66,7 +66,11 @@ module.exports = {
                 } 
             }`,
         script: Witnet.Script().parseJSONMap().getMap("data").getArray("pairs").filter(
-                Witnet.InnerScript(Witnet.Types.RadonMap).getString("id").match({ "\\0\\": true }, false)
+                Witnet.InnerScript(Witnet.Types.RadonMap).getString("id").match(
+                    Witnet.Types.RadonBoolean,
+                    { "\\0\\": true },
+                    false
+                )
             ).getMap(0).getFloat("token\\1\\Price").multiply(1e6).round(),
     }),
     "uniswap-celo/ticker": Witnet.Retrievals.GraphQLQuery({
