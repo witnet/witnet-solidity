@@ -40,8 +40,8 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
             key,
           )
           const templateContract = await WitnetRequestTemplate.at(templateAddr)
-          console.info("  ", "> Template registry:", await templateContract.registry.call())
-          console.info("  ", `> Template address:  \x1b[1;37m${templateContract.address}\x1b[0m`)
+          console.info("  ", "> Template registry:  ", await templateContract.registry.call())
+          console.info("  ", `> Template address:    \x1b[1;37m${templateContract.address}\x1b[0m`)
           addresses[ecosystem][network].templates[key] = templateAddr
           Witnet.Utils.saveAddresses(addresses)
         } catch (e) {

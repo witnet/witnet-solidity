@@ -6,5 +6,6 @@ module.exports = {
             "DEXes": require('./dexes')
         },
         "Generics": require('./generics'),
+        "Web3": require('./web3')
     },
 }
