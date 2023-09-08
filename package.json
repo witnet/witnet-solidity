@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Guillermo Diaz <guillermo@otherplane.com>",
   "license": "MIT",
@@ -42,7 +42,7 @@
   ],
   "dependencies": {
     "web3-jsonrpc-gateway": "^1.7.26",
-    "witnet-solidity-bridge": "witnet/witnet-solidity-bridge#5e4e1a701999dd50530cdbd8926e6468b731bdb8",
+    "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#ed0899d6f7e04e5c7ccc9cb585865a8187db6857",
     "witnet-utils": "^1.1.1"
   },
   "devDependencies": {
