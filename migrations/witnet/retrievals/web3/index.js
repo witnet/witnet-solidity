@@ -28,11 +28,11 @@ module.exports = {
     "cross-chain-get-transaction-by-hash": Witnet.Retrievals.CrossChainCall({
         url: "\\0\\",
         rpc: Witnet.Retrievals.RPC.EthGetTransactionByHash("\\1\\"),
-        script: Witnet.Script().parseJSONMap(),
+        script: Witnet.Script().parseJSONMap().getMap("result"),
     }),
     "cross-chain-get-transaction-receipt": Witnet.Retrievals.CrossChainCall({
         url: "\\0\\",
         rpc: Witnet.Retrievals.RPC.EthGetTransactionReceipt("\\1\\"),
-        script: Witnet.Script().parseJSONMap(),
+        script: Witnet.Script().parseJSONMap().getMap("result"),
     }),
 }
