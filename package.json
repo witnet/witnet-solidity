@@ -24,6 +24,7 @@
     "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\" --fix",
     "migrate": "truffle migrate --network",
+    "postinstall": "npx witnet-toolkit update",
     "prepare": "npm run build",
     "test": "truffle test"
   },
