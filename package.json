@@ -42,8 +42,7 @@
     "truffle"
   ],
   "dependencies": {
-    "truffle": "^5.11.5",
-    "web3-jsonrpc-gateway": "^1.7.26",
+    "web3-jsonrpc-gateway": "^1.7.27",
     "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#ed0899d6f7e04e5c7ccc9cb585865a8187db6857",
     "witnet-utils": "^1.1.1"
   },
