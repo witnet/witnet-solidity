@@ -44,7 +44,7 @@
   "dependencies": {
     "web3-jsonrpc-gateway": "^1.7.27",
     "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#ed0899d6f7e04e5c7ccc9cb585865a8187db6857",
-    "witnet-utils": "^1.1.1"
+    "witnet-utils": "^1.1.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
