@@ -402,7 +402,7 @@ function test() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`truffle test --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle test/witnet.templates.spec.js test/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle test --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle test/witnet.templates.spec.js test/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
     } catch {}
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -440,7 +440,7 @@ function truffleConsole() {
         console.info("  ", "None available.")
     }
     try {
-        execSync(`truffle console --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]}`, { stdio: 'inherit' })
+        execSync(`npx truffle console --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]}`, { stdio: 'inherit' })
     } catch {}
 }
 
@@ -472,7 +472,7 @@ function deploy() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`truffle migrate --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]} ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle migrate --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]} ${args}`, { stdio: 'inherit' })
     } catch {}    
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
