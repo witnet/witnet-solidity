@@ -38,5 +38,17 @@ module.exports = {
                 script: Witnet.Script().parseJSONMap().getMap("result"),
             }),
         },
+        WIT: {
+            "wit-supply-info": Witnet.Retrievals.CrossChainCall({
+                url: "\\0\\",
+                rpc: Witnet.Retrievals.RPC.WitGetSupplyInfo(),
+                script: Witnet.Script().parseJSONMap().getMap("result"),
+            }),
+            "wit-get-transaction-by-hash": Witnet.Retrievals.CrossChainCall({
+                url: "\\0\\",
+                rpc: Witnet.Retrievals.RPC.WitGetTransactionByHash("\\1\\"),
+                script: Witnet.Script().parseJSONMap().getMap("result"),
+            }),
+        }
     }   
 }
