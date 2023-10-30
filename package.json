@@ -1,21 +1,17 @@
 {
   "name": "witnet-solidity",
-  "version": "1.1.7",
+  "version": "2.0.0",
   "description": "Witnet CLI import module for Solidity projects",
-  "author": "Guillermo Diaz <guillermo@otherplane.com>",
+  "author": "Witnet Foundation",
   "license": "MIT",
   "private": false,
   "bin": {
     "witnet": "build/bin/witnet.js"
   },
   "files": [
-    "assets/witnet/**",
+    "witnet/**",
     "build/bin",
-    "contracts/WitnetMigrations.sol",
-    "migrations/**",
-    "test/**",
-    ".env_witnet",
-    "truffle-config.js"
+    ".env_witnet"
   ],
   "scripts": {
     "build": "babel src -d build",
