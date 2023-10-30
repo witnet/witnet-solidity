@@ -1,7 +1,8 @@
 const Witnet = require("witnet-utils")
-const addresses = require("../witnet/addresses")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
-const templates = selection?.length > 0 ? require("../../assets/witnet/templates") : require("../witnet/templates")
+
+const addresses = require("../addresses")
+const templates = require("../../assets").templates
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
@@ -25,7 +26,7 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
     if (template?.specs) {
       const targetAddr = addresses[ecosystem][network].templates[key] ?? null
       if (
-        (selection.length == 0 && isDryRun) 
+        process.argv.includes("--all")
           || selection.includes(key)
           || targetAddr === "" 
           || (!Witnet.Utils.isNullAddress(targetAddr) && (await web3.eth.getCode(targetAddr)).length <= 3)
@@ -43,7 +44,7 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
           console.info("  ", "> Template registry:  ", await templateContract.registry.call())
           console.info("  ", `> Template address:    \x1b[1;37m${templateContract.address}\x1b[0m`)
           addresses[ecosystem][network].templates[key] = templateAddr
-          Witnet.Utils.saveAddresses(addresses)
+          Witnet.Utils.saveAddresses(addresses, isDryRun ? "./witnet/tests" : "./witnet/migrations")
         } catch (e) {
           Witnet.Utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
           process.exit(0)

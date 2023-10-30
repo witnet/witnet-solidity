@@ -1,8 +1,10 @@
-const Witnet = require("witnet-utils")
 const { merge } = require("lodash")
-const settings = require("witnet-solidity-bridge/migrations/witnet.settings")
+const Witnet = require("witnet-utils")
+
 const rn = Witnet.Utils.getRealmNetworkFromArgs()
 const realm = rn[0]; const network = rn[1]
+
+const settings = require("witnet-solidity-bridge/migrations/witnet.settings")
 if (!settings.networks[realm] || !settings.networks[realm][network]) {
   if (network !== "develop" && network !== "test" && network !== "development") {
     console.error(
@@ -12,18 +14,19 @@ if (!settings.networks[realm] || !settings.networks[realm][network]) {
     process.exit(1)
   }
 }
+
 console.info(`
 Targetting "${realm.toUpperCase()}" ecosystem
 =======================${"=".repeat(realm.length)}`)
+
 module.exports = {
-  build_directory: `./build/`,
-  contracts_directory: "./contracts/",
-  migrations_directory: "./migrations/truffle/",
+  build_directory: `./witnet/migrations/build/${realm}`,
+  contracts_directory: "./witnet/migrations/contracts/",
+  migrations_directory: "./witnet/migrations/scripts/",
   networks: merge(
     settings.networks[realm], {
       default: {
         "ethereum.mainnet": {
-          skipDryRun: true,
           confirmations: 2,
         },
       },

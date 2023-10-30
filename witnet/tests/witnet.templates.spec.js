@@ -1,21 +1,23 @@
 const Witnet = require("witnet-utils")
-const addresses = require("../migrations/witnet/addresses")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
-const templates = selection?.length > 0 ? require("../assets/witnet/templates") : require("../migrations/witnet/templates")
+
+const addresses = require("./addresses")
+const templates = require("../assets").templates
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
 const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 contract("migrations/witnet/templates", async () => {
+  let summary = []
   describe("My Witnet Request Templates...", async () => {
     const crafts = findWitnetRequestTemplateCrafts(templates)
     await crafts.forEach(async (craft) => {
       if (
         craft.address !== "" &&
           (
-            selection.length === 0 ||
-              selection.includes(craft.key)
+            process.argv.includes("--all")
+              || selection.includes(craft.key)
           )
       ) {
         describe(`${craft.key}`, async () => {
@@ -44,6 +46,15 @@ contract("migrations/witnet/templates", async () => {
                   assert(false, "Invalid JSON: " + output)
                 }
                 const result = Witnet.Utils.processDryRunJson(JSON.parse(output))
+                summary.push({
+                  "Artifact": craft.key,
+                  "Test": test,
+                  "Status": result.status,
+                  "✓ Sources": result.totalRetrievals - result.nokRetrievals,
+                  "∑ Sources": result.totalRetrievals,
+                  "Time (ms)": result.runningTime,
+                  "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
+                })
                 if (result.status !== "OK") {
                   throw Error(result?.error || "Dry-run-failed!")
                 }
@@ -58,6 +69,12 @@ contract("migrations/witnet/templates", async () => {
             })
           }
         })
+      }
+    })
+    after(async () => {
+      if (summary.length > 0) {
+        console.log(`\n${"=".repeat(148)}\n> DRY-RUN DATA REQUEST TEMPLATES:`)
+        console.table(summary)
       }
     })
   })

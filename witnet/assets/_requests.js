@@ -1,12 +1,10 @@
+const { merge } = require("lodash")
 const Witnet = require("witnet-utils")
-const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
-const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("../../assets/witnet/templates"))
 
-module.exports = {
-    WitnetRequestRandomness: Witnet.StaticRequest({
-        retrieve: [ Witnet.Retrievals.RNG(), ],
-        tally: Witnet.Reducers.ConcatHash(),
-    }),
+const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("./retrievals"))
+const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("./templates"))
+
+module.exports = merge(require("witnet-solidity/witnet/assets").requests, {
     /////// STATIC REQUESTS /////////////////////////////////////////////////////////
     // path: { ... path: {
     //      WitnetRequestXXX: Witnet.StaticRequest({ 
@@ -32,4 +30,5 @@ module.exports = {
     //          tally?: Witnet.Reducers.., // tally     
     //      }),
     // }, ... }, 
-};
+    },
+);

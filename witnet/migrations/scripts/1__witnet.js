@@ -1,5 +1,6 @@
-const addresses = require("../../assets/witnet/addresses")
 const Witnet = require("witnet-utils")
+
+const addresses = require("../../assets").addresses
 
 const WitnetEncodingLib = artifacts.require("WitnetEncodingLib")
 const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
@@ -47,7 +48,7 @@ module.exports = async function (deployer, network, [, from]) {
     await deployer.deploy(
       WitnetBytecodesDefault,
       false,
-      Witnet.Utils.fromAscii(network),
+      Witnet.Utils.fromAscii("mocked"),
       { from, gas: 6721975 }
     )
     WitnetBytecodes.address = WitnetBytecodesDefault.address    
@@ -55,7 +56,7 @@ module.exports = async function (deployer, network, [, from]) {
       WitnetRequestFactoryDefault,
       WitnetBytecodes.address,
       false,
-      Witnet.Utils.fromAscii(network),
+      Witnet.Utils.fromAscii("mocked"),
       { from, gas: 6721975 }
     )
     WitnetRequestFactory.address = WitnetRequestFactoryDefault.address    
@@ -63,7 +64,7 @@ module.exports = async function (deployer, network, [, from]) {
       WitnetRequestBoardDefault,
       WitnetRequestFactory.address,
       false,
-      Witnet.Utils.fromAscii(network),
+      Witnet.Utils.fromAscii("mocked"),
       135000,
       { from, gas: 6721975 }
     )
@@ -72,38 +73,38 @@ module.exports = async function (deployer, network, [, from]) {
       WitnetPriceFeedsUpgradable,
       WitnetRequestBoard.address,
       false,
-      Witnet.Utils.fromAscii(network),
+      Witnet.Utils.fromAscii("mocked"),
       { from, gas: 6721975 }
     )
     WitnetPriceFeeds.address = WitnetPriceFeedsUpgradable.address    
     await deployer.deploy(
       WitnetRandomnessProxiable,
       WitnetRequestBoard.address,
-      Witnet.Utils.fromAscii(network),
+      Witnet.Utils.fromAscii("mocked"),
       { from, gas: 6721975 }
     )
     WitnetRandomness.address = WitnetRandomnessProxiable.address    
-    const addresses = require("../witnet/addresses")
+    const addresses = require("../addresses")
     if (addresses[ecosystem] && addresses[ecosystem][network]) {
       delete addresses[ecosystem][network]
-      Witnet.Utils.saveAddresses(addresses)
+      Witnet.Utils.saveAddresses(addresses, "..")
     }
   }
   Witnet.Utils.traceHeader("Witnet artifacts:")
   if (WitnetBytecodes.address) {
-    console.info("  ", "> WitnetBytecodes:      ", WitnetBytecodes.address, `(v${await readUpgradableArtifactVersion(WitnetBytecodes)})`)
+    console.info("  ", "> WitnetBytecodes:      ", WitnetBytecodes.address, `(${await readUpgradableArtifactVersion(WitnetBytecodes)})`)
   }
   if (WitnetPriceFeeds.address) {
-    console.info("  ", "> WitnetPriceFeeds:     ", WitnetPriceFeeds.address, `(v${await readUpgradableArtifactVersion(WitnetPriceFeeds)})`)
+    console.info("  ", "> WitnetPriceFeeds:     ", WitnetPriceFeeds.address, `(${await readUpgradableArtifactVersion(WitnetPriceFeeds)})`)
   }
   if (WitnetRandomness.address) {
-    console.info("  ", "> WitnetRandomness:     ", WitnetRandomness.address, `(v${await readUpgradableArtifactVersion(WitnetRandomness)})`)
+    console.info("  ", "> WitnetRandomness:     ", WitnetRandomness.address, `(${await readUpgradableArtifactVersion(WitnetRandomness)})`)
   }
   if (WitnetRequestBoard.address) {
-    console.info("  ", "> WitnetRequestBoard:   ", WitnetRequestBoard.address, `(v${await readUpgradableArtifactVersion(WitnetRequestBoard)})`)
+    console.info("  ", "> WitnetRequestBoard:   ", WitnetRequestBoard.address, `(${await readUpgradableArtifactVersion(WitnetRequestBoard)})`)
   }
   if (WitnetRequestFactory.address) {
-    console.info("  ", "> WitnetRequestFactory: ", WitnetRequestFactory.address, `(v${await readUpgradableArtifactVersion(WitnetRequestFactory)})`)
+    console.info("  ", "> WitnetRequestFactory: ", WitnetRequestFactory.address, `(${await readUpgradableArtifactVersion(WitnetRequestFactory)})`)
   }
 }
 

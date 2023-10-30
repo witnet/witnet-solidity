@@ -4,10 +4,15 @@ const execSync = require('child_process').execSync;
 const fs = require("fs");
 const Witnet = require("witnet-utils")
 
+const witnet_project_path = process.env.WITNET_SOLIDITY_PROJECT_PATH || "../../../../witnet";
+const witnet_migrations_path = "witnet/migrations";
+const witnet_tests_path = "witnet/tests";
+
 if (process.argv.length >= 3) {
     const command = process.argv[2]
     if (command === "init") {
         init();
+        showMainUsage();
     } else if (command === "avail") {
         avail();
     } else if (command === "test") {
@@ -27,15 +32,20 @@ if (process.argv.length >= 3) {
     showMainUsage()
 }
 
+function version() {
+    console.info(`Witnet Solidity utility command v${require("../../package.json").version}`)
+}
+
 function showMainUsage() {
-    console.info(process.argv[1], "usage:")
+    version()
     console.info()
-    console.info("  ", "init", "\t\t=>", "Initialize Witnet artifact, folders and scripts.")
+    console.info("Usage:")
+    console.info()
     console.info("  ", "avail", "\t\t=>", "List available resources from Witnet.")
-    console.info("  ", "check", "\t\t=>", "Check that all Witnet assets within this project are properly declared.")
+    console.info("  ", "check", "\t\t=>", "Check that all Witnet assets are properly declared.")
     console.info("  ", "console", "\t\t=>", "Open Truffle console as to interact with Witnet deployed artifacts.")
-    console.info("  ", "deploy", "\t\t=>", "Deploy Witnet requests and templates defined within the ./migrations/witnet/ folder.")
-    console.info("  ", "test", "\t\t=>", "Dry-run requests and templates defined within the ./migrations/witnet/ folder.")
+    console.info("  ", "deploy", "\t\t=>", "Deploy Witnet requests and templates defined within the witnet/assets/ folder.")
+    console.info("  ", "test", "\t\t=>", "Dry-run requests and templates defined within the witnet/assets/ folder.")
     console.info("  ", "version", "\t\t=>", "Shows version.")
 }
 
@@ -50,228 +60,76 @@ function showAvailUsage() {
 }
 
 function init() {
-    if (!fs.existsSync("./assets/witnet/abis")) {
-        fs.mkdirSync("./assets/witnet/abis", { recursive: true })
+    if (!fs.existsSync("./witnet/assets")) {
+        fs.mkdirSync("./witnet/assets", { recursive: true })
     }    
-    if (!fs.existsSync("./contracts")) {
-        fs.mkdirSync("./contracts", { recursive: true })
+    if (!fs.existsSync("./witnet/migrations/build")) {
+        fs.mkdirSync("./witnet/migrations/build", { recursive: true })
     }
-    if (!fs.existsSync("./migrations/truffle")) {
-        fs.mkdirSync("./migrations/truffle", { recursive: true })
+    if (!fs.existsSync("./witnet/migrations/contracts")) {
+        fs.mkdirSync("./witnet/migrations/contracts", { recursive: true })
+    }
+    if (!fs.existsSync("./witnet/migrations/scripts")) {
+        fs.mkdirSync("./witnet/migrations/scripts", { recursive: true })
     }    
-    if (!fs.existsSync("./migrations/witnet")) {
-        fs.mkdirSync("./migrations/witnet", { recursive: true })
-    }    
-    if (!fs.existsSync("./test")) {
-        fs.mkdirSync("./test", { recursive: true })
+    if (!fs.existsSync("./witnet/tests")) {
+        fs.mkdirSync("./witnet/tests", { recursive: true })
     }    
     if (!fs.existsSync(".env_witnet")) {
         fs.cpSync("node_modules/witnet-solidity/.env_witnet", ".env_witnet")
     } 
-    // if (!fs.existsSync("truffle-config.js")) {
-    //     fs.cpSync("node_modules/witnet-solidity/truffle-config.js", "truffle-config.js")
-    // }
+    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_addresses.js", "./witnet/assets/addresses.js");
+    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_index.js", "./witnet/assets/index.js");
+    if (!fs.existsSync("./witnet/assets/requests.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js");
+    }
+    if (!fs.existsSync("./witnet/assets/retrievals.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_retrievals.js", "./witnet/assets/retrievals.js");
+    }
+    if (!fs.existsSync("./witnet/assets/templates.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js");
+    }
     fs.cpSync(
-        "node_modules/witnet-solidity/assets/witnet/abis/",
-        "./assets/witnet/abis/",
-        { recursive: true, force: true, }
+        "node_modules/witnet-solidity/witnet/migrations/contracts/",
+        "./witnet/migrations/contracts/",
+        { force: true, recursive: true, }
     )
     fs.cpSync(
-        "node_modules/witnet-solidity/contracts/WitnetMigrations.sol",
-        "./contracts/WitnetMigrations.sol",
+        "node_modules/witnet-solidity/witnet/migrations/scripts/",
+        "./witnet/migrations/scripts/",
+        { force: true, recursive: true, }
     )
     fs.cpSync(
-        "node_modules/witnet-solidity/migrations/truffle",
-        "./migrations/truffle",
-        { recursive: true, force: true, }
-    )
-    fs.cpSync(
-        "node_modules/witnet-solidity/migrations/witnet/truffle-config.js",
-        "./migrations/witnet/truffle-config.js",
+        "node_modules/witnet-solidity/witnet/migrations/settings.js",
+        "./witnet/migrations/settings.js",
         { force: true, }
     )
     fs.cpSync(
-        "node_modules/witnet-solidity/test/witnet.requests.spec.js",
-        "./test/witnet.requests.spec.js",
+        "node_modules/witnet-solidity/witnet/tests/",
+        "./witnet/tests/",
         { recursive: true, force: true, }
     )
-    fs.cpSync(
-        "node_modules/witnet-solidity/test/witnet.templates.spec.js",
-        "./test/witnet.templates.spec.js",
-        { recursive: true, force: true, }
-    )
-    let empty_json = `{}`
-    if (!fs.existsSync("./migrations/witnet/addresses.json")) {
-        fs.writeFileSync("./migrations/witnet/addresses.json", empty_json)
+    if (!fs.existsSync(".gitignore")) {
+        fs.writeFileSync(".gitignore", "# Witnet build artifacts\nwitnet/migrations/build\nwitnet/migrations/tests/addresses.json\n")
+    } else {
+        fs.appendFileSync(".gitignore", "# Witnet build artifacts\nwitnet/migrations/build\nwitnet/migrations/tests/addresses.json\n")
     }
-    let assets_witnet_addresses = 
-`
-const { merge } = require("lodash")
-module.exports = {
-    ...merge(
-        require("witnet-solidity/assets/witnet/addresses"),
-        require("../../migrations/witnet/addresses"),
-    ),
-};
-`
-    if (!fs.existsSync("./assets/witnet/addresses.js")) {
-        fs.writeFileSync("./assets/witnet/addresses.js", assets_witnet_addresses)
-    }
-    let assets_witnet_requests = 
-`const { merge } = require("lodash")
-module.exports = {
-    ...merge(
-        require("witnet-solidity/migrations/witnet/requests"),
-        require("../../migrations/witnet/requests"),
-    ),
-};
-`
-    if (!fs.existsSync("./assets/witnet/requests.js")) {
-        fs.writeFileSync("./assets/witnet/requests.js", assets_witnet_requests)
-    }
-    let assets_witnet_retrievals = 
-`const { merge } = require("lodash")
-module.exports = {
-    ...merge(
-        require("witnet-solidity/migrations/witnet/retrievals"),
-        require("../../migrations/witnet/retrievals"),
-    ),
-};
-`
-    if (!fs.existsSync("./assets/witnet/retrievals.js")) {
-        fs.writeFileSync("./assets/witnet/retrievals.js", assets_witnet_retrievals)
-    }
-    let assets_witnet_templates = 
-`const { merge } = require("lodash")
-module.exports = {
-    ...merge(
-        require("witnet-solidity/migrations/witnet/templates"),
-        require("../../migrations/witnet/templates"),
-    ),
-};
-`
-    if (!fs.existsSync("./assets/witnet/templates.js")) {
-        fs.writeFileSync("./assets/witnet/templates.js", assets_witnet_templates)
-    }
-    let migrations_witnet_requests = 
-`const Witnet = require("witnet-utils")
-const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
-const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("../../assets/witnet/templates"))
-
-module.exports = {
-    /////// STATIC REQUESTS /////////////////////////////////////////////////////////
-    // path: { ... path: {
-    //      WitnetRequestXXX: Witnet.StaticRequest({ 
-    //          retrieve: [ Witnet.Retrievals.., ..., retrievals['retrieval-artifact-name-x'], ... ],
-    //          aggregate?: Witnet.Reducers..,
-    //          tally?: Witnet.Reducers..,
-    //      }),
-    ////// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-    //      WitnetRequestYYY: Witnet.RequestFromTemplate(
-    //          templates['template-artifact-name'], 
-    //          [ [ .. ], .. ], // args: string[][]
-    //      ),
-    ////// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
-    //      WitnetRequestZZZ: Witnet.RequestFromDictionary({
-    //          retrieve: {
-    //              dict: retrievals,
-    //              tags: { 
-    //                  'retrieval-artifact-name-1': [ [ .. ], .. ], // args: string[][]
-    //                  ...
-    //              },
-    //          },
-    //          aggregate?: Witnet.Reducers.., // aggregate
-    //          tally?: Witnet.Reducers.., // tally     
-    //      }),
-    // }, ... }, 
-};     
-`
-    if (!fs.existsSync("./migrations/witnet/requests.js")) {
-        fs.writeFileSync("./migrations/witnet/requests.js", migrations_witnet_requests)
-    }
-    let migrations_witnet_templates = 
-`const Witnet = require("witnet-utils")
-const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../assets/witnet/retrievals"))
-
-module.exports = {
-    /////// REQUEST TEMPLATES ///////////////////////////////////////////////////////
-    // path: { ... path: {
-    //      WitnetRequestTemplateXXX: Witnet.RequestTemplate({
-    //          retrieve: [ retrievals['retrieval-artifact-name-x'], ... ],
-    //          aggregate?: Witnet.Reducers..,
-    //          tally?: Witnet.Reducers..,
-    //          tests?: {
-    //              "test-description-1": [
-    //                  [ "..", ... ], // retrieval #0 args (string[])
-    //                  ...
-    //              ],
-    //              ...
-    //          }
-    //      }),
-    //      ...
-    // }, ... },
-};    
-`
-    if (!fs.existsSync("./migrations/witnet/templates.js")) {
-        fs.writeFileSync("./migrations/witnet/templates.js", migrations_witnet_templates)
-    }
-    let migrations_witnet_retrievals = 
-`const Witnet = require("witnet-utils")
-
-module.exports = {
-    // path: { ... path: {
-    /////// HTTP-GET RETRIEVALS /////////////////////////////////////////////////////
-    //      'retrieval-unique-resource-name-x': Witnet.Retrievals.HttpGet(
-    //          url: "http-or-https://authority/path?query",
-    //          headers?: {
-    //              "http-header-tag": "http-header-value",
-    //              ...,
-    //          },
-    //          script?: Witnet.Script..,
-    //      }),
-    /////// HTTP-POST RETRIEVALS ////////////////////////////////////////////////////
-    //      'retrieval-unique-resource-name-y': Witnet.Retrievals.HttpPut(
-    //          url: "http-or-https://authority/path?query",
-    //          body?: "...",
-    //          headers?: {
-    //              "http-header-tag": "http-header-value",
-    //              ...,
-    //          },
-    //          script?: Witnet.Script..,
-    //      }),
-    /////// GRAPH-QL QUERIES ////////////////////////////////////////////////////////
-    //      'retrieval-unique-resource-name-z': Witnet.Retrievals.GraphQL(
-    //          url: "http-or-https://authority/path?query",
-    //          query: "...",
-    //          headers?: {
-    //              "http-header-tag": "http-header-value",
-    //              ...,
-    //          },
-    //          script?: Witnet.Script..,
-    //      }),
-    // }, ... }, 
-};
-`
-    if (!fs.existsSync("./migrations/witnet/retrievals.js")) {
-        fs.writeFileSync("./migrations/witnet/retrievals.js", migrations_witnet_retrievals)
-    }
-    version()
 }
 
 function avail() {
     
-    const addresses = require("../../../../assets/witnet/addresses");
-    const requests = require("../../../../assets/witnet/requests");
-    const retrievals = require("../../../../assets/witnet/retrievals");
-    const templates = require("../../../../assets/witnet/templates");
+    const addresses = require(`${witnet_project_path}/assets`).addresses;
+    const requests = require(`${witnet_project_path}/assets`).requests;
+    const retrievals = require(`${witnet_project_path}/assets`).retrievals;
+    const templates = require(`${witnet_project_path}/assets`).templates;
 
     if (process.argv.includes("--chains")) {
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
             return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
         })
-        // add `WITNET_SIDECHAIN` to selection, should no chains list be provided from CLI
-        if ((!selection || selection.length == 0) && process.env.WITNET_SIDECHAIN) {
-            selection = [ process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", ".") ]
+        // add `WITNET_DEFAULT_CHAIN` to selection, should no chains list be provided from CLI
+        if ((!selection || selection.length == 0) && process.env.WITNET_DEFAULT_CHAIN) {
+            selection = [ process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", ".") ]
         }
         if (!selection || selection.length == 0) {
             // if no chains list was specified, just list Witnet supported "ecosystems"
@@ -285,7 +143,7 @@ function avail() {
             console.info()
             console.info("  ", "$ npx witnet avail --chains <comma-separated-witnet-supported-ecosystems>")
             console.info()
-            console.info("Note: the --chains operand can be omitted if the WITNET_SIDECHAIN environment variable is set.")
+            console.info("Note: the --chains operand can be omitted if the WITNET_DEFAULT_CHAIN environment variable is set.")
             console.info()
             process.exit(0)
         }
@@ -296,7 +154,7 @@ function avail() {
                 // if ecosystem matches any of selection items, 
                 // print Witnet supported "chains" within it
                 const caption = ecosystem === "default" ? "ETHEREUM" : ecosystem.toUpperCase()
-                Witnet.Utils.traceHeader(`WITNET SUPPORTED CHAINS ON '${caption}' ECOSYSTEM`)
+                Witnet.Utils.traceHeader(`SUPPORTED '${caption}' CHAINS`)
                 for (const network in addresses[ecosystem]) {
                     console.info("  ", network.replaceAll(".", ":"))
                 }
@@ -326,27 +184,29 @@ function avail() {
         }
     } else if (process.argv.includes("--requests")) {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--requests")
-        if (!traceWitnetArtifacts(requests, selection)) {
-            if (selection.length > 0) {
-                console.info()
-                console.info("Sorry, no WitnetRequest artifacts were found by given names:", selection)
-            } else {
-                console.info()
-                console.info("Sorry, no WitnetRequest artifacts have yet been declared within this project.")
-            }
-            process.exit(0)
+        if (selection.length == 0) {
+            Witnet.Utils.traceHeader("WITNET DATA REQUESTS")
+            traceWitnetArtifactsBreakdown(requests)
+        }
+        if (selection.length == 0 || !traceWitnetArtifacts(requests, selection)) {
+            console.info()
+            console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
+            console.info()
+            console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
+            console.info()
         }
     } else if (process.argv.includes("--templates")) {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--templates")   
-        if (!traceWitnetArtifacts(templates, selection)) {
-            if (selection.length > 0) {
-                console.info()
-                console.info("Sorry, no WitnetRequestTemplate artifacts were found by given names:", selection)
-            } else {
-                console.info()
-                console.info("Sorry, no WitnetRequestTemplate artifacts have yet been declared within this project.")
-            }
-            process.exit(0)
+        if (selection.length == 0) {
+            Witnet.Utils.traceHeader("WITNET DATA REQUEST TEMPLATES")
+            traceWitnetArtifactsBreakdown(templates)
+        }
+        if (selection.length == 0 || !traceWitnetArtifacts(templates, selection)) {
+            console.info()
+            console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
+            console.info()
+            console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
+            console.info()
         }
     } else if (process.argv.includes("--retrievals")) {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--retrievals")
@@ -386,10 +246,10 @@ function avail() {
 }
 
 function check() {
-    Witnet.Utils.traceHeader(`Checking your Witnet assets...`)
-    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require("../../../../assets/witnet/requests")));
-    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require("../../../../assets/witnet/templates")));
-    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require("../../../../assets/witnet/retrievals")));    
+    Witnet.Utils.traceHeader(`Checking Witnet assets...`)
+    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require(`${witnet_project_path}/assets`).requests));
+    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require(`${witnet_project_path}/assets`).templates));
+    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require(`${witnet_project_path}/assets`).retrievals));    
     console.info("\nAll assets checked successfully!")
 }
 
@@ -402,7 +262,10 @@ function test() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`npx truffle test --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle test/witnet.templates.spec.js test/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
+        if (fs.existsSync(`${witnet_tests_path}/addresses.json`)) {
+            fs.writeFileSync(`${witnet_tests_path}/addresses.json`, `{}`)
+        }
+        execSync(`npx truffle test --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts ${witnet_tests_path}/witnet.templates.spec.js ${witnet_tests_path}/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
     } catch {}
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -418,8 +281,8 @@ function truffleConsole() {
     let chain
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
         chain = Witnet.Utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
-    } else if (process.env.WITNET_SIDECHAIN) {
-        chain = Witnet.Utils.getRealmNetworkFromString(process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", "."))
+    } else if (process.env.WITNET_DEFAULT_CHAIN) {
+        chain = Witnet.Utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
     } else {
         console.info()
         console.info("Usage:")
@@ -430,17 +293,17 @@ function truffleConsole() {
         console.info()
         console.info("  $ npx witnet avail --chains")
         console.info()
-        console.info("No need to specify <witnet-supported-chain> if WITNET_SIDECHAIN environment variable is set, though.")
-        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SIDECHAIN.")
+        console.info("No need to specify <witnet-supported-chain> if WITNET_DEFAULT_CHAIN environment variable is set, though.")
+        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
         process.exit(0)
     }
-    const addresses = require("../../../../assets/witnet/addresses")[chain[0]][chain[1]]
+    const addresses = require(`${witnet_project_path}/assets/addresses`)[chain[0]][chain[1]]
     Witnet.Utils.traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
     if (traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
     }
     try {
-        execSync(`npx truffle console --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]}`, { stdio: 'inherit' })
+        execSync(`npx truffle console --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts --network ${chain[1]}`, { stdio: 'inherit' })
     } catch {}
 }
 
@@ -448,8 +311,8 @@ function deploy() {
     let chain
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
         chain = Witnet.Utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
-    } else if (process.env.WITNET_SIDECHAIN) {
-        chain = Witnet.Utils.getRealmNetworkFromString(process.env.WITNET_SIDECHAIN.toLowerCase().trim().replaceAll(":", "."))
+    } else if (process.env.WITNET_DEFAULT_CHAIN) {
+        chain = Witnet.Utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
     } else {
         console.info()
         console.info("Usage:")
@@ -460,8 +323,8 @@ function deploy() {
         console.info()
         console.info("  $ npx witnet avail --chains")
         console.info()
-        console.info("No need to specify <witnet-supported-chain> if WITNET_SIDECHAIN environment variable is set, though.")
-        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SIDECHAIN.")
+        console.info("No need to specify <witnet-supported-chain> if WITNET_DEFAULT_CHAIN environment variable is set, though.")
+        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
         process.exit(0)
     }   
     let oIndex = -1
@@ -472,7 +335,7 @@ function deploy() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`npx truffle migrate --config migrations/witnet/truffle-config.js --migrations_directory migrations/truffle --network ${chain[1]} ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle migrate --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts --network ${chain[1]} ${args}`, { stdio: 'inherit' })
     } catch {}    
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -483,13 +346,6 @@ function deploy() {
         console.info("    $ npx witnet deploy [<witnet-supported-chain>] --artifacts <comma-separated-artifact-names>")
         console.info()
       }
-}
-
-function version() {
-    console.info()
-    console.info(`Witnet Solidity utility command v${require("../../package.json").version}`)
-    console.info()
-    showMainUsage();
 }
 
 /// ---- internal functions -------------------------------------------------------------------------------------------
@@ -537,56 +393,71 @@ function traceWitnetAddresses(addresses, selection, level) {
     return found
 }
 
-function traceWitnetArtifacts(crafts, selection) {
-    let found = 0 
-    for (const key in orderKeys(crafts)) {
-        const craft = crafts[key]
-        const specs = craft?.specs
-        if (specs) {
-            const args = crafts[key]?.args
-            if (selection.length > 0 && !selection.includes(key)) continue;
-            found ++
-            console.info(`\n   \x1b[1;37m${key}\x1b[0m`)
-            console.info("  ", "=".repeat(key.length))
-            if (specs?.retrieve.length == 1) {
-                if (specs.retrieve[0]?.argsCount) {
-                    if (!args || args.length == 0) {
-                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
-                    } else {
-                        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
-                    }
+function traceWitnetArtifact(artifact) {
+    const specs = artifact?.specs
+    if (specs) {
+        const args = specs?.args
+        if (specs?.retrieve.length == 1) {
+            if (specs.retrieve[0]?.argsCount) {
+                if (!args || args.length == 0) {
+                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
                 } else {
-                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}()\x1b[0m`)
+                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
                 }
             } else {
-                console.info("  ", `[1] RETRIEVE:`)
-            }
-            specs?.retrieve.map((value, index) => {
-                if (specs?.retrieve.length > 1) {
-                    if (value?.argsCount) {
-                        if (!args[index] || args[index].length == 0) {
-                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
-                        } else {
-                            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
-                        }
-                    } else {
-                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
-                    }
-                }
-                traceWitnetArtifactRetrieval(value)
-            })
-            if (specs?.aggregate) {
-                console.info("  ", `[2] AGGREGATE:\t\x1b[1;35m${specs.aggregate.toString()}\x1b[0m`)
-            }
-            if (specs?.tally) {
-                console.info("  ", `[3] TALLY:    \t\x1b[1;35m${specs.tally.toString()}\x1b[0m`)
+                console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(specs.retrieve[0].method)}()\x1b[0m`)
             }
         } else {
-            found += traceWitnetArtifacts(craft, selection)
+            console.info("  ", `[1] RETRIEVE:`)
+        }
+        specs?.retrieve.map((value, index) => {
+            if (specs?.retrieve.length > 1) {
+                if (value?.argsCount) {
+                    if (!args[index] || args[index].length == 0) {
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+                    } else {
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
+                    }
+                } else {
+                    console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
+                }
+            }
+            traceWitnetArtifactRetrieval(value)
+        })
+        if (specs?.aggregate) {
+            console.info("  ", `[2] AGGREGATE:\t\x1b[1;35m${specs.aggregate.toString()}\x1b[0m`)
+        }
+        if (specs?.tally) {
+            console.info("  ", `[3] TALLY:    \t\x1b[1;35m${specs.tally.toString()}\x1b[0m`)
+        }
+    }
+}
+
+function traceWitnetArtifacts(crafts, selection) {
+    const dict = Witnet.Dictionary(Object, crafts)
+    let found = 0
+    for (const index in selection) {
+        const key = selection[index]
+        try {
+            const artifact = dict[key]
+            if (artifact?.specs) {
+                console.info(`\n   \x1b[1;37m${key}\x1b[0m`)
+                console.info("  ", "=".repeat(key.length))
+                traceWitnetArtifact(artifact)
+                found ++
+            } else {
+                console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
+                console.info("  ", "=".repeat(key.length))
+                traceWitnetArtifactsBreakdown(artifact)
+            }
+        } catch (ex) {
+            console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
+            console.info("  ", "=".repeat(key.length))
+            console.info("  ", ">", ex.toString().split('\n')[0])
         }
     }
     return found
-
+}
 
 function traceWitnetArtifactRetrieval(specs) {
     if (specs?.url) {
@@ -604,13 +475,21 @@ function traceWitnetArtifactRetrieval(specs) {
     if (specs?.script) {
         console.info("  ", `    > Script:  \t\x1b[33m${specs?.script.toString()}\x1b[0m`)
     }
-}}
+}
 
 function traceWitnetRetrievalsBreakdown(retrievals, level) {
     if (retrievals?.method) return;    
     for (const key in orderKeys(retrievals)) {
         console.info(" ", " ".repeat(4 * (level || 0)), (retrievals[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
         traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
+    }
+}
+
+function traceWitnetArtifactsBreakdown(artifacts, level) {
+    if (artifacts?.specs) return;
+    for (const key in orderKeys(artifacts)) {
+        console.info(" ", " ".repeat(4 * (level || 0)), (artifacts[key]?.specs ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
+        traceWitnetArtifactsBreakdown(artifacts[key], level ? level + 1 : 1)
     }
 }
 

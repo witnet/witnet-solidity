@@ -1,7 +1,8 @@
 const Witnet = require("witnet-utils")
-const addresses = require("../witnet/addresses")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
-const requests = selection?.length > 0 ? require("../../assets/witnet/requests") : require("../witnet/requests")
+
+const addresses = require("../addresses")
+const requests = require("../../assets").requests
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
@@ -26,7 +27,7 @@ async function deployWitnetRequests (from, isDryRun, ecosystem, network, request
     if (request?.specs) {
       const targetAddr = addresses[ecosystem][network].requests[key] ?? null
       if (
-        (selection.length == 0 && isDryRun)
+        process.argv.includes("--all")
           || selection.includes(key)
           || targetAddr === "" 
           || (!Witnet.Utils.isNullAddress(targetAddr) && (await web3.eth.getCode(targetAddr)).length <= 3)
@@ -43,7 +44,7 @@ async function deployWitnetRequests (from, isDryRun, ecosystem, network, request
           )
           console.info("  ", `> Request address:   \x1b[1;37m${requestAddress}\x1b[0m`)
           addresses[ecosystem][network].requests[key] = requestAddress
-          Witnet.Utils.saveAddresses(addresses)
+          Witnet.Utils.saveAddresses(addresses, isDryRun ? "./witnet/tests" : "./witnet/migrations")
         } catch (e) {
           Witnet.Utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
           process.exit(0)

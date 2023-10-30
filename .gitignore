@@ -6,6 +6,8 @@ yarn-error.log
 # Build artifacts
 build/
 dist/
+witnet/migrations/build/
+witnet/tests/addresses.json
 
 # Flattened contracts
 flattened/
