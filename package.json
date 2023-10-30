@@ -21,12 +21,12 @@
     "build": "babel src -d build",
     "compile": "npm run build && truffle compile",
     "console": "truffle console",
-    "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\"",
-    "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"contracts/**/*.sol\" --fix",
-    "migrate": "truffle migrate --network",
+    "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
+    "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
+    "witnet": "cross-env-shell WITNET_SOLIDITY_PROJECT_PATH='../../witnet' node ./src/bin/witnet.js",
     "postinstall": "npx witnet-toolkit update",
     "prepare": "npm run build",
-    "test": "truffle test"
+    "test": "npm run build && cross-env-shell WITNET_SOLIDITY_PROJECT_PATH='../../witnet' node ./build/bin/witnet.js check"
   },
   "keywords": [
     "solidity",
@@ -50,6 +50,7 @@
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.15.0",
     "chai": "^4.3.7",
+    "cross-env": "7.0.3",
     "eslint": "^8.42.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
