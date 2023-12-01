@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -14,14 +14,14 @@
     ".env_witnet"
   ],
   "scripts": {
-    "build": "babel src -d build",
+    "build": "tsc -p tsconfig.json",
     "compile": "truffle compile --config ./witnet/migrations/settings.js --contracts_directory ./witnet/contracts",
     "console": "truffle console",
     "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "postinstall": "npx witnet-toolkit update",
     "prepare": "npm run build && npm run compile",
-    "test": "npm run build && cross-env-shell WITNET_SOLIDITY_PROJECT_PATH='../../witnet' node ./build/bin/witnet.js check"
+    "test": "npm run build && cross-env-shell WITNET_SOLIDITY_REQUIRE_PATH='../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./build/bin/witnet.js check"
   },
   "keywords": [
     "solidity",
@@ -39,12 +39,14 @@
   "dependencies": {
     "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#935395d4d3600c016fe6215ec6b1c806c989b696",
     "witnet-utils": "^2.0.0",
+    "witnet-requests": "^0.9.12",
     "inquirer": "^8.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.5.5",
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.15.0",
+    "@types/node": "^18.17.9",
     "chai": "^4.3.7",
     "cross-env": "7.0.3",
     "eslint": "^8.42.0",
@@ -52,6 +54,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "truffle": "^5.7.1"
+    "truffle": "^5.7.1",
+    "typescript": "latest"
   }
 }
