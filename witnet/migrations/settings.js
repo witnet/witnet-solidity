@@ -20,7 +20,7 @@ Targetting "${realm.toUpperCase()}" ecosystem
 =======================${"=".repeat(realm.length)}`)
 
 module.exports = {
-  build_directory: `./witnet/migrations/build/${realm}`,
+  build_directory: `./witnet/build/${realm}`,
   contracts_directory: "./witnet/migrations/contracts/",
   migrations_directory: "./witnet/migrations/scripts/",
   networks: merge(
@@ -40,6 +40,9 @@ module.exports = {
   compilers: merge(
     settings.compilers.default,
     settings.compilers[realm], {
+      solc: {
+        version: "0.8.22",
+      }
     }
   ),
   mocha: {

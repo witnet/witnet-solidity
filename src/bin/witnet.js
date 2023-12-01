@@ -2,17 +2,35 @@
 
 const execSync = require('child_process').execSync;
 const fs = require("fs");
+const inquirer = require("inquirer")
+const path = require("path")
 const Witnet = require("witnet-utils")
 
-const witnet_project_path = process.env.WITNET_SOLIDITY_PROJECT_PATH || "../../../../witnet";
-const witnet_migrations_path = "witnet/migrations";
-const witnet_tests_path = "witnet/tests";
+const witnet_require_path = process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet";
+const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
+const witnet_build_path = `${witnet_module_path}/build`
+const witnet_config_file = `${witnet_module_path}/migrations/settings.js`
+const witnet_contracts_path = `${witnet_module_path}/contracts`
+const witnet_migrations_path = `${witnet_module_path}/migrations/scripts/`
+const witnet_tests_path = `${witnet_module_path}/tests`
 
 if (process.argv.length >= 3) {
     const command = process.argv[2]
     if (command === "init") {
-        init();
-        showMainUsage();
+        if (!fs.existsSync(`./witnet/assets/addresses.json`)) {
+            // if not yet initialized...
+            init();
+            if (process.argv.includes("--wizard")) {
+                wizard();
+            } else {
+                version();
+                showMainUsage();
+            }
+        } else {
+            // if already initialized...
+            wizard();
+        }
+        
     } else if (command === "avail") {
         avail();
     } else if (command === "test") {
@@ -26,18 +44,19 @@ if (process.argv.length >= 3) {
     } else if (command === "version") {
         version();
     } else {
+        version()
         showMainUsage()
     }
 } else {
+    version()
     showMainUsage()
 }
 
-function version() {
-    console.info(`Witnet Solidity utility command v${require("../../package.json").version}`)
+function version(str) {
+    console.info(`\x1b[1;34mWitnet Solidity ${str || "utility command"} v${require("../../package.json").version}\x1b[0m`)
 }
 
 function showMainUsage() {
-    version()
     console.info()
     console.info("Usage:")
     console.info()
@@ -59,26 +78,14 @@ function showAvailUsage() {
     console.info("  ", "  ", "--retrievals [<optional-list>]", "\t=>", "Show details of Witnet data retriving scripts referable from other Witnet artifacts.")
 }
 
-function init() {
+async function init() {
     if (!fs.existsSync("./witnet/assets")) {
         fs.mkdirSync("./witnet/assets", { recursive: true })
     }    
-    if (!fs.existsSync("./witnet/migrations/build")) {
-        fs.mkdirSync("./witnet/migrations/build", { recursive: true })
-    }
-    if (!fs.existsSync("./witnet/migrations/contracts")) {
-        fs.mkdirSync("./witnet/migrations/contracts", { recursive: true })
-    }
-    if (!fs.existsSync("./witnet/migrations/scripts")) {
-        fs.mkdirSync("./witnet/migrations/scripts", { recursive: true })
-    }    
-    if (!fs.existsSync("./witnet/tests")) {
-        fs.mkdirSync("./witnet/tests", { recursive: true })
-    }    
+
     if (!fs.existsSync(".env_witnet")) {
         fs.cpSync("node_modules/witnet-solidity/.env_witnet", ".env_witnet")
     } 
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_addresses.js", "./witnet/assets/addresses.js");
     fs.cpSync("node_modules/witnet-solidity/witnet/assets/_index.js", "./witnet/assets/index.js");
     if (!fs.existsSync("./witnet/assets/requests.js")) {
         fs.cpSync("node_modules/witnet-solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js");
@@ -89,39 +96,20 @@ function init() {
     if (!fs.existsSync("./witnet/assets/templates.js")) {
         fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js");
     }
-    fs.cpSync(
-        "node_modules/witnet-solidity/witnet/migrations/contracts/",
-        "./witnet/migrations/contracts/",
-        { force: true, recursive: true, }
-    )
-    fs.cpSync(
-        "node_modules/witnet-solidity/witnet/migrations/scripts/",
-        "./witnet/migrations/scripts/",
-        { force: true, recursive: true, }
-    )
-    fs.cpSync(
-        "node_modules/witnet-solidity/witnet/migrations/settings.js",
-        "./witnet/migrations/settings.js",
-        { force: true, }
-    )
-    fs.cpSync(
-        "node_modules/witnet-solidity/witnet/tests/",
-        "./witnet/tests/",
-        { recursive: true, force: true, }
-    )
-    if (!fs.existsSync(".gitignore")) {
-        fs.writeFileSync(".gitignore", "# Witnet build artifacts\nwitnet/migrations/build\nwitnet/migrations/tests/addresses.json\n")
-    } else {
-        fs.appendFileSync(".gitignore", "# Witnet build artifacts\nwitnet/migrations/build\nwitnet/migrations/tests/addresses.json\n")
+    if (!fs.existsSync("./witnet/assets/templates.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js");
+    }
+    if (!fs.existsSync("./witnet/assets/addresses.json")) {
+        fs.writeFileSync("./witnet/assets/addresses.json", "{}")
     }
 }
 
 function avail() {
     
-    const addresses = require(`${witnet_project_path}/assets`).addresses;
-    const requests = require(`${witnet_project_path}/assets`).requests;
-    const retrievals = require(`${witnet_project_path}/assets`).retrievals;
-    const templates = require(`${witnet_project_path}/assets`).templates;
+    const addresses = require(`${witnet_require_path}/assets`).addresses;
+    const requests = require(`${witnet_require_path}/assets`).requests;
+    const retrievals = require(`${witnet_require_path}/assets`).retrievals;
+    const templates = require(`${witnet_require_path}/assets`).templates;
 
     if (process.argv.includes("--chains")) {
         let selection = Witnet.Utils.splitSelectionFromProcessArgv("--chains").map(value => {
@@ -171,7 +159,7 @@ function avail() {
                     if (selection.length == 0 || selection.includes(network)) {
                         found ++
                         Witnet.Utils.traceHeader(`WITNET ARTIFACTS ON '${network.replaceAll(".", ":").toUpperCase()}'`)
-                        if (traceWitnetAddresses(addresses[ecosystem][network], Witnet.Utils.getWitnetArtifactsFromArgs()) == 0) {
+                        if (_traceWitnetAddresses(addresses[ecosystem][network], Witnet.Utils.getWitnetArtifactsFromArgs()) == 0) {
                             console.info("  ", "Unavailable.")
                         }
                     }
@@ -186,9 +174,9 @@ function avail() {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--requests")
         if (selection.length == 0) {
             Witnet.Utils.traceHeader("WITNET DATA REQUESTS")
-            traceWitnetArtifactsBreakdown(requests)
+            _traceWitnetArtifactsBreakdown(requests)
         }
-        if (selection.length == 0 || !traceWitnetArtifacts(requests, selection)) {
+        if (selection.length == 0 || !_traceWitnetArtifacts(requests, selection)) {
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
@@ -199,9 +187,9 @@ function avail() {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--templates")   
         if (selection.length == 0) {
             Witnet.Utils.traceHeader("WITNET DATA REQUEST TEMPLATES")
-            traceWitnetArtifactsBreakdown(templates)
+            _traceWitnetArtifactsBreakdown(templates)
         }
-        if (selection.length == 0 || !traceWitnetArtifacts(templates, selection)) {
+        if (selection.length == 0 || !_traceWitnetArtifacts(templates, selection)) {
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
@@ -212,7 +200,7 @@ function avail() {
         const selection = Witnet.Utils.splitSelectionFromProcessArgv("--retrievals")
         if (selection.length == 0) {
             Witnet.Utils.traceHeader("WITNET RETRIEVALS")
-            traceWitnetRetrievalsBreakdown(retrievals)
+            __traceWitnetRetrievalsBreakdown(retrievals)
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
@@ -227,11 +215,11 @@ function avail() {
                     if (retrieval?.method) {
                         console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                         console.info("  ", "=".repeat(key.length))
-                        traceWitnetRetrieval(retrieval)
+                        _traceWitnetRetrieval(retrieval)
                     } else {
                         console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                         console.info("  ", "=".repeat(key.length))
-                        traceWitnetRetrievalsBreakdown(retrieval)
+                        __traceWitnetRetrievalsBreakdown(retrieval)
                     }
                 } catch (ex) {
                     console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
@@ -247,9 +235,9 @@ function avail() {
 
 function check() {
     Witnet.Utils.traceHeader(`Checking Witnet assets...`)
-    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require(`${witnet_project_path}/assets`).requests));
-    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require(`${witnet_project_path}/assets`).templates));
-    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require(`${witnet_project_path}/assets`).retrievals));    
+    console.info("  ", "> Requests:  ", Witnet.countLeaves(Witnet.Artifacts.Class, require(`${witnet_require_path}/assets`).requests));
+    console.info("  ", "> Templates: ", Witnet.countLeaves(Witnet.Artifacts.Template, require(`${witnet_require_path}/assets`).templates));
+    console.info("  ", "> Retrievals:", Witnet.countLeaves(Witnet.Retrievals.Class, require(`${witnet_require_path}/assets`).retrievals));    
     console.info("\nAll assets checked successfully!")
 }
 
@@ -262,10 +250,7 @@ function test() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        if (fs.existsSync(`${witnet_tests_path}/addresses.json`)) {
-            fs.writeFileSync(`${witnet_tests_path}/addresses.json`, `{}`)
-        }
-        execSync(`npx truffle test --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts ${witnet_tests_path}/witnet.templates.spec.js ${witnet_tests_path}/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle test --config ${witnet_config_file} --build_directory ${witnet_build_path}/default --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} ${witnet_tests_path}/witnet.templates.spec.js ${witnet_tests_path}/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
     } catch {}
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -297,13 +282,13 @@ function truffleConsole() {
         console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
         process.exit(0)
     }
-    const addresses = require(`${witnet_project_path}/assets/addresses`)[chain[0]][chain[1]]
+    const addresses = require(`${witnet_require_path}/assets`)?.addresses[chain[0]][chain[1]]
     Witnet.Utils.traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
-    if (traceWitnetAddresses(addresses, []) == 0) {
+    if (_traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
     }
     try {
-        execSync(`npx truffle console --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts --network ${chain[1]}`, { stdio: 'inherit' })
+        execSync(`npx truffle console --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]}`, { stdio: 'inherit' })
     } catch {}
 }
 
@@ -335,7 +320,7 @@ function deploy() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`npx truffle migrate --config ${witnet_migrations_path}/settings.js --migrations_directory ${witnet_migrations_path}/scripts --network ${chain[1]} ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle migrate --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]} ${args}`, { stdio: 'inherit' })
     } catch {}    
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -348,9 +333,233 @@ function deploy() {
       }
 }
 
+async function wizard() {
+    console.clear()
+    version("Wizard")
+    console.info()
+    var contractName = "";
+    var contractPath = "contracts/";
+    var firstContract = true;
+    var namedByUser = false;
+    if (process.argv.includes("--wizard") && process.argv.indexOf("--wizard") < process.argv.length - 1) {
+        contractName = process.argv[process.argv.indexOf("--wizard") + 1].toLowerCase();
+        if (contractName.indexOf("/") > -1) {
+            contractPath = contractName.slice(0, contractName.lastIndexOf("/"))
+            contractName = contractName.slice(contranctName.lastIndexOf("/") + 1)
+        }
+        if (fs.existsSync(contractPath + contractName)) {
+            console.info("Sorry, output file already exists:", contractName)
+            process.exit(1)
+        } else if (!fs.existsSync(contractPath)) {
+            fs.mkdirSync(contractPath);
+        }
+        if (contractName.endsWith(".sol")) contractName = contractName.slice(0, -4)
+        contractName = _capitalizeFirstLetterOnly(contractName)
+        namedByUser = true
+    }
+    if (contractName === "") {
+        var basename = `${_capitalizeFirstLetterOnly(path.basename(process.cwd()))}Witnet`
+        if (!fs.existsSync(contractPath)) {
+            fs.mkdirSync(contractPath);
+        }
+        var files = fs.readdirSync(contractPath).filter(filename => filename.startsWith(basename))
+        contractName = `${basename}${files.length + 1}`
+        firstContract = files.length === 0
+    }
+    var answers = {
+        ...await inquirer.prompt([{
+            type: "rawlist",
+            name: "usage",
+            message: `What will ${
+                    firstContract ? "your first" : (namedByUser ? `the ${contractName}` : `your next`)
+                } Solidity contract be using Witnet for?`,
+            choices: [
+                "Randomness => unmalleable source of randomness.", 
+                "Price feeds => based on multiple, independent and public data sources.",
+                "Public data => retrieved from one or multiple data sources on the Internet.",
+            ]
+        }])
+    };
+    var appKind = answers.usage.split(" ")[0]
+    switch (appKind) {
+        case "Randomness": {
+            break;
+        }
+        case "Price": {
+            answers = {
+                ...await inquirer.prompt({
+                    type: "confirm",
+                    name: "pull",
+                    message: `Would you like to force price updates from this contract?`
+                }), ...answers
+            }
+            break;
+        }
+        case "Public": {
+            answers = {
+                ...await inquirer.prompt({
+                    type: "list",
+                    name: "dynamic",
+                    message: `Will the underlying data sources or parameters vary in time`,
+                    choices: [
+                        "Yes => either the data sources, or some request parameters, will vary in time.",
+                        "No => the data sources and parameters will remain constant."
+                    ]
+                }), ...answers
+            }
+            if (answers?.dynamic.split(" ")[0] === "Yes") {
+                answers = {
+                    ...await inquirer.prompt({
+                        type: "list",
+                        name: "parameterized",
+                        message: `Will your contract have to deal with data request parameters?`,
+                        choices: [
+                            "Yes => my contract will have to process data request parameters onchain.",
+                            "No => actual data requests will be provided by some pre-authorized offchain worflow."
+                        ]
+                    }), ...answers
+                }
+            }
+            if (answers?.dynamic.split(" ")[0] === "No" || answers?.parameterized.split(" ")[0] === "Yes") {
+                answers = {
+                    ...await inquirer.prompt({
+                        type: "list",
+                        name: "callbacks",
+                        message: `How would you like your contract to read data from the Witnet oracle?`,
+                        choices: [
+                            "Asynchronously => my contract will eventually read the result from Witnet, if available.",
+                            "Synchronously => my contract is to be called as soon as data is reported from Witnet."
+                        ]
+                    }), ...answers
+                }
+            }
+            break;
+        }
+    } 
+    // console.info()
+    if (appKind === "Randomness" || answers?.callbacks?.split(" ")[0] === "Synchronously") {
+        var callbackGasLimit
+        do {
+            callbackGasLimit = parseInt((await inquirer.prompt({
+                type: "number",
+                name: "callbackGasLimit",
+                message: `Please, specify the maximum gas that you expect your Witnet-callback methods to consume:`,
+                default: 250000,
+            })).callbackGasLimit)
+        } while (!callbackGasLimit)
+        answers = { callbackGasLimit, ...answers }
+    }
+    if (
+        appKind === "Randomness" || 
+        appKind === "Price" || 
+        answers?.parameterized?.split(" ")[0] === "Yes"
+    ) {
+        answers = {
+            ...await inquirer.prompt({
+                type: "confirm",
+                name: "includeMocks",
+                message: `Do you intend to include this new contract within your unitary Solidity tests?`,
+                default: false
+            }), ...answers
+        }
+        if (!answers.includeMocks) {
+            const addresses = require(`${witnet_require_path}/assets`).addresses
+            const choices = []
+            for (const ecosystem in addresses) {
+                choices.push(ecosystem === "default" ? "ETHEREUM" : ecosystem.toUpperCase())
+            }
+            answers = {
+                ...await inquirer.prompt({
+                    type: "checkbox",
+                    name: "ecosystems",
+                    message: `Please, select the ecosystem(s) where you intend to deploy this new contract:`,
+                    choices, pageSize: 16, loop: true,
+                    validate: (ans) => { return (ans.length > 0) }
+                }), ...answers
+            }
+            var target = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetRequestBoard"
+            var findings = []
+            for (const index in answers?.ecosystems) {
+                var ecosystem = answers?.ecosystems[index].toLowerCase()
+                for (const network in addresses[ecosystem]) {
+                    var targetAddr = addresses[ecosystem][network][target]
+                    if (!findings.includes(targetAddr)) {
+                        findings.push(targetAddr)
+                    }
+                }
+            }
+            if (findings.length == 1) {
+                answers = {
+                    ...answers,
+                    witnetAddress: findings[0]
+                }
+            }
+        }
+    }
+    var baseFeeOverhead = 10; // 10 %
+    var constructorParams = answers?.witnetAddress ? "" : "WitnetRequestBoard _witnetRequestBoard"
+    var importWitnetMocks = answers.includeMocks
+        ? `\nimport "witnet-solidity-bridge/contracts/mocks/WitnetMockedRequestBoard.sol";`
+        : ""
+    ;
+    var witnetAddress = answers?.witnetAddress || "_witnetRequestBoard"
+    var templateFile = `${witnet_module_path}/contracts/`
+    switch (appKind) {
+        case "Randomness": {
+            templateFile += "_UsingRandomness.tsol"; 
+            break;
+        }
+        case "Price": {
+            constructorParams = answers?.witnetAddr ? "" : "WitnetPriceFeeds _witnetPriceFeeds"
+            templateFile += "_UsingPriceFeeds.tsol";
+            witnetAddress = answers?.witnetAddress || "_witnetPriceFeeds"
+            break;
+        }
+        case "Public": {
+            if (answers?.dynamic.split(" ")[0] === "Yes") {
+                if (answers.parameterized.split(" ")[0] === "Yes") {
+                    constructorParams = "WitnetRequestTemplate _witnetRequestTemplate"
+                    templateFile += (answers?.callbacks.split(" ")[0] === "Synchronously"
+                        ? "_RequestTemplateConsumer.tsol" 
+                        : "_UsingRequestTemplate.tsol"
+                    );
+                } else {
+                    templateFile += "_Consumer.tsol"
+                }
+            } else {
+                constructorParams = "WitnetRequest _witnetRequest"
+                witnetAddress = "_witnetRequest"
+                templateFile += (answers?.callbacks.split(" ")[0] === "Synchronously"
+                    ? "_RequestConsumer.tsol" 
+                    : "_UsingRequest.tsol"
+                );
+            }
+            break;
+        }
+    } 
+    var solidity = fs.readFileSync(templateFile, "utf-8")
+        .replaceAll("$_importWitnetMocks", importWitnetMocks)
+        .replaceAll("$_contractName", contractName)
+        .replaceAll("$_constructorParams", constructorParams)
+        .replaceAll("$_witnetAddress", witnetAddress)
+        .replaceAll("$_baseFeeOverhead", baseFeeOverhead)
+        .replaceAll("$_callbackGasLimit", answers.callbackGasLimit)
+    ;
+    var solidityPathFileName = `${contractPath}${contractName}.sol`
+    fs.writeFileSync(solidityPathFileName, solidity)
+    console.info()
+    console.info("\x1b[1;37mAwesome! Your new contract was just created here:\x1b[0m")
+    console.info(`\x1b[35m${contractPath}\x1b[1;35m${contractName}.sol\x1b[0m`)
+}
+
+
 /// ---- internal functions -------------------------------------------------------------------------------------------
 
-function orderKeys(obj) {
+function _capitalizeFirstLetterOnly(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+}
+
+function _orderKeys(obj) {
     var keys = Object.keys(obj).sort(function keyOrder(k1, k2) {
         if (k1 < k2) return -1;
         else if (k1 > k2) return +1;
@@ -367,11 +576,11 @@ function orderKeys(obj) {
     return obj;
   }
 
-function traceWitnetAddresses(addresses, selection, level) {
+function _traceWitnetAddresses(addresses, selection, level) {
     let found = 0
-    for (const key in orderKeys(addresses)) {
+    for (const key in _orderKeys(addresses)) {
         if (typeof addresses[key] === "object") {
-            found += traceWitnetAddresses(addresses[key], selection, (level || 0) + 1)
+            found += _traceWitnetAddresses(addresses[key], selection, (level || 0) + 1)
         } else {
             if (
                 (selection.length === 0
@@ -393,7 +602,7 @@ function traceWitnetAddresses(addresses, selection, level) {
     return found
 }
 
-function traceWitnetArtifact(artifact) {
+function _traceWitnetArtifact(artifact) {
     const specs = artifact?.specs
     if (specs) {
         const args = specs?.args
@@ -422,7 +631,7 @@ function traceWitnetArtifact(artifact) {
                     console.info("  ", `    [#${index}]\t\t\x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}()\x1b[0m`)
                 }
             }
-            traceWitnetArtifactRetrieval(value)
+            _traceWitnetArtifactRetrieval(value)
         })
         if (specs?.aggregate) {
             console.info("  ", `[2] AGGREGATE:\t\x1b[1;35m${specs.aggregate.toString()}\x1b[0m`)
@@ -433,7 +642,7 @@ function traceWitnetArtifact(artifact) {
     }
 }
 
-function traceWitnetArtifacts(crafts, selection) {
+function _traceWitnetArtifacts(crafts, selection) {
     const dict = Witnet.Dictionary(Object, crafts)
     let found = 0
     for (const index in selection) {
@@ -443,12 +652,12 @@ function traceWitnetArtifacts(crafts, selection) {
             if (artifact?.specs) {
                 console.info(`\n   \x1b[1;37m${key}\x1b[0m`)
                 console.info("  ", "=".repeat(key.length))
-                traceWitnetArtifact(artifact)
+                _traceWitnetArtifact(artifact)
                 found ++
             } else {
                 console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                 console.info("  ", "=".repeat(key.length))
-                traceWitnetArtifactsBreakdown(artifact)
+                _traceWitnetArtifactsBreakdown(artifact)
             }
         } catch (ex) {
             console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
@@ -459,7 +668,7 @@ function traceWitnetArtifacts(crafts, selection) {
     return found
 }
 
-function traceWitnetArtifactRetrieval(specs) {
+function _traceWitnetArtifactRetrieval(specs) {
     if (specs?.url) {
         console.info("  ", `    > URL:     \t\x1b[32m${specs.url}\x1b[0m`)
     }
@@ -477,23 +686,23 @@ function traceWitnetArtifactRetrieval(specs) {
     }
 }
 
-function traceWitnetRetrievalsBreakdown(retrievals, level) {
+function __traceWitnetRetrievalsBreakdown(retrievals, level) {
     if (retrievals?.method) return;    
-    for (const key in orderKeys(retrievals)) {
+    for (const key in _orderKeys(retrievals)) {
         console.info(" ", " ".repeat(4 * (level || 0)), (retrievals[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
-        traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
+        __traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
     }
 }
 
-function traceWitnetArtifactsBreakdown(artifacts, level) {
+function _traceWitnetArtifactsBreakdown(artifacts, level) {
     if (artifacts?.specs) return;
-    for (const key in orderKeys(artifacts)) {
+    for (const key in _orderKeys(artifacts)) {
         console.info(" ", " ".repeat(4 * (level || 0)), (artifacts[key]?.specs ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
-        traceWitnetArtifactsBreakdown(artifacts[key], level ? level + 1 : 1)
+        _traceWitnetArtifactsBreakdown(artifacts[key], level ? level + 1 : 1)
     }
 }
 
-function traceWitnetRetrieval(value) {
+function _traceWitnetRetrieval(value) {
     if (value?.method) {
         if (value?.argsCount) {
             console.info("  ", `> Method:    \x1b[1;32m${Witnet.Utils.stringifyWitnetRequestMethod(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)

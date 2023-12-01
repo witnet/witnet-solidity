@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.7.0 <0.9.0;
+pragma experimental ABIEncoderV2;
+
+import "witnet-solidity-bridge/contracts/apps/WitnetRequestTemplateConsumer.sol";$_importWitnetMocks
+
+contract $_contractName
+    is
+        WitnetRequestTemplateConsumer
+{
+    using WitnetCBOR for WitnetCBOR.CBOR; 
+    using WitnetCBOR for WitnetCBOR.CBOR[]; 
+    using WitnetV2 for WitnetV2.RadonSLA;
+
+    constructor ($_constructorParams) 
+        WitnetRequestTemplateConsumer(
+            /* _witnetRequestTemplate */ $_witnetAddress,
+            /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
+            /* _witnetCallbackGasLimit */ uint96($_callbackGasLimit),
+            /* _witnetDefaultSLA */ WitnetV2.RadonSLA({
+                witnessingCommitteeSize:  10, // up to 127
+                witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
+            })
+        )
+    {
+        // ...
+    }
+
+    /// ... Introspect the `WitnetRequestTemplateConsumer` abstract contract to learn 
+    /// ... about the internal helper methods at your disposal for pulling
+    /// ... data updates from the Witnet oracle.
+
+ 
+    /// ===============================================================================================================
+    /// --- Implementing `IWitnetConsumer` interface ------------------------------------------------------------------
+
+    /// @notice Method to be called from the WitnetRequestBoard contract as soon as the given `_witnetQueryId`
+    /// @notice gets reported, if solved with no errors.
+    /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
+    /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
+    /// @param _witnetResultTimestamp Timestamp at which the reported value was captured by the Witnet blockchain. 
+    /// @param _witnetEvmFinalityBlock EVM block at which the provided data can be considered to be final.
+    /// @param _witnetResultCborValue The CBOR-encoded resulting value of the Witnet query being reported.
+    function reportWitnetQueryResult(
+            uint256 _witnetQueryId, 
+            uint64  _witnetResultTimestamp,
+            bytes32 _witnetResultTallyHash,
+            uint256 _witnetEvmFinalityBlock,
+            WitnetCBOR.CBOR calldata _witnetResultCborValue
+        )
+        override external
+        onlyFromWitnet
+    {
+        // TODO: this method MUST be implemented
+        // TODO: gas consumed by this method SHOULD NEVER be greater than $_callbackGasLimit units.
+    }
+
+    /// @notice Method to be called from the WitnetRequestBoard contract as soon as the given `_witnetQueryId`
+    /// @notice gets reported, if solved WITH errors.
+    /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
+    /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
+    /// @param _witnetResultTimestamp Timestamp at which the reported value was captured by the Witnet blockchain. 
+    /// @param _witnetEvmFinalityBlock EVM block at which the provided data can be considered to be final.
+    /// @param _errorCode The error code enum identifying the error produced during resolution on the Witnet blockchain.
+    /// @param _errorArgs Error arguments, if any. An empty buffer is to be passed if no error arguments apply.
+    function reportWitnetQueryError(
+            uint256 _witnetQueryId, 
+            uint64  _witnetResultTimestamp,
+            bytes32 _witnetResultTallyHash,
+            uint256 _witnetEvmFinalityBlock,
+            Witnet.ResultErrorCodes _errorCode, 
+            WitnetCBOR.CBOR calldata _errorArgs
+        )
+        override external
+        onlyFromWitnet
+    {
+        // TODO: this method MUST be implemented
+        // TODO: gas consumed by this method SHOULD NEVER be greater than $_callbackGasLimit gas units.
+    }
+
+}

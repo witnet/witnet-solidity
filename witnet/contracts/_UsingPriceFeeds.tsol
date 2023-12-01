@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.7.0 <0.9.0;
+pragma experimental ABIEncoderV2;
+
+import "witnet-solidity-bridge/contracts/apps/WitnetPriceFeeds.sol";$_importWitnetMocks
+
+contract $_contractName {
+
+    WitnetPriceFeeds public immutable firstOracle;
+    WitnetRequestBoard public immutable witnet;
+    
+    constructor ($_constructorParams) {
+        firstOracle = $_witnetAddress;
+        witnet = firstOracle.witnet();
+    }
+
+    /// @dev See ERC-2362 as to understand how price feed captions are composed:
+    function _witnetPriceFeedIdOf(string memory _caption)
+        internal pure returns (bytes4)
+    {
+        return bytes4(keccak256(_caption));
+    }
+
+    function _witnetPriceFeedIdOf(
+            string memory _base, 
+            string memory _quote, 
+            uint8 _decimals
+        )
+        internal pure returns (bytes4)
+    {
+        return bytes4(keccak256(abi.encodePacked(
+            "Price-", 
+            _base, "/", 
+            _quote, "-", 
+            Witnet.toString(_decimals)
+        )));
+    }
+
+    /// ... Introspect the `IWitnetPriceFeeds` interface to learn about 
+    /// ... the methods at your disposal for checking supported price feeds,
+    /// ... as well as current status, or timestamp and audit trail proofs for latest 
+    /// ... updates as resolved by the Witnet blockhain, or even the actual data sources 
+    /// ... and APIs being used under the hood for every supported price feed.
+
+}

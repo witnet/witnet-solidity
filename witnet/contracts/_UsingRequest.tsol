@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity >=0.7.0 <0.9.0;
+pragma experimental ABIEncoderV2;
+
+import "witnet-solidity-bridge/contracts/apps/UsingWitnetRequest.sol";$_importWitnetMocks
+
+contract $_contractName
+    is
+        UsingWitnetRequest
+{
+    using Witnet for Witnet.Result;
+    using WitnetCBOR for WitnetCBOR.CBOR; 
+    using WitnetCBOR for WitnetCBOR.CBOR[]; 
+    using WitnetV2 for WitnetV2.Query;
+    using WitnetV2 for WitnetV2.Request;
+    using WitnetV2 for WitnetV2.Response;
+
+    constructor ($_constructorParams) 
+        UsingWitnetRequest(
+            /* _witnetRequest */ $_witnetAddress,
+            /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
+            /* _witnetDefaultSLA */ WitnetV2.RadonSLA({
+                witnessingCommitteeSize:  10, // up to 127
+                witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
+            })
+        )
+    {
+        // ...
+    }
+
+    /// ... Introspect the `UsingWitnetRequestTemplate` abstract contract to learn 
+    /// ... about the internal helper methods at your disposal for pulling
+    /// ... data updates from the Witnet oracle.
+
+}

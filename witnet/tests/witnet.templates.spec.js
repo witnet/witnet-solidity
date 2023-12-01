@@ -2,7 +2,7 @@ const Witnet = require("witnet-utils")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
 
 const addresses = require("./addresses")
-const templates = require("../assets").templates
+const templates = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).templates
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
@@ -73,7 +73,7 @@ contract("migrations/witnet/templates", async () => {
     })
     after(async () => {
       if (summary.length > 0) {
-        console.log(`\n${"=".repeat(148)}\n> DRY-RUN DATA REQUEST TEMPLATES:`)
+        console.info(`\n${"=".repeat(148)}\n> DRY-RUN DATA REQUEST TEMPLATES:`)
         console.table(summary)
       }
     })

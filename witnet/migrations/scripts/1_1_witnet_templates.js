@@ -1,8 +1,10 @@
 const Witnet = require("witnet-utils")
 const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
 
-const addresses = require("../addresses")
-const templates = require("../../assets").templates
+const witnet_require_path = process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet";
+const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
+
+const templates = require(`${witnet_require_path}/assets`).templates
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
@@ -13,14 +15,15 @@ module.exports = async function (_deployer, network, [from, ]) {
   const ecosystem = Witnet.Utils.getRealmNetworkFromArgs()[0]
   network = network.split("-")[0]
 
+  const addresses = isDryRun ? require(`../../tests/addresses`) : require(`${witnet_require_path}/assets/addresses`)
   if (!addresses[ecosystem]) addresses[ecosystem] = {}
   if (!addresses[ecosystem][network]) addresses[ecosystem][network] = {}
   if (!addresses[ecosystem][network].templates) addresses[ecosystem][network].templates = {}
 
-  await deployWitnetRequestTemplates(from, isDryRun, ecosystem, network, templates) 
+  await deployWitnetRequestTemplates(addresses, from, isDryRun, ecosystem, network, templates) 
 }
 
-async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network, templates) {
+async function deployWitnetRequestTemplates (addresses, from, isDryRun, ecosystem, network, templates) {
   for (const key in templates) {
     const template = templates[key]
     if (template?.specs) {
@@ -44,7 +47,7 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
           console.info("  ", "> Template registry:  ", await templateContract.registry.call())
           console.info("  ", `> Template address:    \x1b[1;37m${templateContract.address}\x1b[0m`)
           addresses[ecosystem][network].templates[key] = templateAddr
-          Witnet.Utils.saveAddresses(addresses, isDryRun ? "./witnet/tests" : "./witnet/migrations")
+          Witnet.Utils.saveAddresses(addresses, isDryRun ? `${witnet_module_path}/tests` : `${witnet_require_path}/assets`)
         } catch (e) {
           Witnet.Utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
           process.exit(0)
@@ -54,7 +57,7 @@ async function deployWitnetRequestTemplates (from, isDryRun, ecosystem, network,
         console.info("  ", `> Template address:  \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
-      await deployWitnetRequestTemplates (from, isDryRun, ecosystem, network, template)
+      await deployWitnetRequestTemplates (addresses, from, isDryRun, ecosystem, network, template)
     }
   }
 }
