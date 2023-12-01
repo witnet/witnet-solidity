@@ -38,14 +38,14 @@ module.exports = {
         script: Witnet.Script().parseJSONMap().getMap("data").getArray("pairs").getMap(0).getFloat("token1Price").multiply(1e6).round(),
     }),
     "quickswap-v3/ticker": Witnet.Retrievals.GraphQLQuery({
-        url: "https://api.thegraph.com/subgraphs/name/sameepsi/quickswap-v3",
+        url: "https://api-next.thegraph.com/subgraphs/name/sameepsi/quickswap-v3",
         query: `{ pool (id: "\\0\\") { token\\1\\Price } }`,
         script: Witnet.Script().parseJSONMap().getMap("data").getMap("pool").getFloat("token\\1\\Price").multiply(1e6).round(),
     }),
     "quickswap-v3/ticker#9": Witnet.Retrievals.GraphQLQuery({
-        url: "https://api.thegraph.com/subgraphs/name/sameepsi/quickswap-v3",
+        url: "https://api-next.thegraph.com/subgraphs/name/sameepsi/quickswap-v3",
         query: `{ pool (id: "\\0\\") { token\\1\\Price } }`,
-        script: Witnet.Script().parseJSONMap().getMap("data").getMap("pool").getFloat("token\\1\\Price").multiply(1e6).round(),
+        script: Witnet.Script().parseJSONMap().getMap("data").getMap("pool").getFloat("token\\1\\Price").multiply(1e9).round(),
     }),
     "stellaswap/ticker": Witnet.Retrievals.GraphQLQuery({
         url: "https://api.thegraph.com/subgraphs/name/stellaswap/stella-swap",
