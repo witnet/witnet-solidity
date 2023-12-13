@@ -52,7 +52,7 @@ contract("migrations/witnet/templates", async () => {
                   "Status": result.status,
                   "✓ Sources": result.totalRetrievals - result.nokRetrievals,
                   "∑ Sources": result.totalRetrievals,
-                  "Time (ms)": result.runningTime,
+                  "Time (secs)": result.runningTime,
                   "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
                 })
                 if (result.status !== "OK") {
