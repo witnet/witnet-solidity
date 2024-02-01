@@ -5,14 +5,22 @@
   "author": "Witnet Foundation",
   "license": "MIT",
   "private": false,
+  "type": "commonjs",
   "bin": {
-    "witnet": "build/bin/witnet.js"
+    "witnet": "dist/bin/witnet.js"
+  },
+  "exports": {
+    ".": "./dist/lib/radon/index.js",
+    "./assets": "./witnet/assets/index.js",
+    "./radon": "./dist/lib/radon/index.js",
+    "./utils": "./dist/utils.js"
   },
   "files": [
-    "witnet/**",
-    "build/bin",
+    "dist",
+    "witnet",
     ".env_witnet"
   ],
+  "types": "./dist/lib/radon",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "console": "npx truffle console",

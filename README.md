@@ -1,4 +1,4 @@
-# Witnet Solidity import package
+# Witnet Solidity 
 
 Imports all required dependencies for any project to start interacting with any of the Witnet Solidity artifacts, as well as tailoring parameterized data requests to be solved by the Witnet Oracle layer-1 side-chain in a fully trustless and decentralized manner.
 
