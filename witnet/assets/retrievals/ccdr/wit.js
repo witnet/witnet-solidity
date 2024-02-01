@@ -1,14 +1,14 @@
-const Witnet = require("witnet-utils")
+const Witnet = require("../../../../dist/lib/radon")
 
 module.exports = {
-    "CrossChainWitSupplyInfo": Witnet.Retrievals.CrossChainCall({
+    "wit-supply-info": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.WitGetSupplyInfo(),
+        rpc: Witnet.CCDR.WIT.getSupplyInfo(),
         script: Witnet.Script().parseJSONMap().getMap("result"),
     }),
-    "CrossChainWitGetTransactionByHash": Witnet.Retrievals.CrossChainCall({
+    "wit-get-transaction-by-hash": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.WitGetTransactionByHash("\\1\\"),
+        rpc: Witnet.CCDR.WIT.getTransactionByHash("\\1\\"),
         script: Witnet.Script().parseJSONMap().getMap("result"),
     }),  
 }

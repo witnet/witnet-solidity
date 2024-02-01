@@ -1,5 +1,5 @@
-const Witnet = require("witnet-utils");
-const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
+const utils = require("../../dist/utils")
+const selection = utils.getWitnetArtifactsFromArgs()
 
 const addresses = require("./addresses")
 const requests = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).requests
@@ -29,14 +29,14 @@ contract("migrations/witnet/requests", async () => {
             const request = await WitnetRequest.at(craft.address)
             const registry = await WitnetBytecodes.at(await request.registry.call())
             bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
-            const output = await Witnet.Utils.dryRunBytecode(bytecode)
+            const output = await utils.dryRunBytecode(bytecode)
             let json
             try {
               json = JSON.parse(output)
             } catch {
               assert(false, "Invalid JSON: " + output)
             }
-            const result = Witnet.Utils.processDryRunJson(json)
+            const result = utils.processDryRunJson(json)
             summary.push({
               "Artifact": craft.artifact,
               "RAD hash": radHash.slice(2),
@@ -52,7 +52,7 @@ contract("migrations/witnet/requests", async () => {
           })
           after(async () => {
             if (process.argv.includes("--verbose")) {
-              const output = await Witnet.Utils.dryRunBytecodeVerbose(bytecode)
+              const output = await utils.dryRunBytecodeVerbose(bytecode)
               console.info(output.split("\n").slice(0, -1).join("\n"))
               console.info("-".repeat(120))
             }
@@ -62,7 +62,7 @@ contract("migrations/witnet/requests", async () => {
     })
     after(async () => {
       if (summary.length > 0) {
-        console.info(`\n${"=".repeat(148)}\n> DRY-RUN DATA REQUESTS:`)
+        console.info(`\n${"=".repeat(148)}\n> REQUEST DRY-RUNS:`)
         console.table(summary)
       }
     })

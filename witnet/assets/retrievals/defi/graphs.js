@@ -1,4 +1,4 @@
-const Witnet = require("witnet-utils")
+const Witnet = require("../../../../dist/lib/radon")
 
 const defaultQuery = { query: `{ pair (id: "\\0\\") { token\\1\\Price } }` }
 const defaultScript = { 

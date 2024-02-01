@@ -1,6 +1,6 @@
-const Witnet = require("witnet-utils")
 module.exports = {
+    "CCDR": require("./ccdr"),
     "DeFi": {
-        "Dex Tickers": require('./defi/dexes'),
+        "DEX Tickers": require('./defi/dexes'),
     },
 };

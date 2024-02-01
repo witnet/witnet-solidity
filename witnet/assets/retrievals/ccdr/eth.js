@@ -1,39 +1,39 @@
-const Witnet = require("witnet-utils")
+const Witnet = require("../../../../dist/lib/radon")
 
 module.exports = {
-    "CrossChainEthBlockNumber": Witnet.Retrievals.CrossChainCall({
+    "eth-block-number": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthBlockNumber(),
+        rpc: Witnet.CCDR.ETH.blockNumber(),
         script: Witnet.Script().parseJSONMap().getString("result")
     }),
-    "CrossChainEthGasPrice": Witnet.Retrievals.CrossChainCall({
+    "eth-gas-price": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGasPrice(),
+        rpc: Witnet.CCDR.ETH.gasPrice(),
         script: Witnet.Script().parseJSONMap().getString("result")
     }),
-    "CrossChainEthGetBalance": Witnet.Retrievals.CrossChainCall({
+    "eth-get-balance": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGetBalance("\\1\\"),
+        rpc: Witnet.CCDR.ETH.getBalance("\\1\\"),
         script: Witnet.Script().parseJSONMap().getString("result")
     }),
-    "CrossChainEthGetCode": Witnet.Retrievals.CrossChainCall({
+    "eth-get-code": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGetCode("\\1\\"),
+        rpc: Witnet.CCDR.ETH.getCode("\\1\\"),
         script: Witnet.Script().parseJSONMap().getString("result")
     }),
-    "CrossChainEthGetStorageAt": Witnet.Retrievals.CrossChainCall({
+    "eth-get-storage-at": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGetStorageAt("\\1\\", "\\2\\"),
+        rpc: Witnet.CCDR.ETH.getStorageAt("\\1\\", "\\2\\"),
         script: Witnet.Script().parseJSONMap().getString("result")
     }),
-    "CrossChainEthGetTransactionByHash": Witnet.Retrievals.CrossChainCall({
+    "eth-get-transaction-by-hash": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGetTransactionByHash("\\1\\"),
+        rpc: Witnet.CCDR.ETH.getTransactionByHash("\\1\\"),
         script: Witnet.Script().parseJSONMap().getMap("result"),
     }),
-    "CrossChainEthGetTransactionReceipt": Witnet.Retrievals.CrossChainCall({
+    "eth-get-transaction-receipt": Witnet.Retrievals.CrossChainDataRetrieval({
         url: "\\0\\",
-        rpc: Witnet.Retrievals.RPC.EthGetTransactionReceipt("\\1\\"),
+        rpc: Witnet.CCDR.ETH.getTransactionReceipt("\\1\\"),
         script: Witnet.Script().parseJSONMap().getMap("result"),
     }),
 }

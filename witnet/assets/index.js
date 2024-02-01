@@ -1,5 +1,7 @@
-const { merge } = require("lodash")
-const Witnet = require("witnet-utils")
+const merge = require("lodash.merge")
+
+const Witnet = require("../../dist/lib/radon")
+
 module.exports = {
     abis: {
         WitnetBytecodes: require("./abis/WitnetBytecodes.json"),
@@ -10,11 +12,13 @@ module.exports = {
         WitnetRequestTemplate: require("./abis/WitnetRequestTemplate.json"),
     },
     addresses: merge(
-        require("witnet-solidity-bridge/migrations/witnet.addresses"),
+        require("witnet-solidity-bridge").addresses,
         require("./addresses.json"),
     ),
+    retrievals: require("./retrievals"),
+    templates: require("./templates"),
     requests: {
-        Globals: {
+        Legacy: {
             WitnetRequestRandomness: Witnet.StaticRequest({
                 retrieve: [ Witnet.Retrievals.RNG(), ],
                 tally: Witnet.Reducers.ConcatHash(),
@@ -57,8 +61,6 @@ module.exports = {
                 aggregate: Witnet.Reducers.Median(Witnet.Filters.Stdev(1.4)),
                 tally: Witnet.Reducers.PriceTally(),
             }),
-        },
+        }
     },
-    retrievals: require("./retrievals"),
-    templates: require("./templates"),
 };

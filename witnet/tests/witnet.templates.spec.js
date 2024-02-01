@@ -1,5 +1,5 @@
-const Witnet = require("witnet-utils")
-const selection = Witnet.Utils.getWitnetArtifactsFromArgs()
+const utils = require("../../dist/utils")
+const selection = utils.getWitnetArtifactsFromArgs()
 
 const addresses = require("./addresses")
 const templates = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).templates
@@ -38,14 +38,14 @@ contract("migrations/witnet/templates", async () => {
                 const radHash = await request.radHash.call()
                 const registry = await WitnetBytecodes.at(await request.registry.call())
                 bytecode = (await registry.bytecodeOf.call(radHash)).slice(2)
-                const output = await Witnet.Utils.dryRunBytecode(bytecode)
+                const output = await utils.dryRunBytecode(bytecode)
                 let json
                 try {
                   json = JSON.parse(output)
                 } catch {
                   assert(false, "Invalid JSON: " + output)
                 }
-                const result = Witnet.Utils.processDryRunJson(JSON.parse(output))
+                const result = utils.processDryRunJson(JSON.parse(output))
                 summary.push({
                   "Artifact": craft.key,
                   "Test": test,
@@ -61,7 +61,7 @@ contract("migrations/witnet/templates", async () => {
               })
               after(async () => {
                 if (process.argv.includes("--verbose")) {
-                  const output = await Witnet.Utils.dryRunBytecodeVerbose(bytecode)
+                  const output = await utils.dryRunBytecodeVerbose(bytecode)
                   console.info(output.split("\n").slice(0, -1).join("\n"))
                   console.info("-".repeat(120))
                 }
@@ -73,7 +73,7 @@ contract("migrations/witnet/templates", async () => {
     })
     after(async () => {
       if (summary.length > 0) {
-        console.info(`\n${"=".repeat(148)}\n> DRY-RUN DATA REQUEST TEMPLATES:`)
+        console.info(`\n${"=".repeat(148)}\n> TEMPLATE DRY-RUNS:`)
         console.table(summary)
       }
     })

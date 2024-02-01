@@ -1,6 +1,6 @@
-const { merge } = require("lodash")
+const merge = require("lodash.merge")
 
-module.exports = merge(require("witnet-solidity/witnet/assets").retrievals, {
+module.exports = merge(require("witnet-solidity/assets").retrievals, {
     // path: { ... path: {
     /////// HTTP-GET RETRIEVALS /////////////////////////////////////////////////////
     //      'retrieval-unique-resource-name-x': Witnet.Retrievals.HttpGet(

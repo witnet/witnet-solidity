@@ -1,10 +1,10 @@
-const { merge } = require("lodash")
-const Witnet = require("witnet-utils")
+const merge = require("lodash.merge")
+const Witnet = require("witnet-solidity")
 
-const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("./retrievals"))
-const templates = new Witnet.Dictionary(Witnet.Artifacts.Template, require("./templates"))
+const retrievals = Witnet.Dictionary(Witnet.Retrievals.Class, require("./retrievals"))
+const templates = Witnet.Dictionary(Witnet.Artifacts.Template, require("./templates"))
 
-module.exports = merge(require("witnet-solidity/witnet/assets").requests, {
+module.exports = merge(require("witnet-solidity/assets").requests, {
     /////// STATIC REQUESTS /////////////////////////////////////////////////////////
     // path: { ... path: {
     //      WitnetRequestXXX: Witnet.StaticRequest({ 

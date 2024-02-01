@@ -1,6 +1,9 @@
-const Witnet = require("witnet-utils")
+const Witnet = require("../../../../dist/lib/radon")
 
-const retrievals = new Witnet.Dictionary(Witnet.Retrievals.Class, require("../../retrievals"))
+const retrievals = new Witnet.Dictionary(
+    Witnet.Retrievals.Class, 
+    require("../../retrievals")
+)
 
 module.exports = {
     WitnetRequestTemplateBeamswapTicker6: Witnet.PriceTickerTemplate({

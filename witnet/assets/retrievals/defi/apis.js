@@ -1,4 +1,5 @@
-const Witnet = require("witnet-utils")
+const Witnet = require("../../../../dist/lib/radon")
+
 module.exports = {
     "aex.zone/ticker": Witnet.Retrievals.HttpGet({
         url: "https://api.aex.zone/v2/exchange-rates?currency=\\1\\",

@@ -1,4 +1,4 @@
-const utils = require("witnet-utils").Utils
+const utils = require("../../../dist/utils")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetPriceFeeds = artifacts.require("WitnetPriceFeeds")
@@ -10,9 +10,9 @@ module.exports = async function (deployer, network) {
   const ecosystem = utils.getRealmNetworkFromArgs()[0]
   network = network.split("-")[0]
 
-  let addresses = require(process.env.WITNET_SOLIDITY_REQUIRE_PATH
-      ? `${process.env.WITNET_SOLIDITY_REQUIRE_PATH}/assets`
-      : "../../../../witnet/assets"
+  let addresses = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
+      ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}/assets`
+      : "../../../../../witnet/assets"
   ).addresses
 
   if (!isDryRun) {
@@ -26,8 +26,8 @@ module.exports = async function (deployer, network) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
     }
+  
   } else {
-
     const WitnetEncodingLib = artifacts.require("WitnetEncodingLib")
     await deployer.deploy(WitnetEncodingLib)
 
@@ -62,23 +62,24 @@ module.exports = async function (deployer, network) {
     addresses[ecosystem][network] = {}
     utils.saveAddresses(addresses, `${process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"}/tests`)
   }
-  utils.traceHeader("Witnet artifacts:"); {
+  
+  utils.traceHeader("Witnet Artifacts:"); {
     if (WitnetBytecodes.address) {
       console.info("  ", "> WitnetBytecodes:      ", 
         WitnetBytecodes.address, 
-        `(${await readUpgradableArtifactVersion(WitnetBytecodes)})`
+        `(${await _readUpgradableArtifactVersion(WitnetBytecodes)})`
       )
     }
     if (WitnetRequestBoard.address) {
       console.info("  ", "> WitnetRequestBoard:   ", 
         WitnetRequestBoard.address, 
-        `(${await readUpgradableArtifactVersion(WitnetRequestBoard)})`
+        `(${await _readUpgradableArtifactVersion(WitnetRequestBoard)})`
       )
     }
     if (WitnetRequestFactory.address) {
       console.info("  ", "> WitnetRequestFactory: ", 
         WitnetRequestFactory.address, 
-        `(${await readUpgradableArtifactVersion(WitnetRequestFactory)})`
+        `(${await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
       )
     }
     if (WitnetPriceFeeds.address) {
@@ -90,7 +91,7 @@ module.exports = async function (deployer, network) {
   }
 }
 
-async function readUpgradableArtifactVersion(artifact) {
+async function _readUpgradableArtifactVersion(artifact) {
   const WitnetUpgradableBase = artifacts.require("WitnetUpgradableBase");
   try {
     const upgradable = await WitnetUpgradableBase.at(artifact.address)
