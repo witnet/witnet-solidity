@@ -15,13 +15,12 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "compile": "truffle compile --config ./witnet/migrations/settings.js --contracts_directory ./witnet/contracts",
-    "console": "truffle console",
+    "console": "npx truffle console",
     "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "postinstall": "npx witnet-toolkit update",
-    "prepare": "npm run build && npm run compile",
-    "test": "npm run build && cross-env-shell WITNET_SOLIDITY_REQUIRE_PATH='../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./build/bin/witnet.js check"
+    "prepare": "npm run build",
+    "test": "npm run build && cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./dist/bin/witnet.js test --all"
   },
   "keywords": [
     "solidity",
@@ -37,24 +36,25 @@
     "truffle"
   ],
   "dependencies": {
-    "witnet-solidity-bridge": "https://github.com/guidiaz/witnet-solidity-bridge#935395d4d3600c016fe6215ec6b1c806c989b696",
-    "witnet-utils": "^2.0.0",
-    "witnet-requests": "^0.9.12",
-    "inquirer": "^8.0.0"
+    "cbor": "^9.0.1",
+    "dotenv": "^16.4.1",
+    "graphql-query-compress": "^1.2.4",
+    "ethereumjs-util": "^7.1.5",
+    "inquirer": "^8.0.0",
+    "lodash.merge": "^4.6.2",
+    "truffle": "^5.11.5",
+    "web3-jsonrpc-gateway": "../../witnet/web3-jsonrpc-gateway",
+    "witnet-solidity-bridge": "../witnet-solidity-bridge",
+    "witnet-toolkit": "../witnet-utils"
   },
   "devDependencies": {
-    "@babel/cli": "^7.5.5",
-    "@babel/core": "^7.5.5",
-    "@babel/preset-env": "^7.15.0",
-    "@types/node": "^18.17.9",
-    "chai": "^4.3.7",
     "cross-env": "7.0.3",
     "eslint": "^8.42.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "truffle": "^5.7.1",
+    "@types/node": "^20.11.13",
     "typescript": "latest"
   }
 }
