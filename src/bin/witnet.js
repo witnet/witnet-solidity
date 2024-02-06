@@ -10,7 +10,6 @@ const Witnet = require("../lib/radon");
 
 const witnet_require_path = process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet";
 const witnet_solidity_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
-const witnet_build_path = `${witnet_module_path}/build`
 const witnet_config_file = `${witnet_solidity_module_path}/migrations/settings.js`
 const witnet_contracts_path = `${witnet_solidity_module_path}/contracts`
 const witnet_migrations_path = `${witnet_solidity_module_path}/migrations/scripts/`
@@ -257,7 +256,6 @@ function test() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`npx truffle test --config ${witnet_config_file} --build_directory ${witnet_build_path}/default --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} ${witnet_tests_path}/witnet.templates.spec.js ${witnet_tests_path}/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
         execSync(`npx truffle test --compile-none --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} ${witnet_tests_path}/witnet.templates.spec.js ${witnet_tests_path}/witnet.requests.spec.js ${args}`, { stdio: 'inherit' })
     } catch {}
     if (!process.argv.includes("--artifacts")) {

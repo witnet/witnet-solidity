@@ -5,6 +5,7 @@ const rn = utils.getRealmNetworkFromArgs()
 const realm = rn[0]; const network = rn[1]
 
 const { settings } = require("witnet-solidity-bridge")
+
 if (!settings.networks[realm] || !settings.networks[realm][network]) {
   if (network !== "develop" && network !== "test" && network !== "development") {
     console.error(
@@ -22,8 +23,6 @@ Targetting "${realm.toUpperCase()}" ecosystem
 
 module.exports = {
   build_directory: "./node_modules/witnet-solidity-bridge/build",
-  contracts_directory: "./witnet/migrations/contracts/",
-  migrations_directory: "./witnet/migrations/scripts/",
   networks: merge(
     settings.networks[realm], {
       default: {
@@ -38,16 +37,16 @@ module.exports = {
       },
     }
   ),
-  // compilers: merge(
-  //   settings.compilers.default,
-  //   settings.compilers[realm], {
-  //     solc: {
-  //       version: "0.8.22",
-  //     }
-  //   }
-  // ),
-  // mocha: {
-  //   timeout: 100000,
-  //   useColors: true,
-  // },
+  compilers: merge(
+    settings.compilers.default,
+    settings.compilers[realm], {
+      solc: {
+        version: "0.8.22",
+      }
+    }
+  ),
+  mocha: {
+    timeout: 100000,
+    useColors: true,
+  },
 }
