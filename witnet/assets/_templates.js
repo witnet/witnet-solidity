@@ -1,7 +1,10 @@
-const merge = require("lodash.merge")
-const Witnet = require("witnet-solidity")
+const { templates } = require("witnet-solidity/assets")
 
-const retrievals = Witnet.Dictionary(Witnet.Retrievals.Class, require("./retrievals"))
+const Witnet = require("witnet-solidity")
+const retrievals = Witnet.Dictionary(
+    Witnet.Retrievals.Class, 
+    require("./retrievals")
+);
 
 module.exports = merge(require("witnet-solidity/assets").templates, {
     /////// REQUEST TEMPLATES ///////////////////////////////////////////////////////

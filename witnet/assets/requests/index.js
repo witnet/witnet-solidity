@@ -1,7 +1,7 @@
 const Witnet = require("../../../dist/lib/radon")
 
 module.exports = {
-    Legacy: {
+    legacy: {
         WitnetRequestRandomness: Witnet.StaticRequest({
             retrieve: [ Witnet.Retrievals.RNG(), ],
             tally: Witnet.Reducers.ConcatHash(),

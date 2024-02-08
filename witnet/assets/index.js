@@ -1,15 +1,14 @@
-const bridge = require("witnet-solidity-bridge")
-const merge = require("lodash.merge")
-
+const witnet = require("witnet-solidity-bridge/assets")
 module.exports = {
     getAddresses: (network) => {
-        return merge(
-            bridge.getAddresses(network.toLowerCase()),
-            require("./addresses.json")[network.toLowerCase()]
-        );
+        return {
+            ...witnet.getAddresses(network.toLowerCase()),
+            ...require("./addresses.json")[network.toLowerCase()]
+        }
     },
-    getNetworks: () => { return bridge.getNetworks(); },
-    artifacts: bridge.artifacts,
+    supportedEcosystems: witnet.supportedEcosystems,
+    supportedNetworks: witnet.supportedNetworks,
+    artifacts: witnet.artifacts,
     requests: require("./requests"),
     retrievals: require("./retrievals"),
     templates: require("./templates"),

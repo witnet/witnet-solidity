@@ -11,8 +11,7 @@
   },
   "exports": {
     ".": "./dist/lib/radon/index.js",
-    "./assets": "./witnet/assets/index.js",
-    "./utils": "./dist/utils.js"
+    "./assets": "./witnet/assets/index.js"
   },
   "files": [
     "dist",

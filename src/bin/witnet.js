@@ -5,15 +5,17 @@ const fs = require("fs");
 const inquirer = require("inquirer")
 const path = require("path")
 
-const utils = require("../utils")
+const utils = require("witnet-solidity-bridge/utils")
 const Witnet = require("../lib/radon");
 
 const witnet_require_path = process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet";
 const witnet_solidity_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
-const witnet_config_file = `${witnet_solidity_module_path}/migrations/settings.js`
+const witnet_config_file = `${witnet_solidity_module_path}/truffle.config.js`
 const witnet_contracts_path = `${witnet_solidity_module_path}/contracts`
-const witnet_migrations_path = `${witnet_solidity_module_path}/migrations/scripts/`
-const witnet_tests_path = `${witnet_solidity_module_path}/tests`
+const witnet_migrations_path = `${witnet_solidity_module_path}/scripts/truffle/`
+const witnet_tests_path = `${witnet_solidity_module_path}/tests/truffle`
+
+const assets = require(`${witnet_require_path}/assets`)
 
 if (process.argv.length >= 3) {
     const command = process.argv[2]
@@ -54,7 +56,7 @@ if (process.argv.length >= 3) {
 }
 
 function version(str) {
-    console.info(`\x1b[1;34mWitnet Solidity ${str || "utility command"} v${require("../../package.json").version}\x1b[0m`)
+    console.info(`\x1b[1;96mWitnet Solidity ${str || "utility command"} v${require("../../package.json").version}\x1b[0m`)
 }
 
 function showMainUsage() {
@@ -106,27 +108,25 @@ async function init() {
 }
 
 function avail() {
-    
-    const addresses = require(`${witnet_require_path}/assets`).addresses;
-    const requests = require(`${witnet_require_path}/assets`).requests;
-    const retrievals = require(`${witnet_require_path}/assets`).retrievals;
-    const templates = require(`${witnet_require_path}/assets`).templates;
+
+    const { requests, retrievals, templates } = assets;
+    const [ ecosystems, networks, ] = [
+        assets.supportedEcosystems(),
+        assets.supportedNetworks(), 
+    ];
 
     if (process.argv.includes("--chains")) {
-        let selection = utils.splitSelectionFromProcessArgv("--chains").map(value => {
-            return value.toLowerCase() === "ethereum" ? "default" : value.toLowerCase()
-        })
+        let selection = _splitSelectionFromProcessArgv("--chains");
         // add `WITNET_DEFAULT_CHAIN` to selection, should no chains list be provided from CLI
         if ((!selection || selection.length == 0) && process.env.WITNET_DEFAULT_CHAIN) {
-            selection = [ process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", ".") ]
+            selection = [process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":")]
         }
         if (!selection || selection.length == 0) {
             // if no chains list was specified, just list Witnet supported "ecosystems"
-            utils.traceHeader("WITNET SUPPORTED ECOSYSTEMS")
-            for (let ecosystem in addresses) {
-                if (ecosystem === "default") ecosystem = "ethereum"
+            _traceHeader("SUPPORTED ECOSYSTEMS")
+            ecosystems.forEach(ecosystem => {
                 console.info("  ", ecosystem.toUpperCase())
-            }
+            })
             console.info()
             console.info("To get Witnet-supported chains within a list of ecosystems:")
             console.info()
@@ -137,16 +137,18 @@ function avail() {
             process.exit(0)
         }
         let found = 0
-        for (let ecosystem in addresses) {
+        for (const index in ecosystems) {
+            const ecosystem = ecosystems[index]
             if (selection.includes(ecosystem)) {
-                found ++
                 // if ecosystem matches any of selection items, 
                 // print Witnet supported "chains" within it
-                const caption = ecosystem === "default" ? "ETHEREUM" : ecosystem.toUpperCase()
-                utils.traceHeader(`SUPPORTED '${caption}' CHAINS`)
-                for (const network in addresses[ecosystem]) {
-                    console.info("  ", network.replaceAll(".", ":"))
-                }
+                found ++
+                _traceHeader(`${ecosystem.toUpperCase()}`)
+                networks.forEach(network => {
+                    if (network.startsWith(ecosystem)) {
+                        console.info("  ", network)
+                    }
+                })
                 console.info()
                 console.info("To get Witnet artifact addresses within one or more chains:")
                 console.info()
@@ -154,17 +156,16 @@ function avail() {
                 console.info()
                 console.info("Principal Witnet artifact addresses will be shown if no artifact name list is specified.")
                 console.info()
-            } else {
-                // otherwise, search for selection matches with any chain within this ecosystem
-                for (let network in addresses[ecosystem]) {
-                    if (selection.length == 0 || selection.includes(network)) {
-                        found ++
-                        utils.traceHeader(`WITNET ARTIFACTS ON '${network.replaceAll(".", ":").toUpperCase()}'`)
-                        if (_traceWitnetAddresses(addresses[ecosystem][network], utils.getWitnetArtifactsFromArgs()) == 0) {
-                            console.info("  ", "Unavailable.")
-                        }
-                    }
-                }   
+            } 
+        }
+        for (const nix in networks) {
+            const network = networks[nix]
+            if (selection.length == 0 || selection.includes(network)) {
+                found ++
+                _traceHeader(`${network.toUpperCase()}`)
+                if (_traceWitnetAddresses(assets.getAddresses(network), utils.getWitnetArtifactsFromArgs()) == 0) {
+                    console.info("  ", "Unavailable.")
+                }
             }
         }
         if (!found) {
@@ -172,9 +173,9 @@ function avail() {
             console.info("Sorry, no entries found for chains: ", selection)
         }
     } else if (process.argv.includes("--requests")) {
-        const selection = utils.splitSelectionFromProcessArgv("--requests")
+        const selection = _splitSelectionFromProcessArgv("--requests")
         if (selection.length == 0) {
-            utils.traceHeader("WITNET DATA REQUESTS")
+            _traceHeader("WITNET DATA REQUESTS")
             _traceWitnetArtifactsBreakdown(requests)
         }
         if (selection.length == 0 || !_traceWitnetArtifacts(requests, selection)) {
@@ -185,9 +186,9 @@ function avail() {
             console.info()
         }
     } else if (process.argv.includes("--templates")) {
-        const selection = utils.splitSelectionFromProcessArgv("--templates")   
+        const selection = _splitSelectionFromProcessArgv("--templates")   
         if (selection.length == 0) {
-            utils.traceHeader("WITNET DATA REQUEST TEMPLATES")
+            _traceHeader("WITNET DATA REQUEST TEMPLATES")
             _traceWitnetArtifactsBreakdown(templates)
         }
         if (selection.length == 0 || !_traceWitnetArtifacts(templates, selection)) {
@@ -198,17 +199,17 @@ function avail() {
             console.info()
         }
     } else if (process.argv.includes("--retrievals")) {
-        const selection = utils.splitSelectionFromProcessArgv("--retrievals")
+        const selection = _splitSelectionFromProcessArgv("--retrievals")
         if (selection.length == 0) {
-            utils.traceHeader("WITNET RETRIEVALS")
-            __traceWitnetRetrievalsBreakdown(retrievals)
+            _traceHeader("WITNET RETRIEVALS")
+            _traceWitnetRetrievalsBreakdown(retrievals)
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
             console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
             console.info()
         } else {
-            const dict = utils.dictionary(Object, retrievals)
+            const dict = Witnet.Dictionary(Object, retrievals)
             for (const index in selection) {
                 const key = selection[index]
                 try {
@@ -220,7 +221,7 @@ function avail() {
                     } else {
                         console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                         console.info("  ", "=".repeat(key.length))
-                        __traceWitnetRetrievalsBreakdown(retrieval)
+                        _traceWitnetRetrievalsBreakdown(retrieval)
                     }
                 } catch (ex) {
                     console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
@@ -235,11 +236,11 @@ function avail() {
 }
 
 function check() {
-    utils.traceHeader(`Checking Witnet assets...`)
+    _traceHeader(`Checking Witnet assets...`)
     const [ requests, templates, retrievals ] = [
-        utils.countLeaves(Witnet.Artifacts.Class, require(`${witnet_require_path}/assets`).requests),
-        utils.countLeaves(Witnet.Artifacts.Template, require(`${witnet_require_path}/assets`).templates),
-        utils.countLeaves(Witnet.Retrievals.Class, require(`${witnet_require_path}/assets`).retrievals)
+        _countLeaves(Witnet.Artifacts.Class, require(`${witnet_require_path}/assets`).requests),
+        _countLeaves(Witnet.Artifacts.Template, require(`${witnet_require_path}/assets`).templates),
+        _countLeaves(Witnet.Retrievals.Class, require(`${witnet_require_path}/assets`).retrievals)
     ];
     if (requests) console.info("  ", "> Requests:  ", requests);
     if (templates) console.info("  ", "> Templates: ", templates);
@@ -289,7 +290,7 @@ function truffleConsole() {
         process.exit(0)
     }
     const addresses = require(`${witnet_require_path}/assets`)?.addresses[chain[0]][chain[1]]
-    utils.traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
+    _traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
     if (_traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
     }
@@ -469,11 +470,7 @@ async function wizard() {
             }), ...answers
         }
         if (!answers.includeMocks) {
-            const addresses = require(`${witnet_require_path}/assets`).addresses
-            const choices = []
-            for (const ecosystem in addresses) {
-                choices.push(ecosystem === "default" ? "ETHEREUM" : ecosystem.toUpperCase())
-            }
+            const choices = assets.supportedEcosystems()
             answers = {
                 ...await inquirer.prompt({
                     type: "checkbox",
@@ -483,17 +480,16 @@ async function wizard() {
                     validate: (ans) => { return (ans.length > 0) }
                 }), ...answers
             }
-            var target = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetRequestBoard"
+            var artifact = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetRequestBoard"
             var findings = []
-            for (const index in answers?.ecosystems) {
-                var ecosystem = answers?.ecosystems[index].toLowerCase()
-                for (const network in addresses[ecosystem]) {
-                    var targetAddr = addresses[ecosystem][network][target]
-                    if (!findings.includes(targetAddr)) {
-                        findings.push(targetAddr)
+            answers?.ecosystems.forEach(ecosystem => {
+                assets.supportedNetworks(ecosystem.toLowerCase()).forEach(network =>  {
+                    const artifactAddr = assets.getAddresses(network)?.artifact
+                    if (artifactAddr && !findings.includes(artifactAddr)) {
+                        findings.push(artifactAddr)
                     }
-                }
-            }
+                })
+            })
             if (findings.length == 1) {
                 answers = {
                     ...answers,
@@ -566,6 +562,21 @@ function _capitalizeFirstLetterOnly(str) {
     return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 }
 
+function _countLeaves(t, obj) {
+    if (!obj) {
+        return 0;
+    }
+    else if (obj instanceof t) {
+        return 1;
+    }
+    else if (Array.isArray(obj)) {
+        return obj.map(function (item) { return _countLeaves(t, item); }).reduce(function (a, b) { return a + b; }, 0);
+    }
+    else {
+        return Object.values(obj).map(function (item) { return _countLeaves(t, item); }).reduce(function (a, b) { return a + b; }, 0);
+    }
+}
+
 function _orderKeys(obj) {
     var keys = Object.keys(obj).sort(function keyOrder(k1, k2) {
         if (k1 < k2) return -1;
@@ -574,14 +585,34 @@ function _orderKeys(obj) {
     });
     var i, after = {};
     for (i = 0; i < keys.length; i++) {
-      after[keys[i]] = obj[keys[i]];
-      delete obj[keys[i]];
+        after[keys[i]] = obj[keys[i]];
+        delete obj[keys[i]];
     }
     for (i = 0; i < keys.length; i++) {
-      obj[keys[i]] = after[keys[i]];
+        obj[keys[i]] = after[keys[i]];
     }
     return obj;
-  }
+}
+
+function _splitSelectionFromProcessArgv(operand) {
+    let selection = []
+    if (process.argv.includes(operand)) {
+        process.argv.map((argv, index, args) => {
+            if (argv === operand) {
+                if (index < process.argv.length - 1 && !args[index + 1].startsWith("--")) {
+                    selection = args[index + 1].replaceAll(".", ":").split(",")
+                }
+            }
+        })
+    }
+    return selection
+}
+
+function _traceHeader(header) {
+    console.log("")
+    console.log("  ", header)
+    console.log("  ", `${"-".repeat(header.length)}`)
+}
 
 function _traceWitnetAddresses(addresses, selection, level) {
     let found = 0
@@ -616,12 +647,12 @@ function _traceWitnetArtifact(artifact) {
         if (specs?.retrieve.length == 1) {
             if (specs.retrieve[0]?.argsCount) {
                 if (!args || args.length == 0) {
-                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
+                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitnetRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m<${specs.retrieve[0].argsCount} args>\x1b[1;32m)\x1b[0m`)
                 } else {
-                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
+                    console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitnetRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
                 }
             } else {
-                console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getRequestMethodString(specs.retrieve[0].method)}()\x1b[0m`)
+                console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitnetRequestMethodString(specs.retrieve[0].method)}()\x1b[0m`)
             }
         } else {
             console.info("  ", `[1] RETRIEVE:`)
@@ -630,12 +661,12 @@ function _traceWitnetArtifact(artifact) {
             if (specs?.retrieve.length > 1) {
                 if (value?.argsCount) {
                     if (!args[index] || args[index].length == 0) {
-                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
                     } else {
-                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getRequestMethodString(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
+                        console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
                     }
                 } else {
-                    console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getRequestMethodString(value.method)}()\x1b[0m`)
+                    console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}()\x1b[0m`)
                 }
             }
             _traceWitnetArtifactRetrieval(value)
@@ -650,7 +681,7 @@ function _traceWitnetArtifact(artifact) {
 }
 
 function _traceWitnetArtifacts(crafts, selection) {
-    const dict = utils.dictionary(Object, crafts)
+    const dict = Witnet.Dictionary(Object, crafts)
     let found = 0
     for (const index in selection) {
         const key = selection[index]
@@ -693,11 +724,11 @@ function _traceWitnetArtifactRetrieval(specs) {
     }
 }
 
-function __traceWitnetRetrievalsBreakdown(retrievals, level) {
+function _traceWitnetRetrievalsBreakdown(retrievals, level) {
     if (retrievals?.method) return;    
     for (const key in _orderKeys(retrievals)) {
         console.info(" ", " ".repeat(4 * (level || 0)), (retrievals[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
-        __traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
+        _traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
     }
 }
 
@@ -712,9 +743,9 @@ function _traceWitnetArtifactsBreakdown(artifacts, level) {
 function _traceWitnetRetrieval(value) {
     if (value?.method) {
         if (value?.argsCount) {
-            console.info("  ", `> Method:    \x1b[1;32m${utils.getRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+            console.info("  ", `> Method:    \x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
         } else {
-            console.info("  ", `> Method:    \x1b[1;32m${utils.getRequestMethodString(value.method)}()\x1b[0m`)
+            console.info("  ", `> Method:    \x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}()\x1b[0m`)
         }
         if (value?.url) {
             console.info("  ", `> URL:       \x1b[32m${value.url}\x1b[0m`)

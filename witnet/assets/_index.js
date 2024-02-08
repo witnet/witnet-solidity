@@ -1,10 +1,14 @@
-const merge = require("lodash.merge")
+const witnet = require("witnet-solidity/assets")
 module.exports = {
-    abis: require("witnet-solidity/assets").abis,
-    addresses: merge(
-        require("witnet-solidity/assets").addresses,
-        require("./addresses.json"),
-    ),
+    getAddresses: (network) => {
+        return {
+            ...witnet.getAddresses(network.toLowerCase()),
+            ...require("./addresses.json")[network.toLowerCase()]
+        }
+    },
+    supportedEcosystems: witnet.supportedEcosystems,
+    supportedNetworks: witnet.supportedNetworks,
+    artifacts: witnet.artifacts,
     requests: require("./requests"),
     retrievals: require("./retrievals"),
     templates: require("./templates"),
