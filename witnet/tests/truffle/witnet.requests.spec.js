@@ -1,32 +1,33 @@
-const utils = require("../../dist/utils")
-const selection = utils.getWitnetArtifactsFromArgs()
-
-const addresses = require("./addresses")
-const requests = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).requests
+const utils = require("../../scripts/truffle-utils")
+const witnet = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`)
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
 
-contract("migrations/witnet/requests", async () => {
+contract("witnet-solidity/requests", async () => {
+
+  const [, network] = utils.getRealmNetworkFromArgs();
+  const addresses = require("./addresses")[network]
+  const selection = utils.getWitnetArtifactsFromArgs()
+
   let summary = []
+  
   describe("My Witnet Requests...", async () => {
-    const crafts = findWitnetRequestCrafts(requests)
+    const crafts = utils.flattenWitnetArtifacts(witnet.requests)
     crafts.forEach(async (craft) => {
+      const requestAddress = addresses.requests[craft?.key] || ""
       if (
-        craft.address !== "" &&
-          (
-            process.argv.includes("--all") ||
-              selection.includes(craft.artifact)
-          )
+        requestAddress !== "" &&
+          (process.argv.includes("--all") || selection.includes(craft?.key))
       ) {
-        describe(`${craft.artifact}`, async () => {
+        await describe(`${craft.key}`, async () => {
           let bytecode, radHash
           it("request was actually deployed", async () => {
-            const request = await WitnetRequest.at(craft.address)
+            const request = await WitnetRequest.at(requestAddress)
             radHash = await request.radHash.call()
           })
           it("request dryruns successfully", async () => {
-            const request = await WitnetRequest.at(craft.address)
+            const request = await WitnetRequest.at(requestAddress)
             const registry = await WitnetBytecodes.at(await request.registry.call())
             bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
             const output = await utils.dryRunBytecode(bytecode)
@@ -38,7 +39,7 @@ contract("migrations/witnet/requests", async () => {
             }
             const result = utils.processDryRunJson(json)
             summary.push({
-              "Artifact": craft.artifact,
+              "Artifact": craft.key,
               "RAD hash": radHash.slice(2),
               "Status": result.status,
               "✓ Sources": result.totalRetrievals - result.nokRetrievals,
@@ -59,7 +60,8 @@ contract("migrations/witnet/requests", async () => {
           })
         })
       }
-    })
+    });
+
     after(async () => {
       if (summary.length > 0) {
         console.info(`\n${"=".repeat(148)}\n> REQUEST DRY-RUNS:`)
@@ -67,36 +69,4 @@ contract("migrations/witnet/requests", async () => {
       }
     })
   })
-
-  function findWitnetRequestCrafts (tree, headers) {
-    if (!headers) headers = []
-    const matches = []
-    for (const key in tree) {
-      if (tree[key]?.specs) {
-        matches.push({
-          artifact: key,
-          address: findWitnetRequestAddress(key),
-        })
-      } else if (typeof tree[key] === "object") {
-        matches.push(
-          ...findWitnetRequestCrafts(
-            tree[key],
-            [...headers, key]
-          )
-        )
-      }
-    }
-    return matches
-  }
-
-  function findWitnetRequestAddress (target) {
-    const addrs = addresses.default?.test.requests
-    for (const key in addrs) {
-      if (key === target) {
-        return addrs[key]
-      }
-    }
-    return ""
-  }
-
 })

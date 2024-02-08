@@ -2,13 +2,14 @@
 node_modules
 package-lock.json
 yarn-error.log
-*lock*
 
 # Build artifacts
 build/
 dist/
-witnet/build/
-witnet/tests/addresses.json
+witnet/artifacts
+witnet/build
+witnet/cache
+witnet/tests/**/addresses.json
 
 # Flattened contracts
 flattened/

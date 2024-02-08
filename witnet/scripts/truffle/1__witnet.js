@@ -1,4 +1,9 @@
-const utils = require("../../../dist/utils")
+const assets = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
+  ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}/assets`
+  : "../../../../../witnet/assets"
+);
+
+const utils = require("../truffle-utils")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetPriceFeeds = artifacts.require("WitnetPriceFeeds")
@@ -6,22 +11,15 @@ const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 
 module.exports = async function (deployer, network) {
-  const isDryRun = network === "test" || network.split("-")[1] === "fork" || network.split("-")[0] === "develop"
-  const ecosystem = utils.getRealmNetworkFromArgs()[0]
-  network = network.split("-")[0]
-
-  let addresses = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
-      ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}/assets`
-      : "../../../../../witnet/assets"
-  ).addresses
+  const addresses = assets.getAddresses(network)
+  const isDryRun = utils.isDryRun(network)
 
   if (!isDryRun) {
     try {
-      const witnetAddresses = addresses[ecosystem][network]
-      WitnetBytecodes.address = witnetAddresses?.WitnetBytecodes
-      WitnetPriceFeeds.address = witnetAddresses?.WitnetPriceFeeds
-      WitnetRequestBoard.address = witnetAddresses?.WitnetRequestBoard
-      WitnetRequestFactory.address = witnetAddresses?.WitnetRequestFactory
+      WitnetBytecodes.address = addresses?.WitnetBytecodes
+      WitnetPriceFeeds.address = addresses?.WitnetPriceFeeds
+      WitnetRequestBoard.address = addresses?.WitnetRequestBoard
+      WitnetRequestFactory.address = addresses?.WitnetRequestFactory
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
@@ -57,35 +55,36 @@ module.exports = async function (deployer, network) {
     await deployer.deploy(WitnetMockedPriceFeeds, WitnetRequestBoard.address);
     WitnetPriceFeeds.address = WitnetMockedPriceFeeds.address;
 
-    addresses = {}
-    addresses[ecosystem] = {}
-    addresses[ecosystem][network] = {}
-    utils.saveAddresses(addresses, `${process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"}/tests`)
+    utils.saveAddresses(
+      `${process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"}/tests/truffle/`,
+      addresses,
+      network
+    );
   }
   
   utils.traceHeader("Witnet Artifacts:"); {
     if (WitnetBytecodes.address) {
       console.info("  ", "> WitnetBytecodes:      ", 
         WitnetBytecodes.address, 
-        `(${await _readUpgradableArtifactVersion(WitnetBytecodes)})`
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetBytecodes)})`
       )
     }
     if (WitnetRequestBoard.address) {
       console.info("  ", "> WitnetRequestBoard:   ", 
         WitnetRequestBoard.address, 
-        `(${await _readUpgradableArtifactVersion(WitnetRequestBoard)})`
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestBoard)})`
       )
     }
     if (WitnetRequestFactory.address) {
       console.info("  ", "> WitnetRequestFactory: ", 
         WitnetRequestFactory.address, 
-        `(${await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
       )
     }
     if (WitnetPriceFeeds.address) {
       console.info("  ", "> WitnetPriceFeeds:     ", 
         WitnetPriceFeeds.address, 
-        isDryRun ? "(mocked)" : ""
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetPriceFeeds)})`
       )
     }
   }
@@ -95,8 +94,12 @@ async function _readUpgradableArtifactVersion(artifact) {
   const WitnetUpgradableBase = artifacts.require("WitnetUpgradableBase");
   try {
     const upgradable = await WitnetUpgradableBase.at(artifact.address)
-    return await upgradable.version()
+    if (await upgradable.isUpgradable() === true) {
+      return await upgradable.version()
+    } else {
+      return "non-upgradable"
+    }
   } catch {
-    return "???"
+    return "non-upgradable"
   }
 }
