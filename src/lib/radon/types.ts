@@ -1,4 +1,4 @@
-const utils = require('../../utils')
+const utils = require('./utils')
 
 import * as reducers from './reducers'
 
@@ -7,13 +7,13 @@ export enum RadonBytesEncoding {
     Base64 = 1,
 };
 
-export class Class {
+export class RadonType {
     protected _bytecode?: any; 
     protected _key?: string;
-    protected _prev?: Class;
+    protected _prev?: RadonType;
     protected _method?: string;
     protected _params?: any;
-    constructor (prev?: Class, key?: string) {
+    constructor (prev?: RadonType, key?: string) {
         this._key = key
         this._prev = prev
         Object.defineProperty(this, "toString", { value: () => {
@@ -53,7 +53,7 @@ export class Class {
      * @param argIndex Index of the wildcarded argument whose value is to be replaced.
      * @param argValue Value used to replace given argument.
      */
-    public _spliceWildcards(argIndex: number, argValue: string): Class {
+    public _spliceWildcards(argIndex: number, argValue: string): RadonType {
         const RadonClass = [ 
             RadonArray,
             RadonBoolean,
@@ -62,7 +62,7 @@ export class Class {
             RadonInteger,
             RadonMap,
             RadonString
-        ].find(RadonClass => this instanceof RadonClass) || Class;
+        ].find(RadonClass => this instanceof RadonClass) || RadonType;
         const argsCount: number = this._countArgs()
         const spliced = new RadonClass(this._prev?._spliceWildcards(argIndex, argValue), this._key);   
         spliced._set(
@@ -74,14 +74,14 @@ export class Class {
     }
 }
 
-export class RadonArray extends Class {
+export class RadonArray extends RadonType {
     /**
      * Discard the items in the input array that make the given `innerScript` to return a `false` value. 
      * @param innerScript Filtering script ultimately returning a `RadonBoolean` object.
      * Must accept as input the same data types as the ones of the items being iterated. 
      * @returns A `RadonArray` object containing only the items that make the `innerScript` to return a `true` value. 
      */
-    public filter(innerScript: Class) {
+    public filter(innerScript: RadonType) {
         if (!(innerScript instanceof RadonBoolean)) {
             throw new EvalError(`\x1b[1;33mRadonArray::filter: inner script returns no RadonBoolean object\x1b[0m`)
         }
@@ -166,8 +166,8 @@ export class RadonArray extends Class {
      * @param outputType Radon type of the output value. 
      * @param separator Separator to be used when joining strings. When joining RadonMaps, it can be used to settle base schema on resulting object.
      */
-    public join<T extends Class>(
-        outputType: { new(prev?: Class, key?: string): T; }, 
+    public join<T extends RadonType>(
+        outputType: { new(prev?: RadonType, key?: string): T; }, 
         separator?: string,
     ) {
         if (separator && typeof separator === 'string') {
@@ -190,11 +190,11 @@ export class RadonArray extends Class {
     }
     /**
      * Map all items in the array with the given `innerScript`. 
-     * @param innerScript Mapping script returning some `Class` object.
+     * @param innerScript Mapping script returning some `RadonType` object.
      * Must accept as input the same data type as the one of the items being iterated. 
      * @returns A `RadonArray` object containing the mapped values. 
      */
-    public map(innerScript: Class) {
+    public map(innerScript: RadonType) {
         this._bytecode = [ 0x1A, innerScript._encodeArray() ]
         this._method = "map"
         this._params = innerScript.toString()
@@ -215,11 +215,11 @@ export class RadonArray extends Class {
     /**
      * Order the array items based either on the results of applying the given `innerScript` to every item, or on the 
      * actual item values (as long as these are either integers or strings).
-     * Fails if applied on non-homegenous arrays (i.e. not all items sharing the same `Class`). 
+     * Fails if applied on non-homegenous arrays (i.e. not all items sharing the same `RadonType`). 
      * @param innerScript (Optional) Sorting script returning either a `RadonInteger` or a `RadonString` object.
      * @returns A `RadonArray` object.
      */
-    public sort(innerScript?: Class) {
+    public sort(innerScript?: RadonType) {
         if (!(innerScript instanceof RadonInteger) && !(innerScript instanceof RadonString)) {
             throw new EvalError(`\x1b[1;33mRadonArray::sort: inner script returns neither a RadonInteger nor a RadonString object\x1b[0m`)
         }
@@ -248,7 +248,7 @@ export class RadonArray extends Class {
     }
 }
 
-export class RadonBoolean extends Class {
+export class RadonBoolean extends RadonType {
     /**
      * Reverse value.
      * @returns A `RadonBoolean` object.
@@ -269,7 +269,7 @@ export class RadonBoolean extends Class {
     }
 }
 
-export class RadonBytes extends Class {
+export class RadonBytes extends RadonType {
     /**
      * Convert buffer into (big-endian) integer.
      * @returns A `RadonBytes` object.
@@ -335,7 +335,7 @@ export class RadonBytes extends Class {
     }
 }
 
-export class RadonFloat extends Class {
+export class RadonFloat extends RadonType {
     /**
      * Compute the absolute value.
      * @returns A `RadonFloat` object.
@@ -456,7 +456,7 @@ export class RadonFloat extends Class {
     }
 }
 
-export class RadonInteger extends Class {
+export class RadonInteger extends RadonType {
     /**
      * Compute the absolute value.
      * @returns A `RadonInteger` object.
@@ -559,7 +559,7 @@ export class RadonInteger extends Class {
     }
 }
 
-export class RadonMap extends Class {
+export class RadonMap extends RadonType {
     /**
      * Alter the value of the item(s) identified by `keys`, applying the given `innerScript` to each one of them.
      * @param key 
@@ -567,7 +567,7 @@ export class RadonMap extends Class {
      * @returns The same RadonMap upon which this operator is executed, with the specified item(s) altered
      * by the given `innerScript`.
      */
-    public alter(keys: string | string[], innerScript: Class) {
+    public alter(keys: string | string[], innerScript: RadonType) {
         const RadonClass = [ 
             RadonArray,
             RadonBoolean,
@@ -576,9 +576,9 @@ export class RadonMap extends Class {
             RadonInteger,
             RadonMap,
             RadonString
-        ].find(RadonClass => innerScript instanceof RadonClass) || Class;
-        if (RadonClass instanceof Class) {
-            throw new EvalError(`\x1b[1;33mRadonMap::alter: inner script returns undetermined Class\x1b[0m`)
+        ].find(RadonClass => innerScript instanceof RadonClass) || RadonType;
+        if (RadonClass instanceof RadonType) {
+            throw new EvalError(`\x1b[1;33mRadonMap::alter: inner script returns undetermined RadonType\x1b[0m`)
         }
         this._bytecode = [ 0x6b, keys, innerScript._encodeArray() ]
         this._method = "alter"
@@ -694,7 +694,7 @@ export class RadonMap extends Class {
     }
 }
 
-export class RadonString extends Class {
+export class RadonString extends RadonType {
     /**
      * Cast into a boolean value.
      * @returns A `RadonBoolean` object.
@@ -747,8 +747,8 @@ export class RadonString extends Class {
      * @param defaultValue Value returned if no match is found. 
      * @returns 
      */
-    public match<T extends Class>(
-        outputType: { new(prev?: Class, key?: string): T; }, 
+    public match<T extends RadonType>(
+        outputType: { new(prev?: RadonType, key?: string): T; }, 
         matchingMap: Map<string, any>, 
         defaultValue: any
     ) {

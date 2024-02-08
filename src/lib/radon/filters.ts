@@ -11,8 +11,8 @@ export class Class {
         this.args = args
         Object.defineProperty(this, "toString", { value: () => {
             switch(this.opcode) {
-                case Opcodes.Mode: return "Filter(mode)";
-                case Opcodes.StandardDeviation: return `Filter(stdev = ${args})`
+                case Opcodes.Mode: return "Class(mode)";
+                case Opcodes.StandardDeviation: return `Class(stdev = ${args})`
             }
         }})
     }

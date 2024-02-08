@@ -1,4 +1,4 @@
-import { Class as Script } from "./types"
+import { RadonType as Script } from "./types"
 import { Class as Filter, Stdev as StdevFilter } from "./filters"
 
 export enum Opcodes {

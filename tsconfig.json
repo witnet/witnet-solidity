@@ -38,6 +38,7 @@
   "files": [
     "src/bin/witnet.js",
     "src/lib/radon/index.ts",
+    "src/lib/radon/utils.js",
   ],
   "include": [
     "src/**/*.d.ts",

@@ -4,7 +4,6 @@ import * as _Reducers from "./reducers"
 import * as _Retrievals from "./retrievals"
 import * as _RPC from "./ccdr"
 import * as _Types from "./types"
-import * as _Utils from "../../utils"
 
 /**
  * Web3 deployable artifacts that can be declared within
@@ -50,15 +49,6 @@ export const CCDR: typeof _RPC = _RPC;
 export const Types: typeof _Types = _Types;
 
 /**
- * Helper methods for the deployment
- * of Witnet-related Web3 artifacts,
- * building, encoding or decoding of
- * Witnet data requests from offchain
- * environments.
- */
-export const Utils: typeof _Utils = _Utils;
-
-/**
  * Creates a proxy dictionary of Witnet Radon assets
  * of the specified kind, where keys cannot
  * be duplicated, and where items can be accessed
@@ -75,13 +65,26 @@ export function Dictionary<T>(t: { new(): T; }, dict: Object): Object {
 function proxyHandler<T>(t: { new(): T; }) {
     return {
         get(target: any, prop: string) {
-            let found = target[prop] ?? Utils.findKeyInObject(target, prop)
+            let found = target[prop] ?? findKeyInObject(target, prop)
             if (!found) {
                 throw EvalError(`\x1b[1;31m['${prop}']\x1b[1;33m was not found in dictionary\x1b[0m`)
             } else if (!(found instanceof t)) {
                 throw EvalError(`\x1b[1;31m['${prop}']\x1b[1;33m was found with unexpected type!\x1b[0m`)
             }
             return found
+        }
+    }
+}
+
+function findKeyInObject(dict: any, tag: string) {
+    for (const key in dict) {
+        if (typeof dict[key] === 'object') {
+            if (key === tag) {
+                return dict[key]
+            } else {
+                let found: any = findKeyInObject(dict[key], tag)
+                if (found) return found
+            }
         }
     }
 }
@@ -100,7 +103,7 @@ export function Script(): _Types.RadonString { return InnerScript(Types.RadonStr
  * as to internally process some input value of the specified kind.
  * @param t Radon type of the input data to be processed by the new script.
  */
-export function InnerScript<T extends _Types.Class>(t: { new(): T; }): T { return new t(); }
+export function InnerScript<T extends _Types.RadonType>(t: { new(): T; }): T { return new t(); }
 
 
 /// ===================================================================================================================

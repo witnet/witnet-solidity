@@ -1,7 +1,7 @@
-const utils = require("../../utils")
+const utils = require("./utils")
 
 import graphQlCompress from "graphql-query-compress"
-import { Class as Script, RadonString as DefaultScript} from "./types"
+import { RadonType as Script, RadonString as DefaultScript} from "./types"
 import { Call as RPC } from "./ccdr"
 
 enum Methods {
