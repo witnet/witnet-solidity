@@ -20,7 +20,7 @@ module.exports = async function (_deployer, network, [from, ]) {
   addresses.requests = utils.orderObjectKeys(addresses.requests);
   addresses = utils.orderObjectKeys(addresses);
   utils.saveAddresses(
-    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}/assets`,
+    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}`,
     addresses, network
   )
 }

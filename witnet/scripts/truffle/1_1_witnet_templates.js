@@ -19,7 +19,7 @@ module.exports = async function (_deployer, network, [from, ]) {
   addresses = await deployWitnetRequestTemplates(addresses, from, isDryRun, templates) 
   addresses.templates = utils.orderObjectKeys(addresses.templates);
   utils.saveAddresses(
-    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}/assets`,
+    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}`,
     { network: addresses }, network
   );
 }

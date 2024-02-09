@@ -3,7 +3,7 @@ module.exports = {
     getAddresses: (network) => {
         return {
             ...witnet.getAddresses(network.toLowerCase()),
-            ...require("./addresses.json")[network.toLowerCase()]
+            ...require("../addresses.json")[network.toLowerCase()]
         }
     },
     supportedEcosystems: witnet.supportedEcosystems,

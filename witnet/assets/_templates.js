@@ -1,4 +1,4 @@
-const Witnet = require("witnet-solidity")
+const Witnet = require("witnet-toolkit")
 const { templates } = require("witnet-solidity/assets")
 
 const sources = Witnet.Dictionary(

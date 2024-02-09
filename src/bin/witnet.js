@@ -18,20 +18,12 @@ const witnet_tests_path = `${witnet_solidity_module_path}/tests/truffle`
 if (process.argv.length >= 3) {
     const command = process.argv[2]
     if (command === "init") {
-        if (!fs.existsSync(`./witnet/assets/addresses.json`)) {
+        if (!fs.existsSync(`./witnet/addresses.json`)) {
             // if not yet initialized...
             init();
-            if (process.argv.includes("--wizard")) {
-                wizard();
-            } else {
-                version();
-                showMainUsage();
-            }
-        } else {
-            // if already initialized...
-            wizard();
         }
-        
+        version();
+        showMainUsage();
     } else if (command === "avail") {
         avail();
     } else if (command === "test") {
@@ -44,6 +36,8 @@ if (process.argv.length >= 3) {
         deploy();
     } else if (command === "version") {
         version();
+    } else if (command === "wizard") {
+        wizard();
     } else {
         version()
         showMainUsage()
@@ -100,8 +94,8 @@ async function init() {
     if (!fs.existsSync("./witnet/assets/templates.js")) {
         fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js");
     }
-    if (!fs.existsSync("./witnet/assets/addresses.json")) {
-        fs.writeFileSync("./witnet/assets/addresses.json", "{}")
+    if (!fs.existsSync("./witnet/addresses.json")) {
+        fs.writeFileSync("./witnet/addresses.json", "{}")
     }
 }
 

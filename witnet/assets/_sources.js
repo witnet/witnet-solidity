@@ -1,4 +1,4 @@
-const Witnet = require("witnet-solidity")
+const Witnet = require("witnet-toolkit")
 const { sources } = require("witnet-solidity/assets")
 
 module.exports = {
