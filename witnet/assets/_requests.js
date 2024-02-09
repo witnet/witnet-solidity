@@ -2,7 +2,7 @@ const Witnet = require("witnet-toolkit")
 const { requests } = require("witnet-solidity/assets")
 
 const sources = Witnet.Dictionary(
-    Witnet.Retrievals.Class, 
+    Witnet.Sources.Class, 
     require("./sources")
 );
 const templates = Witnet.Dictionary(
@@ -15,13 +15,13 @@ module.exports = {
         /////// STATIC REQUESTS /////////////////////////////////////////////////////////
         // path: { ... path: {
         //      WitnetRequestXXX: Witnet.StaticRequest({ 
-        //          retrieve: [ Witnet.Retrievals.., ..., sources['retrieval-artifact-name-x'], ... ],
+        //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
         //          aggregate?: Witnet.Reducers..,
         //          tally?: Witnet.Reducers..,
         //      }),
         ////// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
         //      WitnetRequestYYY: Witnet.RequestFromTemplate(
-        //          templates['template-artifact-name'], 
+        //          templates['WitnetRequestTemplateUniqueNameX'], 
         //          [ [ .. ], .. ], // args: string[][]
         //      ),
         ////// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
@@ -29,7 +29,7 @@ module.exports = {
         //          retrieve: {
         //              dict: sources,
         //              tags: { 
-        //                  'retrieval-artifact-name-1': [ [ .. ], .. ], // args: string[][]
+        //                  'source-name-1': [ [ .. ], .. ], // args: string[][]
         //                  ...
         //              },
         //          },

@@ -195,7 +195,7 @@ function avail() {
         const selection = _splitSelectionFromProcessArgv("--sources")
         if (selection.length == 0) {
             _traceHeader("WITNET RETRIEVALS")
-            _traceWitnetRetrievalsBreakdown(sources)
+            _traceWitnetSourcesBreakdown(sources)
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
@@ -206,15 +206,15 @@ function avail() {
             for (const index in selection) {
                 const key = selection[index]
                 try {
-                    const retrieval = dict[key]
-                    if (retrieval?.method) {
+                    const source = dict[key]
+                    if (source?.method) {
                         console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                         console.info("  ", "=".repeat(key.length))
-                        _traceWitnetRetrieval(retrieval)
+                        _traceWitnetSource(source)
                     } else {
                         console.info("\n  ", `\x1b[1;37m${key}\x1b[0m`)
                         console.info("  ", "=".repeat(key.length))
-                        _traceWitnetRetrievalsBreakdown(retrieval)
+                        _traceWitnetSourcesBreakdown(source)
                     }
                 } catch (ex) {
                     console.info("\n  ", `\x1b[1;31m${key}\x1b[0m`)
@@ -234,11 +234,11 @@ function check() {
     const [ requests, templates, sources ] = [
         _countLeaves(Witnet.Artifacts.Class, assets?.requests),
         _countLeaves(Witnet.Artifacts.Template, assets?.templates),
-        _countLeaves(Witnet.Retrievals.Class, assets?.sources)
+        _countLeaves(Witnet.Sources.Class, assets?.sources)
     ];
-    if (requests) console.info("  ", "> Requests:  ", requests);
+    if (sources) console.info("  ", "> Sources:   ", sources);
     if (templates) console.info("  ", "> Templates: ", templates);
-    if (sources) console.info("  ", "> Retrievals:", sources);
+    if (requests) console.info("  ", "> Requests:  ", requests);
     console.info("\nAll assets checked successfully!")
 }
 
@@ -665,7 +665,7 @@ function _traceWitnetArtifact(artifact) {
                     console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}()\x1b[0m`)
                 }
             }
-            _traceWitnetArtifactRetrieval(value)
+            _traceWitnetArtifactSource(value)
         })
         if (specs?.aggregate) {
             console.info("  ", `[2] AGGREGATE:\t\x1b[1;35m${specs.aggregate.toString()}\x1b[0m`)
@@ -702,7 +702,7 @@ function _traceWitnetArtifacts(crafts, selection) {
     return found
 }
 
-function _traceWitnetArtifactRetrieval(specs) {
+function _traceWitnetArtifactSource(specs) {
     if (specs?.url) {
         console.info("  ", `    > URL:     \t\x1b[32m${specs.url}\x1b[0m`)
     }
@@ -720,11 +720,11 @@ function _traceWitnetArtifactRetrieval(specs) {
     }
 }
 
-function _traceWitnetRetrievalsBreakdown(sources, level) {
+function _traceWitnetSourcesBreakdown(sources, level) {
     if (sources?.method) return;    
     for (const key in _orderKeys(sources)) {
         console.info(" ", " ".repeat(4 * (level || 0)), (sources[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
-        _traceWitnetRetrievalsBreakdown(sources[key], level ? level + 1 : 1)
+        _traceWitnetSourcesBreakdown(sources[key], level ? level + 1 : 1)
     }
 }
 
@@ -736,7 +736,7 @@ function _traceWitnetArtifactsBreakdown(artifacts, level) {
     }
 }
 
-function _traceWitnetRetrieval(value) {
+function _traceWitnetSource(value) {
     if (value?.method) {
         if (value?.argsCount) {
             console.info("  ", `> Method:    \x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)

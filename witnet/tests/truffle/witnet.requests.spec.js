@@ -42,8 +42,8 @@ contract("witnet-solidity/requests", async () => {
               "Artifact": craft.key,
               "RAD hash": radHash.slice(2),
               "Status": result.status,
-              "✓ Sources": result.totalRetrievals - result.nokRetrievals,
-              "∑ Sources": result.totalRetrievals,
+              "✓ Sources": result.totalSources - result.nokSources,
+              "∑ Sources": result.totalSources,
               "Time (secs)": result.runningTime,
               "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
             })

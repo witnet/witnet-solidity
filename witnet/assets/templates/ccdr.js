@@ -1,7 +1,7 @@
 const Witnet = require("witnet-toolkit")
 
 const sources = Witnet.Dictionary(
-    Witnet.Retrievals.Class,
+    Witnet.Sources.Class,
     require("../sources")
 );
 

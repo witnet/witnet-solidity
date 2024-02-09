@@ -3,12 +3,12 @@ const Witnet = require("witnet-toolkit")
 module.exports = {
     legacy: {
         WitnetRequestRandomness: Witnet.StaticRequest({
-            retrieve: [ Witnet.Retrievals.RNG(), ],
+            retrieve: [ Witnet.Sources.RNG(), ],
             tally: Witnet.Reducers.ConcatHash(),
         }),
         WitnetRequestPriceUsdtWit9: Witnet.StaticRequest({
             retrieve: [
-                Witnet.Retrievals.HttpGet({
+                Witnet.Sources.HttpGet({
                     url: "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=WIT_USDT",
                     script: Witnet.Script()
                         .parseJSONMap()
@@ -20,7 +20,7 @@ module.exports = {
                         .multiply(1e9)
                         .round(),
                 }),
-                Witnet.Retrievals.HttpGet({
+                Witnet.Sources.HttpGet({
                     url: "https://data.gateapi.io/api2/1/ticker/wit_usdt",
                     script: Witnet.Script()
                         .parseJSONMap()
@@ -29,7 +29,7 @@ module.exports = {
                         .multiply(1e9)
                         .round(),
                 }),
-                Witnet.Retrievals.HttpGet({
+                Witnet.Sources.HttpGet({
                     url: "https://www.mexc.com/open/api/v2/market/ticker?symbol=WIT_USDT",
                     script: Witnet.Script()
                         .parseJSONMap()

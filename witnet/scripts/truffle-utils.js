@@ -42,11 +42,11 @@ async function deployWitnetRequest(web3, from, registry, factory, request, templ
     if (request?.args) {
       console.info("  ", "> Instance parameters:")
       request?.args?.map((subargs, index) => {
-        console.info("  ", " ", `Retrieval #${index}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`)
+        console.info("  ", " ", `Source #${index}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`)
         args[index] = subargs
       })
     } else {
-      request.specs.retrieve.map(retrieval => args.push([]))
+      request.specs.retrieve.map(source => args.push([]))
     }
     return await buildWitnetRequestFromTemplate(web3, from, await templateArtifact.at(templateAddr), args)
 }
@@ -90,7 +90,7 @@ function encodeWitnetRadon(T) {
             T.opcode,
             `0x${T.args ? cbor.encode(T.args).toString("hex"): ""}`
         ];
-    } else if (T instanceof Witnet.Retrievals.Class) {
+    } else if (T instanceof Witnet.Sources.Class) {
         return [
             T.method,
             T.url || "",
@@ -148,22 +148,22 @@ function processDryRunJson(dryrun) {
     if (!itWorks) {
         error = `Aggregation failed: ${unescape(dryrun?.aggregate?.result?.RadonError)}`
     }
-    const nokRetrievals = Object.values(
-        dryrun?.retrieve.filter((retrieval, index) => {
-            const nok = "RadonError" in retrieval.result
+    const nokSources = Object.values(
+        dryrun?.retrieve.filter((source, index) => {
+            const nok = "RadonError" in source.result
             if (nok && !error) {
-                error = `Retrieval #${index + 1}: ${unescape(retrieval.result?.RadonError)}`
+                error = `Source #${index + 1}: ${unescape(source.result?.RadonError)}`
             }
             return nok
         })
     ).length;
-    const totalRetrievals = Object.values(dryrun?.retrieve).length
-    const status = itWorks ? (nokRetrievals > 0 ? "WARN": "OK") : "FAIL"
+    const totalSources = Object.values(dryrun?.retrieve).length
+    const status = itWorks ? (nokSources > 0 ? "WARN": "OK") : "FAIL"
     return {
         error,
         itWorks: itWorks,
-        nokRetrievals,
-        totalRetrievals,
+        nokSources,
+        totalSources,
         runningTime: Math.round(msecs.reduce((a, b) => a > b ? a : b)) / 1000,
         status,
         tally: dryrun?.tally.result
@@ -190,43 +190,43 @@ async function verifyWitnetRadonReducer(from, registry, reducer) {
     return hash
 };
   
-async function verifyWitnetRadonRetrieval(from, registry, retrieval) {
+async function verifyWitnetRadonRetrieval(from, registry, source) {
     // get actual hash for this data source
     var hash
-    if (retrieval) {
+    if (source) {
         try {
-            hash = await registry.methods['verifyRadonRetrieval(uint8,string,string,string[2][],bytes)'].call(...encodeWitnetRadon(retrieval), { from })
+            hash = await registry.methods['verifyRadonRetrieval(uint8,string,string,string[2][],bytes)'].call(...encodeWitnetRadon(source), { from })
         } catch (e) {
-            throw `Cannot check if Witnet Radon Retrieval is already verified: ${e}`
+            throw `Cannot check if Witnet Radon Source is already verified: ${e}`
         }
         // checks whether hash is already registered
         try {
             await registry.lookupRadonRetrieval.call(hash, { from })
         } catch {
-            // register new retrieval, otherwise:
-            utils.traceHeader(`Verifying Radon Retrieval ...`)
+            // register new source, otherwise:
+            utils.traceHeader(`Verifying Radon Source ...`)
             console.info(`   > Hash:       \x1b[32m${hash}\x1b[0m`)
-            if (retrieval?.url) {
-                console.info(`   > URL:        \x1b[1;32m${retrieval.url}\x1b[0m`)
+            if (source?.url) {
+                console.info(`   > URL:        \x1b[1;32m${source.url}\x1b[0m`)
             } 
-            console.info(`   > Method:     \x1b[1;32m${utils.getWitnetRequestMethodString(retrieval?.method)}\x1b[0m`)
-            if (retrieval?.body) {
-                console.info(`   > Body:       \x1b[1;32m${retrieval.body}\x1b[0m`)
+            console.info(`   > Method:     \x1b[1;32m${utils.getWitnetRequestMethodString(source?.method)}\x1b[0m`)
+            if (source?.body) {
+                console.info(`   > Body:       \x1b[1;32m${source.body}\x1b[0m`)
             }
-            if (retrieval?.headers && retrieval?.headers[0] && retrieval?.headers[0][0] !== "") {
-                console.info(`   > Headers:    \x1b[1;32m${retrieval.headers}\x1b[0m`)
+            if (source?.headers && source?.headers[0] && source?.headers[0][0] !== "") {
+                console.info(`   > Headers:    \x1b[1;32m${source.headers}\x1b[0m`)
             }
-            if (retrieval?.script) {
-                console.info(`   > Script:     \x1b[1;33m${retrieval.script.toString()}\x1b[0m`)
+            if (source?.script) {
+                console.info(`   > Script:     \x1b[1;33m${source.script.toString()}\x1b[0m`)
             }
-            if (retrieval?.argsCount) {
-                console.info(`   > Total args: \x1b[1;33m${retrieval.argsCount}\x1b[0m`)
+            if (source?.argsCount) {
+                console.info(`   > Total args: \x1b[1;33m${source.argsCount}\x1b[0m`)
             }
-            const tx = await registry.methods['verifyRadonRetrieval(uint8,string,string,string[2][],bytes)'].sendTransaction(...encodeWitnetRadon(retrieval), { from })
+            const tx = await registry.methods['verifyRadonRetrieval(uint8,string,string,string[2][],bytes)'].sendTransaction(...encodeWitnetRadon(source), { from })
             traceTx(tx.receipt)
         }
     } else {
-        throw `Witnet Radon Retrieval: invalid type: '\x1b[1;31m${retrieval}\x1b[0m'`
+        throw `Witnet Radon Source: invalid type: '\x1b[1;31m${source}\x1b[0m'`
     }
     return hash
 };
