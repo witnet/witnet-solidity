@@ -1,8 +1,8 @@
 const Witnet = require("witnet-solidity")
-const { retrievals } = require("witnet-solidity/assets")
+const { sources } = require("witnet-solidity/assets")
 
 module.exports = {
-    ...retrievals, ...{
+    ...sources, ...{
         // path: { ... path: {
         /////// HTTP-GET RETRIEVALS /////////////////////////////////////////////////////
         //      'retrieval-unique-resource-name-x': Witnet.Retrievals.HttpGet(

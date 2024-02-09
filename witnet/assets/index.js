@@ -10,6 +10,6 @@ module.exports = {
     supportedNetworks: witnet.supportedNetworks,
     artifacts: witnet.artifacts,
     requests: require("./requests"),
-    retrievals: require("./retrievals"),
+    sources: require("./sources"),
     templates: require("./templates"),
 };

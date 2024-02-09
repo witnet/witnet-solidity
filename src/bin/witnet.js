@@ -76,7 +76,7 @@ function showAvailUsage() {
     console.info("  ", "  ", "--chains [<optional-list>]", "\t=>", "List supported sidechains and deployed Witnet artifact addresses within those.")
     console.info("  ", "  ", "--requests [<optional-list>]", "\t=>", "Show details of all Witnet request artifacts currently available for deployment.")
     console.info("  ", "  ", "--templates [<optional-list>]", "\t=>", "Show details of all Witnet template artifacts currently available for deployment.")
-    console.info("  ", "  ", "--retrievals [<optional-list>]", "\t=>", "Show details of Witnet data retriving scripts referable from other Witnet artifacts.")
+    console.info("  ", "  ", "--sources [<optional-list>]", "\t=>", "Show details of Witnet data retriving scripts referable from other Witnet artifacts.")
 }
 
 async function init() {
@@ -91,8 +91,8 @@ async function init() {
     if (!fs.existsSync("./witnet/assets/requests.js")) {
         fs.cpSync("node_modules/witnet-solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js");
     }
-    if (!fs.existsSync("./witnet/assets/retrievals.js")) {
-        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_retrievals.js", "./witnet/assets/retrievals.js");
+    if (!fs.existsSync("./witnet/assets/sources.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/assets/_sources.js", "./witnet/assets/sources.js");
     }
     if (!fs.existsSync("./witnet/assets/templates.js")) {
         fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js");
@@ -108,7 +108,7 @@ async function init() {
 function avail() {
 
     const assets = require(`${witnet_require_path}/assets`)
-    const { requests, retrievals, templates } = assets;
+    const { requests, sources, templates } = assets;
     const [ ecosystems, networks, ] = [
         assets.supportedEcosystems(),
         assets.supportedNetworks(), 
@@ -181,7 +181,7 @@ function avail() {
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
-            console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
+            console.info("  ", "$ npx witnet avail --sources <comma-separated-unique-resource-names>")
             console.info()
         }
     } else if (process.argv.includes("--templates")) {
@@ -194,21 +194,21 @@ function avail() {
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
-            console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
+            console.info("  ", "$ npx witnet avail --sources <comma-separated-unique-resource-names>")
             console.info()
         }
-    } else if (process.argv.includes("--retrievals")) {
-        const selection = _splitSelectionFromProcessArgv("--retrievals")
+    } else if (process.argv.includes("--sources")) {
+        const selection = _splitSelectionFromProcessArgv("--sources")
         if (selection.length == 0) {
             _traceHeader("WITNET RETRIEVALS")
-            _traceWitnetRetrievalsBreakdown(retrievals)
+            _traceWitnetRetrievalsBreakdown(sources)
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
             console.info()
-            console.info("  ", "$ npx witnet avail --retrievals <comma-separated-unique-resource-names>")
+            console.info("  ", "$ npx witnet avail --sources <comma-separated-unique-resource-names>")
             console.info()
         } else {
-            const dict = Witnet.Dictionary(Object, retrievals)
+            const dict = Witnet.Dictionary(Object, sources)
             for (const index in selection) {
                 const key = selection[index]
                 try {
@@ -237,14 +237,14 @@ function avail() {
 function check() {
     _traceHeader(`Checking Witnet assets...`)
     const assets = require(`${witnet_require_path}/assets`)
-    const [ requests, templates, retrievals ] = [
+    const [ requests, templates, sources ] = [
         _countLeaves(Witnet.Artifacts.Class, assets?.requests),
         _countLeaves(Witnet.Artifacts.Template, assets?.templates),
-        _countLeaves(Witnet.Retrievals.Class, assets?.retrievals)
+        _countLeaves(Witnet.Retrievals.Class, assets?.sources)
     ];
     if (requests) console.info("  ", "> Requests:  ", requests);
     if (templates) console.info("  ", "> Templates: ", templates);
-    if (retrievals) console.info("  ", "> Retrievals:", retrievals);
+    if (sources) console.info("  ", "> Retrievals:", sources);
     console.info("\nAll assets checked successfully!")
 }
 
@@ -726,11 +726,11 @@ function _traceWitnetArtifactRetrieval(specs) {
     }
 }
 
-function _traceWitnetRetrievalsBreakdown(retrievals, level) {
-    if (retrievals?.method) return;    
-    for (const key in _orderKeys(retrievals)) {
-        console.info(" ", " ".repeat(4 * (level || 0)), (retrievals[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
-        _traceWitnetRetrievalsBreakdown(retrievals[key], level ? level + 1 : 1)
+function _traceWitnetRetrievalsBreakdown(sources, level) {
+    if (sources?.method) return;    
+    for (const key in _orderKeys(sources)) {
+        console.info(" ", " ".repeat(4 * (level || 0)), (sources[key]?.method ? `\x1b[32m${key}\x1b[0m` : `\x1b[1;37m${key}\x1b[0m`))
+        _traceWitnetRetrievalsBreakdown(sources[key], level ? level + 1 : 1)
     }
 }
 

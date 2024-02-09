@@ -1,9 +1,9 @@
 const Witnet = require("witnet-solidity")
 const { templates } = require("witnet-solidity/assets")
 
-const retrievals = Witnet.Dictionary(
+const sources = Witnet.Dictionary(
     Witnet.Retrievals.Class, 
-    require("./retrievals")
+    require("./sources")
 );
 
 module.exports = { 
@@ -11,7 +11,7 @@ module.exports = {
         /////// REQUEST TEMPLATES ///////////////////////////////////////////////////////
         // path: { ... path: {
         //      WitnetRequestTemplateXXX: Witnet.RequestTemplate({
-        //          retrieve: [ retrievals['retrieval-artifact-name-x'], ... ],
+        //          retrieve: [ sources['retrieval-artifact-name-x'], ... ],
         //          aggregate?: Witnet.Reducers..,
         //          tally?: Witnet.Reducers..,
         //          tests?: {

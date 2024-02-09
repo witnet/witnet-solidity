@@ -76,7 +76,7 @@ Also, these two command-line utility tools will be ready just right out of the b
     --chains [<optional-list>]        => List supported sidechains and already deployed Witnet artifact addresses within those.
     --requests [<optional-list>]      => Show details of Witnet request artifacts currently available for deployment.
     --templates [<optional-list>]     => Show details of Witnet template artifacts currently available for deployment.
-    --retrievals [<optional-list>]    => Show details of Witnet data retriving scripts referable from other Witnet artifacts.
+    --sources [<optional-list>]    => Show details of Witnet data retriving scripts referable from other Witnet artifacts.
 ```
     - List ecosystems supported by Witnet:
         ```console
@@ -122,12 +122,12 @@ Also, these two command-line utility tools will be ready just right out of the b
         `$ npx witnet avail --templates [<comma-separated-template-artifact-names>]`
     - Show details of Witnet data retriving scripts:
         ```console
-        $ npx witnet avail --retrievals 
+        $ npx witnet avail --sources 
         ...
 
         To delimit tree breakdown, or show the specs of a group of leafs:
 
-        $ npx witnet avail --retrievals <comma-separated-unique-resource-names>
+        $ npx witnet avail --sources <comma-separated-unique-resource-names>
         ```
 
 - **`npx witnet test`**

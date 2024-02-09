@@ -54,21 +54,21 @@ async function deployWitnetRequest(web3, from, registry, factory, request, templ
 async function deployWitnetRequestTemplate (web3, from, registry, factory, template, key) {
     const aggregate = await verifyWitnetRadonReducer(from, registry, template.specs.aggregate)
     const tally = await verifyWitnetRadonReducer(from, registry, template.specs.tally)
-    const retrievals = []
+    const sources = []
     const args = []
     for (var j = 0; j < template?.specs.retrieve.length; j ++) {
-      retrievals.push(await verifyWitnetRadonRetrieval(from, registry, template.specs.retrieve[j]))
+      sources.push(await verifyWitnetRadonRetrieval(from, registry, template.specs.retrieve[j]))
       args.push([])
     }
     if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
     let templateAddr = await factory.buildRequestTemplate.call(
-      retrievals, aggregate, tally,
+      sources, aggregate, tally,
       template?.specs?.maxSize || 32,
       { from }
     )
     if (isNullAddress(templateAddr) || (await web3.eth.getCode(templateAddr)).length <= 3) {
       const tx = await factory.buildRequestTemplate(
-        retrievals, aggregate, tally,
+        sources, aggregate, tally,
         template?.specs?.maxSize || 32,
         { from }
       )
