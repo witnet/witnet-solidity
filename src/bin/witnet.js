@@ -6,7 +6,7 @@ const inquirer = require("inquirer")
 const path = require("path")
 
 const utils = require("witnet-solidity-bridge/utils")
-const Witnet = require("../lib/radon");
+const Witnet = require("witnet-toolkit")
 
 const witnet_require_path = process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet";
 const witnet_solidity_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
@@ -14,8 +14,6 @@ const witnet_config_file = `${witnet_solidity_module_path}/truffle.config.js`
 const witnet_contracts_path = `${witnet_solidity_module_path}/contracts`
 const witnet_migrations_path = `${witnet_solidity_module_path}/scripts/truffle/`
 const witnet_tests_path = `${witnet_solidity_module_path}/tests/truffle`
-
-const assets = require(`${witnet_require_path}/assets`)
 
 if (process.argv.length >= 3) {
     const command = process.argv[2]
@@ -109,6 +107,7 @@ async function init() {
 
 function avail() {
 
+    const assets = require(`${witnet_require_path}/assets`)
     const { requests, retrievals, templates } = assets;
     const [ ecosystems, networks, ] = [
         assets.supportedEcosystems(),
@@ -237,10 +236,11 @@ function avail() {
 
 function check() {
     _traceHeader(`Checking Witnet assets...`)
+    const assets = require(`${witnet_require_path}/assets`)
     const [ requests, templates, retrievals ] = [
-        _countLeaves(Witnet.Artifacts.Class, require(`${witnet_require_path}/assets`).requests),
-        _countLeaves(Witnet.Artifacts.Template, require(`${witnet_require_path}/assets`).templates),
-        _countLeaves(Witnet.Retrievals.Class, require(`${witnet_require_path}/assets`).retrievals)
+        _countLeaves(Witnet.Artifacts.Class, assets?.requests),
+        _countLeaves(Witnet.Artifacts.Template, assets?.templates),
+        _countLeaves(Witnet.Retrievals.Class, assets?.retrievals)
     ];
     if (requests) console.info("  ", "> Requests:  ", requests);
     if (templates) console.info("  ", "> Templates: ", templates);
@@ -270,11 +270,11 @@ function test() {
 }
 
 function truffleConsole() {
-    let chain
+    let ecosystem, network
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
-        chain = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
+        [ecosytem, network] = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
     } else if (process.env.WITNET_DEFAULT_CHAIN) {
-        chain = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
+        [ecosystem, network] = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
     } else {
         console.info()
         console.info("Usage:")
@@ -289,8 +289,9 @@ function truffleConsole() {
         console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
         process.exit(0)
     }
-    const addresses = require(`${witnet_require_path}/assets`)?.addresses[chain[0]][chain[1]]
-    _traceHeader(`WITNET ARTIFACTS ON '${chain[1].replaceAll(".", ":").toUpperCase()}'`)
+    const assets = require(`${witnet_require_path}/assets`)
+    const addresses = assets.getAddresses(network)
+    _traceHeader(`WITNET ARTIFACTS ON '${network.replaceAll(".", ":").toUpperCase()}'`)
     if (_traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
     }
@@ -341,6 +342,7 @@ function deploy() {
 }
 
 async function wizard() {
+    const assets = require(`${witnet_require_path}/assets`)
     console.clear()
     version("Wizard")
     console.info()

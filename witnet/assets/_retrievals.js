@@ -1,3 +1,4 @@
+const Witnet = require("witnet-solidity")
 const { retrievals } = require("witnet-solidity/assets")
 
 module.exports = {

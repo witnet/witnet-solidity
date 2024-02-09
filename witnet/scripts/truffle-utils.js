@@ -1,7 +1,7 @@
 const cbor = require("cbor")
 const toolkit = require("witnet-toolkit/utils")
 const utils = require("witnet-solidity-bridge/utils")
-const Witnet = require("../../dist/lib/radon")
+const Witnet = require("witnet-toolkit")
 
 module.exports = {
     deployWitnetRequest,

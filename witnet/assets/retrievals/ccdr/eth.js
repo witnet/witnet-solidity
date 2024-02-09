@@ -1,4 +1,4 @@
-const Witnet = require("../../../../dist/lib/radon")
+const Witnet = require("witnet-toolkit")
 
 module.exports = {
     "eth-block-number": Witnet.Retrievals.CrossChainDataRetrieval({

@@ -1,6 +1,6 @@
+const Witnet = require("witnet-solidity")
 const { requests } = require("witnet-solidity/assets")
 
-const Witnet = require("witnet-solidity")
 const retrievals = Witnet.Dictionary(
     Witnet.Retrievals.Class, 
     require("./retrievals")

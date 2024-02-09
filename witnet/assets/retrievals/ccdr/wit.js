@@ -1,4 +1,4 @@
-const Witnet = require("../../../../dist/lib/radon")
+const Witnet = require("witnet-toolkit")
 
 module.exports = {
     "wit-supply-info": Witnet.Retrievals.CrossChainDataRetrieval({

@@ -1,4 +1,5 @@
-const Witnet = require("../../../dist/lib/radon")
+const Witnet = require("witnet-toolkit")
+
 const retrievals = Witnet.Dictionary(
     Witnet.Retrievals.Class,
     require("../retrievals")
