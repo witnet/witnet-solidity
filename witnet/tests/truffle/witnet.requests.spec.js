@@ -8,16 +8,20 @@ contract("witnet-solidity/requests", async () => {
   const [, network] = utils.getRealmNetworkFromArgs();
   const addresses = require("./addresses")[network]
   const selection = utils.getWitnetArtifactsFromArgs()
+  const requests = (process.argv.includes("--all")
+    ? require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).requests
+    : require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets/requests`)
+  );
 
   let summary = []
   
   describe("My Witnet Requests...", async () => {
-    const crafts = utils.flattenWitnetArtifacts(witnet.requests)
+    const crafts = utils.flattenWitnetArtifacts(requests)
     crafts.forEach(async (craft) => {
       const requestAddress = addresses.requests[craft?.key] || ""
       if (
         requestAddress !== "" &&
-          (process.argv.includes("--all") || selection.includes(craft?.key))
+          (selection.length == 0 || selection.includes(craft?.key))
       ) {
         await describe(`${craft.key}`, async () => {
           let bytecode, radHash

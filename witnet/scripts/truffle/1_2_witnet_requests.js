@@ -4,6 +4,10 @@ const witnet_require_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
 );
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
 
+const requests = (process.argv.includes("--all") 
+  ? require(`${witnet_require_path}/assets`).requests 
+  : require(`${witnet_require_path}/assets/requests`)
+);
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
@@ -13,7 +17,8 @@ const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = utils.isDryRun(network)
-  let addresses = (isDryRun ? require(`../../tests/truffle/addresses`) : require(`${witnet_require_path}/assets/addresses`))[network]
+  
+  let addresses = (isDryRun ? require(`../../tests/truffle/addresses`) : require(`${witnet_require_path}/addresses`))[network]
   if (!addresses.requests) addresses.requests = {}
   addresses = await deployWitnetRequests(addresses, from, isDryRun, requests)
   addresses.requests = utils.orderObjectKeys(addresses.requests);
@@ -30,7 +35,7 @@ async function deployWitnetRequests (addresses, from, isDryRun, requests) {
     if (request?.specs) {
       const targetAddr = addresses.requests[key] ?? null
       if (
-        (process.argv.includes("--all") || selection.includes(key))
+        (selection.includes(key) || selection.length == 0)
           && (utils.isNullAddress(targetAddr) || (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
@@ -54,6 +59,6 @@ async function deployWitnetRequests (addresses, from, isDryRun, requests) {
     } else {
       addresses = await deployWitnetRequests(addresses, from, isDryRun, request)
     }
-    return addresses
   }
+  return addresses
 }

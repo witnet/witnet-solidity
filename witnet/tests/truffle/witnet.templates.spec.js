@@ -9,16 +9,21 @@ contract("witnet-solidity/templates", async () => {
   const [, network] = utils.getRealmNetworkFromArgs();
   const addresses = require("./addresses")[network]
   const selection = utils.getWitnetArtifactsFromArgs()
+  const templates = (process.argv.includes("--all")
+    ? require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`).templates
+    : require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets/templates`)
+  );
+
   
   let summary = []
   
   describe("My Witnet Request Templates...", async () => {
-    const crafts = utils.flattenWitnetArtifacts(witnet.templates)
+    const crafts = utils.flattenWitnetArtifacts(templates)
     crafts.forEach(async (craft) => {
       const templateAddress = addresses.templates[craft?.key] || ""
       if (
         templateAddress !== "" &&
-          (process.argv.includes("--all") || selection.includes(craft?.key))
+          (selection.length == 0 || selection.includes(craft?.key))
       ) {
         describe(`${craft.key}`, async () => {
           for (const test in craft.artifact?.tests) {
