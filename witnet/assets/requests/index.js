@@ -2,10 +2,6 @@ const Witnet = require("witnet-toolkit")
 
 module.exports = {
     legacy: {
-        WitnetRequestRandomness: Witnet.StaticRequest({
-            retrieve: [ Witnet.Sources.RNG(), ],
-            tally: Witnet.Reducers.ConcatHash(),
-        }),
         WitnetRequestPriceUsdtWit9: Witnet.StaticRequest({
             retrieve: [
                 Witnet.Sources.HttpGet({
@@ -43,6 +39,10 @@ module.exports = {
             ],
             aggregate: Witnet.Reducers.Median(Witnet.Filters.Stdev(1.4)),
             tally: Witnet.Reducers.PriceTally(),
+        }),
+        WitnetRequestRandomness: Witnet.StaticRequest({
+            retrieve: [ Witnet.Sources.RNG(), ],
+            tally: Witnet.Reducers.ConcatHash(),
         }),
     }
 }

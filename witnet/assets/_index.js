@@ -9,7 +9,7 @@ module.exports = {
     supportedEcosystems: witnet.supportedEcosystems,
     supportedNetworks: witnet.supportedNetworks,
     artifacts: witnet.artifacts,
-    requests: require("./requests"),
-    sources: require("./sources"),
-    templates: require("./templates"),
+    requests: { ...witnet.requests, ...require("./requests"), },
+    sources: { ...witnet.sources, ...require("./sources"), },
+    templates: { ...witnet.templates, ...require("./templates"), },
 };

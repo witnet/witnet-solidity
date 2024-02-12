@@ -1,5 +1,4 @@
 const Witnet = require("witnet-toolkit")
-const { requests } = require("witnet-solidity/assets")
 
 const sources = Witnet.Dictionary(
     Witnet.Sources.Class, 
@@ -11,31 +10,29 @@ const templates = Witnet.Dictionary(
 );
 
 module.exports = {
-    ...requests, ...{
-        /////// STATIC REQUESTS /////////////////////////////////////////////////////////
-        // path: { ... path: {
-        //      WitnetRequestXXX: Witnet.StaticRequest({ 
-        //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
-        //          aggregate?: Witnet.Reducers..,
-        //          tally?: Witnet.Reducers..,
-        //      }),
-        ////// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-        //      WitnetRequestYYY: Witnet.RequestFromTemplate(
-        //          templates['WitnetRequestTemplateUniqueNameX'], 
-        //          [ [ .. ], .. ], // args: string[][]
-        //      ),
-        ////// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
-        //      WitnetRequestZZZ: Witnet.RequestFromDictionary({
-        //          retrieve: {
-        //              dict: sources,
-        //              tags: { 
-        //                  'source-name-1': [ [ .. ], .. ], // args: string[][]
-        //                  ...
-        //              },
-        //          },
-        //          aggregate?: Witnet.Reducers.., // aggregate
-        //          tally?: Witnet.Reducers.., // tally     
-        //      }),
-        // }, ... }, 
-    },
+    /////// STATIC REQUESTS /////////////////////////////////////////////////////////
+    // path: { ... path: {
+    //      WitnetRequestXXX: Witnet.StaticRequest({ 
+    //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
+    //          aggregate?: Witnet.Reducers..,
+    //          tally?: Witnet.Reducers..,
+    //      }),
+    ////// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
+    //      WitnetRequestYYY: Witnet.RequestFromTemplate(
+    //          templates['WitnetRequestTemplateUniqueNameX'], 
+    //          [ [ .. ], .. ], // args: string[][]
+    //      ),
+    ////// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
+    //      WitnetRequestZZZ: Witnet.RequestFromDictionary({
+    //          retrieve: {
+    //              dict: sources,
+    //              tags: { 
+    //                  'source-name-1': [ [ .. ], .. ], // args: string[][]
+    //                  ...
+    //              },
+    //          },
+    //          aggregate?: Witnet.Reducers.., // aggregate
+    //          tally?: Witnet.Reducers.., // tally     
+    //      }),
+    // }, ... }, 
 };
