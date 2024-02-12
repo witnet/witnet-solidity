@@ -76,8 +76,7 @@ function showAvailUsage() {
 async function init() {
     if (!fs.existsSync("./witnet/assets")) {
         fs.mkdirSync("./witnet/assets", { recursive: true })
-    }    
-
+    }
     if (!fs.existsSync(".env_witnet")) {
         fs.cpSync("node_modules/witnet-solidity/.env_witnet", ".env_witnet")
     } 
@@ -96,6 +95,12 @@ async function init() {
     }
     if (!fs.existsSync("./witnet/addresses.json")) {
         fs.writeFileSync("./witnet/addresses.json", "{}")
+    }
+    if (!fs.existsSync("./witnet/_truffle.config.js")) {
+        fs.cpSync("node_modules/witnet-solidity/witnet/_truffle.config.js", "./witnet/_truffle.config.js");
+    }
+    if (!fs.existsSync("./witnet/_hardhat.config.js")){
+        fs.cpSync("node_modules/witnet-solidity/witnet/_hardhat.config.js", ",/witnet/_hardhat.config.js");
     }
 }
 
@@ -136,7 +141,7 @@ function avail() {
                 // if ecosystem matches any of selection items, 
                 // print Witnet supported "chains" within it
                 found ++
-                _traceHeader(`${ecosystem.toUpperCase()}`)
+                _traceHeader(`${ecosystem.toUpperCase()} ECOSYSTEM`)
                 networks.forEach(network => {
                     if (network.startsWith(ecosystem)) {
                         console.info("  ", network)
@@ -181,7 +186,7 @@ function avail() {
     } else if (process.argv.includes("--templates")) {
         const selection = _splitSelectionFromProcessArgv("--templates")   
         if (selection.length == 0) {
-            _traceHeader("WITNET DATA REQUEST TEMPLATES")
+            _traceHeader("WITNET REQUEST TEMPLATES")
             _traceWitnetArtifactsBreakdown(templates)
         }
         if (selection.length == 0 || !_traceWitnetArtifacts(templates, selection)) {
@@ -194,7 +199,7 @@ function avail() {
     } else if (process.argv.includes("--sources")) {
         const selection = _splitSelectionFromProcessArgv("--sources")
         if (selection.length == 0) {
-            _traceHeader("WITNET RETRIEVALS")
+            _traceHeader("DATA SOURCES")
             _traceWitnetSourcesBreakdown(sources)
             console.info()
             console.info("To delimit tree breakdown, or show the specs of a group of leafs:")
@@ -236,9 +241,17 @@ function check() {
         _countLeaves(Witnet.Artifacts.Template, assets?.templates),
         _countLeaves(Witnet.Sources.Class, assets?.sources)
     ];
-    if (sources) console.info("  ", "> Sources:   ", sources);
-    if (templates) console.info("  ", "> Templates: ", templates);
-    if (requests) console.info("  ", "> Requests:  ", requests);
+    
+    if (sources) {
+        console.info("  ", "> Data sources:     ", sources);
+    }
+    if (requests) {
+        console.info("  ", "> Data requests:    ", requests);
+    }
+    if (templates) {
+        console.info("  ", "> Request templates:", templates);
+    }
+    
     console.info("\nAll assets checked successfully!")
 }
 
@@ -606,7 +619,7 @@ function _splitSelectionFromProcessArgv(operand) {
 
 function _traceHeader(header) {
     console.log("")
-    console.log("  ", header)
+    console.log("  ", `\x1b[1;36m${header}\x1b[0m`)
     console.log("  ", `${"-".repeat(header.length)}`)
 }
 
