@@ -3,7 +3,7 @@ const assets = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
   : "../../../../../witnet/assets"
 );
 
-const utils = require("../truffle-utils")
+const utils = require("../utils")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetPriceFeeds = artifacts.require("WitnetPriceFeeds")

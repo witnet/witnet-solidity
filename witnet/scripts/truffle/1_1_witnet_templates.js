@@ -4,8 +4,7 @@ const witnet_require_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
 );
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
 
-const { templates } = require(`${witnet_require_path}/assets`)
-const utils = require("../truffle-utils")
+const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")

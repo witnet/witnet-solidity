@@ -18,6 +18,7 @@ module.exports = {
     processDryRunJson,
     saveAddresses,
     traceHeader: utils.traceHeader,
+    traceTx,
     verifyWitnetRadonReducer,
     verifyWitnetRadonRetrieval,
 };

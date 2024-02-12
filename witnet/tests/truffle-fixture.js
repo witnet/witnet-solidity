@@ -17,9 +17,7 @@ const WitnetUpgradableBase = artifacts.require("WitnetUpgradableBase");
 const assets = require("../assets")
 const utils = require("../../dist/utils")
 
-console.log("FUCK YEAH")
-
-module.exports = async function () {
+    module.exports = async function () {
     
     const [, network] = utils.getRealmNetworkFromArgs()
     const addresses = assets.getAddresses(network)

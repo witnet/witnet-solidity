@@ -11,7 +11,8 @@
   },
   "exports": {
     ".": "./witnet/assets/index.js",
-    "./assets": "./witnet/assets/index.js"
+    "./assets": "./witnet/assets/index.js",
+    "./utils": "./witnet/scripts/truffle-utils.js"
   },
   "files": [
     "src",

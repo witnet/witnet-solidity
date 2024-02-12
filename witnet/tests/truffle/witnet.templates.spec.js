@@ -1,5 +1,4 @@
-const utils = require("../../scripts/truffle-utils")
-const witnet = require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || "../../../../witnet"}/assets`)
+const utils = require("../../scripts/utils")
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
