@@ -38,8 +38,12 @@ async function deployWitnetRequestTemplates (addresses, from, isDryRun, template
     if (template?.specs) {
       const targetAddr = addresses?.templates[key] ?? null
       if (
-        (process.argv.includes("--all") || selection.includes(key))
-          && (utils.isNullAddress(targetAddr) || (await web3.eth.getCode(targetAddr)).length <= 3)
+        (process.argv.includes("--all")
+          || selection.includes(key) 
+          || (selection.length == 0 && isDryRun)
+        ) && (
+          utils.isNullAddress(targetAddr) 
+          || (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
           const templateAddr = await utils.deployWitnetRequestTemplate(

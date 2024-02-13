@@ -40,8 +40,12 @@ async function deployWitnetRequests (addresses, from, isDryRun, requests) {
     if (request?.specs) {
       const targetAddr = addresses.requests[key] ?? null
       if (
-        (selection.includes(key) || selection.length == 0)
-          && (utils.isNullAddress(targetAddr) || (await web3.eth.getCode(targetAddr)).length <= 3)
+        (process.argv.includes("--all")
+          || selection.includes(key) 
+          || (selection.length == 0 && isDryRun)
+        ) && (
+          utils.isNullAddress(targetAddr) 
+          || (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
           const requestAddress = await utils.deployWitnetRequest(
