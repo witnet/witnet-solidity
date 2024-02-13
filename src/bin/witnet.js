@@ -279,9 +279,9 @@ function test() {
 function truffleConsole() {
     let ecosystem, network
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
-        [ecosytem, network] = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
+        [ecosytem, network] = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(".", ":"))
     } else if (process.env.WITNET_DEFAULT_CHAIN) {
-        [ecosystem, network] = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
+        [ecosystem, network] = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":"))
     } else {
         console.info()
         console.info("Usage:")
@@ -298,7 +298,7 @@ function truffleConsole() {
     }
     const assets = require(`${witnet_require_path}/assets`)
     const addresses = assets.getAddresses(network)
-    _traceHeader(`WITNET ARTIFACTS ON '${network.replaceAll(".", ":").toUpperCase()}'`)
+    _traceHeader(`${network.replaceAll(".", ":").toUpperCase()}`)
     if (_traceWitnetAddresses(addresses, []) == 0) {
         console.info("  ", "None available.")
     }
@@ -310,7 +310,7 @@ function truffleConsole() {
 function deploy() {
     let chain
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
-        chain = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(":", "."))
+        chain = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(".", ":"))
     } else if (process.env.WITNET_DEFAULT_CHAIN) {
         chain = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
     } else {
@@ -335,7 +335,8 @@ function deploy() {
     })
     const args = (oIndex >= 0) ? process.argv.slice(oIndex).join(" ") : ""
     try {
-        execSync(`npx truffle migrate --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]} ${args}`, { stdio: 'inherit' })
+        execSync(`npx truffle migrate --compile-none --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]} ${args}`, { stdio: 'inherit' })
+
     } catch {}    
     if (!process.argv.includes("--artifacts")) {
         console.info("Notes")
@@ -619,7 +620,7 @@ function _splitSelectionFromProcessArgv(operand) {
 
 function _traceHeader(header) {
     console.log("")
-    console.log("  ", `\x1b[1;36m${header}\x1b[0m`)
+    console.log("  ", `\x1b[1;96m${header}\x1b[0m`)
     console.log("  ", `${"-".repeat(header.length)}`)
 }
 
@@ -639,9 +640,9 @@ function _traceWitnetAddresses(addresses, selection, level) {
             ) {
                 found ++
                 if (level) {
-                    console.info("  ", `\x1b[33m${addresses[key]}\x1b[0m`, "\t<=", `\x1b[37m${key}\x1b[0m`);
+                    console.info("  ", `\x1b[36m${addresses[key]}\x1b[0m`, "\t<=", `\x1b[37m${key}\x1b[0m`);
                 } else {
-                    console.info("  ", `\x1b[1;33m${addresses[key]}\x1b[0m`, "\t<=", `\x1b[1;37m${key}\x1b[0m`);
+                    console.info("  ", `\x1b[96m${addresses[key]}\x1b[0m`, "\t<=", `\x1b[1;37m${key}\x1b[0m`);
                 }
             }
         }

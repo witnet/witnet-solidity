@@ -1,13 +1,7 @@
 require("@nomicfoundation/hardhat-ethers");
 
 const { settings, utils } = require("witnet-solidity-bridge")
-const [ ecosystem, target ] = utils.getRealmNetworkFromString();
-if (ecosystem) {
-  const header = `${target.toUpperCase()}`
-  console.info()
-  console.info(header)
-  console.info("=".repeat(header.length))
-}
+const [, target ] = utils.getRealmNetworkFromString();
 
 module.exports = {
   networks: Object.fromEntries(Object.entries(

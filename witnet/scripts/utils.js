@@ -16,6 +16,7 @@ module.exports = {
     isNullAddress,
     orderObjectKeys,
     processDryRunJson,
+    loadAddresses,
     saveAddresses,
     traceHeader: utils.traceHeader,
     traceTx,
@@ -47,7 +48,7 @@ async function deployWitnetRequest(web3, from, registry, factory, request, templ
         args[index] = subargs
       })
     } else {
-      request.specs.retrieve.map(source => args.push([]))
+      request.specs.retrieve.map(_source => args.push([]))
     }
     return await buildWitnetRequestFromTemplate(web3, from, await templateArtifact.at(templateAddr), args)
 }
@@ -232,11 +233,16 @@ async function verifyWitnetRadonRetrieval(from, registry, source) {
     return hash
 };
 
-function saveAddresses(path, addrs, network) {
+function loadAddresses(path) {
     const fs = require("fs")
     const filename = `${path}/addresses.json`
-    const json = JSON.parse(fs.readFileSync(filename))
-    json[network] = addrs
+    return JSON.parse(fs.readFileSync(filename))
+}
+
+function saveAddresses(path, addrs) {
+    const fs = require("fs")
+    const filename = `${path}/addresses.json`
+    const json = { ...JSON.parse(fs.readFileSync(filename)), ...addrs }
     fs.writeFileSync(filename, JSON.stringify(json, null, 4), { flag: "w+" })
 };
 

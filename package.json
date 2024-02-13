@@ -24,7 +24,7 @@
     "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "postinstall": "npx witnet-toolkit update",
-    "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
+    "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
   },
   "keywords": [
     "solidity",
