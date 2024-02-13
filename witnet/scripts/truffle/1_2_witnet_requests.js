@@ -1,12 +1,13 @@
-const witnet_require_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH 
-  ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
+const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH 
+  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
   : "../../../../../witnet"
 );
+
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
 
 const requests = (process.argv.includes("--all") 
-  ? require(`${witnet_require_path}/assets`).requests 
-  : require(`${witnet_require_path}/assets/requests`)
+  ? require(`${assets_relative_path}/assets`).requests 
+  : require(`${assets_relative_path}/assets/requests`)
 );
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
@@ -17,16 +18,20 @@ const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = utils.isDryRun(network)
+
+  const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
+  if (!addresses[network].requests) addresses[network].requests = {}
   
-  let addresses = (isDryRun ? require(`../../tests/truffle/addresses`) : require(`${witnet_require_path}/addresses`))[network]
-  if (!addresses.requests) addresses.requests = {}
-  addresses = await deployWitnetRequests(addresses, from, isDryRun, requests)
-  addresses.requests = utils.orderObjectKeys(addresses.requests);
-  addresses = utils.orderObjectKeys(addresses);
-  utils.saveAddresses(
-    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}`,
-    addresses, network
-  )
+  addresses[network] = await deployWitnetRequests(addresses[network], from, isDryRun, requests)
+  
+  if (Object.keys(addresses[network].requests).length > 0) {
+    addresses[network].requests = utils.orderObjectKeys(addresses[network].requests);
+    addresses[network] = utils.orderObjectKeys(addresses[network]);
+    utils.saveAddresses(
+      isDryRun ? `${witnet_module_path}/tests/truffle` : `./witnet`,
+      addresses
+    )
+  }
 }
 
 async function deployWitnetRequests (addresses, from, isDryRun, requests) {

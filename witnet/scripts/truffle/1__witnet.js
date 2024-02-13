@@ -1,12 +1,14 @@
-const assets = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
-  ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}/assets`
-  : "../../../../../witnet/assets"
+const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH 
+  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
+  : "../../../../../witnet"
 );
 
-const utils = require("../utils")
+const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
+
+const assets = require(`${assets_relative_path}/assets`);
+const utils = require("../utils");
 
 const WitnetBytecodes = artifacts.require("WitnetBytecodes")
-const WitnetPriceFeeds = artifacts.require("WitnetPriceFeeds")
 const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 
@@ -16,24 +18,22 @@ module.exports = async function (deployer, network) {
 
   if (!isDryRun) {
     try {
-      WitnetBytecodes.address = addresses?.WitnetBytecodes
-      WitnetPriceFeeds.address = addresses?.WitnetPriceFeeds
-      WitnetRequestBoard.address = addresses?.WitnetRequestBoard
-      WitnetRequestFactory.address = addresses?.WitnetRequestFactory
+      WitnetRequestBoard.address = addresses.WitnetRequestBoard
+      const wrb = await WitnetRequestBoard.deployed()
+      WitnetBytecodes.address = await wrb.registry.call()
+      WitnetRequestFactory.address = await wrb.factory.call()
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
     }
   
   } else {
+    
     const WitnetEncodingLib = artifacts.require("WitnetEncodingLib")
     await deployer.deploy(WitnetEncodingLib)
 
     const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
     await deployer.deploy(WitnetErrorsLib)
-    
-    const WitnetPriceFeedsLib = artifacts.require("WitnetPriceFeedsLib")
-    await deployer.deploy(WitnetPriceFeedsLib)
 
     const WitnetMockedBytecodes = artifacts.require("WitnetMockedBytecodes");
     await deployer.link(WitnetEncodingLib, WitnetMockedBytecodes);
@@ -50,16 +50,13 @@ module.exports = async function (deployer, network) {
     WitnetRequestFactory.address = WitnetMockedRequestFactory.address;
     await (await WitnetMockedRequestBoard.deployed()).setFactory(WitnetRequestFactory.address);
 
-    const WitnetMockedPriceFeeds = artifacts.require("WitnetMockedPriceFeeds");
-    await deployer.link(WitnetPriceFeedsLib, WitnetMockedPriceFeeds);
-    await deployer.deploy(WitnetMockedPriceFeeds, WitnetRequestBoard.address);
-    WitnetPriceFeeds.address = WitnetMockedPriceFeeds.address;
+    addresses[network] = {
+      WitnetBytecodes: WitnetBytecodes.address,
+      WitnetRequestBoard: WitnetRequestBoard.address,
+      WitnetRequestFactory: WitnetRequestFactory.address,
+    }
 
-    utils.saveAddresses(
-      `${process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"}/tests/truffle/`,
-      addresses,
-      network
-    );
+    utils.saveAddresses(`${witnet_module_path}/tests/truffle`, addresses);
   }
   
   utils.traceHeader("Witnet Artifacts:"); {
@@ -79,12 +76,6 @@ module.exports = async function (deployer, network) {
       console.info("  ", "> WitnetRequestFactory: ", 
         WitnetRequestFactory.address, 
         `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
-      )
-    }
-    if (WitnetPriceFeeds.address) {
-      console.info("  ", "> WitnetPriceFeeds:     ", 
-        WitnetPriceFeeds.address, 
-        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetPriceFeeds)})`
       )
     }
   }

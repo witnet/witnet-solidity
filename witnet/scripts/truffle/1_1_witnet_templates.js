@@ -1,12 +1,13 @@
-const witnet_require_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH 
-  ? `../${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
+const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH 
+  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
   : "../../../../../witnet"
 );
+
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
 
 const templates = (process.argv.includes("--all") 
-  ? require(`${witnet_require_path}/assets`).templates
-  : require(`${witnet_require_path}/assets/templates`)
+  ? require(`${assets_relative_path}/assets`).templates
+  : require(`${assets_relative_path}/assets/templates`)
 );
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
@@ -17,14 +18,18 @@ const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = utils.isDryRun(network)
-  let addresses = (isDryRun ? require(`../../tests/truffle/addresses`) : require(`${witnet_require_path}/addresses`))[network]
-  if (!addresses.templates) addresses.templates = {}
-  addresses = await deployWitnetRequestTemplates(addresses, from, isDryRun, templates) 
-  addresses.templates = utils.orderObjectKeys(addresses.templates);
-  utils.saveAddresses(
-    isDryRun ? `${witnet_module_path}/tests/truffle` : `${witnet_require_path}`,
-    { network: addresses }, network
-  );
+  
+  const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
+  if (!addresses[network].templates) addresses[network].templates = {}
+  
+  addresses[network] = await deployWitnetRequestTemplates(addresses[network], from, isDryRun, templates) 
+  if (Object.keys(addresses[network].templates).length > 0) {
+    addresses[network].templates = utils.orderObjectKeys(addresses[network].templates);
+    utils.saveAddresses(
+      isDryRun ? `${witnet_module_path}/tests/truffle` : `./witnet`,
+      addresses
+    );
+  }
 }
 
 async function deployWitnetRequestTemplates (addresses, from, isDryRun, templates) {

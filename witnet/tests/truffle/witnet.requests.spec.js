@@ -16,54 +16,56 @@ contract("witnet-solidity/requests", async () => {
   let summary = []
   
   describe("My Witnet Requests...", async () => {
-    const crafts = utils.flattenWitnetArtifacts(requests)
-    crafts.forEach(async (craft) => {
-      const requestAddress = addresses.requests[craft?.key] || ""
-      if (
-        requestAddress !== "" &&
-          (selection.length == 0 || selection.includes(craft?.key))
-      ) {
-        await describe(`${craft.key}`, async () => {
-          let bytecode, radHash
-          it("request was actually deployed", async () => {
-            const request = await WitnetRequest.at(requestAddress)
-            radHash = await request.radHash.call()
-          })
-          it("request dryruns successfully", async () => {
-            const request = await WitnetRequest.at(requestAddress)
-            const registry = await WitnetBytecodes.at(await request.registry.call())
-            bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
-            const output = await utils.dryRunBytecode(bytecode)
-            let json
-            try {
-              json = JSON.parse(output)
-            } catch {
-              assert(false, "Invalid JSON: " + output)
-            }
-            const result = utils.processDryRunJson(json)
-            summary.push({
-              "Artifact": craft.key,
-              "RAD hash": radHash.slice(2),
-              "Status": result.status,
-              "✓ Sources": result.totalSources - result.nokSources,
-              "∑ Sources": result.totalSources,
-              "Time (secs)": result.runningTime,
-              "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
+    if (addresses?.requests) {
+      const crafts = utils.flattenWitnetArtifacts(requests)
+      crafts.forEach(async (craft) => {
+        const requestAddress = addresses?.requests[craft?.key] || ""
+        if (
+          requestAddress !== "" &&
+            (selection.length == 0 || selection.includes(craft?.key))
+        ) {
+          await describe(`${craft.key}`, async () => {
+            let bytecode, radHash
+            it("request was actually deployed", async () => {
+              const request = await WitnetRequest.at(requestAddress)
+              radHash = await request.radHash.call()
             })
-            if (result.status !== "OK") {
-              throw Error(result?.error || "Dry-run failed!")
-            }
+            it("request dryruns successfully", async () => {
+              const request = await WitnetRequest.at(requestAddress)
+              const registry = await WitnetBytecodes.at(await request.registry.call())
+              bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
+              const output = await utils.dryRunBytecode(bytecode)
+              let json
+              try {
+                json = JSON.parse(output)
+              } catch {
+                assert(false, "Invalid JSON: " + output)
+              }
+              const result = utils.processDryRunJson(json)
+              summary.push({
+                "Artifact": craft.key,
+                "RAD hash": radHash.slice(2),
+                "Status": result.status,
+                "✓ Sources": result.totalSources - result.nokSources,
+                "∑ Sources": result.totalSources,
+                "Time (secs)": result.runningTime,
+                "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
+              })
+              if (result.status !== "OK") {
+                throw Error(result?.error || "Dry-run failed!")
+              }
+            })
+            after(async () => {
+              if (process.argv.includes("--verbose")) {
+                const output = await utils.dryRunBytecodeVerbose(bytecode)
+                console.info(output.split("\n").slice(0, -1).join("\n"))
+                console.info("-".repeat(120))
+              }
+            })
           })
-          after(async () => {
-            if (process.argv.includes("--verbose")) {
-              const output = await utils.dryRunBytecodeVerbose(bytecode)
-              console.info(output.split("\n").slice(0, -1).join("\n"))
-              console.info("-".repeat(120))
-            }
-          })
-        })
-      }
-    });
+        }
+      });
+    }
 
     after(async () => {
       if (summary.length > 0) {
