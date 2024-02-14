@@ -1,7 +1,7 @@
 const utils = require("../../scripts/utils")
 
-const WitnetBytecodes = artifacts.require("WitnetBytecodes")
 const WitnetRequest = artifacts.require("WitnetRequest")
+const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
 
 contract("witnet-solidity/requests", async () => {
 
@@ -32,7 +32,7 @@ contract("witnet-solidity/requests", async () => {
             })
             it("request dryruns successfully", async () => {
               const request = await WitnetRequest.at(requestAddress)
-              const registry = await WitnetBytecodes.at(await request.registry.call())
+              const registry = await WitnetRequestBytecodes.at(await request.registry.call())
               bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
               const output = await utils.dryRunBytecode(bytecode)
               let json

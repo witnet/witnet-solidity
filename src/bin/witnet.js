@@ -115,9 +115,9 @@ function avail() {
 
     if (process.argv.includes("--chains")) {
         let selection = _splitSelectionFromProcessArgv("--chains");
-        // add `WITNET_DEFAULT_CHAIN` to selection, should no chains list be provided from CLI
-        if ((!selection || selection.length == 0) && process.env.WITNET_DEFAULT_CHAIN) {
-            selection = [process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":")]
+        // add `WITNET_SOLIDITY_DEFAULT_CHAIN` to selection, should no chains list be provided from CLI
+        if ((!selection || selection.length == 0) && process.env.WITNET_SOLIDITY_DEFAULT_CHAIN) {
+            selection = [process.env.WITNET_SOLIDITY_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":")]
         }
         if (!selection || selection.length == 0) {
             // if no chains list was specified, just list Witnet supported "ecosystems"
@@ -130,7 +130,7 @@ function avail() {
             console.info()
             console.info("  ", "$ npx witnet avail --chains <comma-separated-witnet-supported-ecosystems>")
             console.info()
-            console.info("Note: the --chains operand can be omitted if the WITNET_DEFAULT_CHAIN environment variable is set.")
+            console.info("Note: the --chains operand can be omitted if the WITNET_SOLIDITY_DEFAULT_CHAIN environment variable is set.")
             console.info()
             process.exit(0)
         }
@@ -234,7 +234,7 @@ function avail() {
 }
 
 function check() {
-    _traceHeader(`Checking Witnet assets...`)
+    _traceHeader(`WITNET ASSETS`)
     const assets = require(`${witnet_require_path}/assets`)
     const [ requests, templates, sources ] = [
         _countLeaves(Witnet.Artifacts.Class, assets?.requests),
@@ -280,8 +280,8 @@ function truffleConsole() {
     let ecosystem, network
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
         [ecosytem, network] = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(".", ":"))
-    } else if (process.env.WITNET_DEFAULT_CHAIN) {
-        [ecosystem, network] = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":"))
+    } else if (process.env.WITNET_SOLIDITY_DEFAULT_CHAIN) {
+        [ecosystem, network] = utils.getRealmNetworkFromString(process.env.WITNET_SOLIDITY_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(".", ":"))
     } else {
         console.info()
         console.info("Usage:")
@@ -292,8 +292,8 @@ function truffleConsole() {
         console.info()
         console.info("  $ npx witnet avail --chains")
         console.info()
-        console.info("No need to specify <witnet-supported-chain> if WITNET_DEFAULT_CHAIN environment variable is set, though.")
-        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
+        console.info("No need to specify <witnet-supported-chain> if WITNET_SOLIDITY_DEFAULT_CHAIN environment variable is set, though.")
+        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SOLIDITY_DEFAULT_CHAIN.")
         process.exit(0)
     }
     const assets = require(`${witnet_require_path}/assets`)
@@ -311,8 +311,8 @@ function deploy() {
     let chain
     if (process.argv.length > 3 && !process.argv[3].startsWith("-")) {
         chain = utils.getRealmNetworkFromString(process.argv[3].toLowerCase().trim().replaceAll(".", ":"))
-    } else if (process.env.WITNET_DEFAULT_CHAIN) {
-        chain = utils.getRealmNetworkFromString(process.env.WITNET_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
+    } else if (process.env.WITNET_SOLIDITY_DEFAULT_CHAIN) {
+        chain = utils.getRealmNetworkFromString(process.env.WITNET_SOLIDITY_DEFAULT_CHAIN.toLowerCase().trim().replaceAll(":", "."))
     } else {
         console.info()
         console.info("Usage:")
@@ -323,8 +323,8 @@ function deploy() {
         console.info()
         console.info("  $ npx witnet avail --chains")
         console.info()
-        console.info("No need to specify <witnet-supported-chain> if WITNET_DEFAULT_CHAIN environment variable is set, though.")
-        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_DEFAULT_CHAIN.")
+        console.info("No need to specify <witnet-supported-chain> if WITNET_SOLIDITY_DEFAULT_CHAIN environment variable is set, though.")
+        console.info("However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SOLIDITY_DEFAULT_CHAIN.")
         process.exit(0)
     }   
     let oIndex = -1
@@ -490,7 +490,7 @@ async function wizard() {
                     validate: (ans) => { return (ans.length > 0) }
                 }), ...answers
             }
-            var artifact = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetRequestBoard"
+            var artifact = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetOracle"
             var findings = []
             answers?.ecosystems.forEach(ecosystem => {
                 assets.supportedNetworks(ecosystem.toLowerCase()).forEach(network =>  {
@@ -509,7 +509,7 @@ async function wizard() {
         }
     }
     var baseFeeOverhead = 10; // 10 %
-    var constructorParams = answers?.witnetAddress ? "" : "WitnetRequestBoard _witnetRequestBoard"
+    var constructorParams = answers?.witnetAddress ? "" : "WitnetOracle _witnetRequestBoard"
     var importWitnetMocks = answers.includeMocks
         ? `\nimport "witnet-solidity-bridge/contracts/mocks/WitnetMockedRequestBoard.sol";`
         : ""

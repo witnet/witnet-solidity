@@ -12,12 +12,12 @@ const witnet = require(process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
 );
 
 let addresses = witnet.getAddresses(hre.network.name)
-let WitnetBytecodes, WitnetRequestBoard, WitnetRequestFactory;
+let WitnetRequestBytecodes, WitnetOracle, WitnetRequestFactory;
 
 module.exports = { run };
 
 async function run(args) {
-    if (!addresses?.WitnetRequestBoard) {
+    if (!addresses?.WitnetOracle) {
         throw Error(`No Witnet addresses for network "${hre.network.name}"`)
     }
     if (!addresses.templates) addresses.templates = {}
@@ -28,22 +28,22 @@ async function run(args) {
     console.info(header)
     console.info("=".repeat(header.length))
 
-    process.stdout.write("WitnetBytecodes:      " + addresses.WitnetBytecodes + " ")
-    WitnetBytecodes = await hre.ethers.getContractAt(
-        witnet.artifacts.WitnetBytecodes.abi,
-        addresses.WitnetBytecodes,
+    process.stdout.write("WitnetRequestBytecodes:      " + addresses.WitnetRequestBytecodes + " ")
+    WitnetRequestBytecodes = await hre.ethers.getContractAt(
+        witnet.artifacts.WitnetRequestBytecodes.abi,
+        addresses.WitnetRequestBytecodes,
     );
     process.stdout.write(
-      await _readUpgradableArtifactVersion(WitnetBytecodes, addresses.WitnetBytecodes)
+      await _readUpgradableArtifactVersion(WitnetRequestBytecodes, addresses.WitnetRequestBytecodes)
     );
 
-    process.stdout.write("WitnetRequestBoard:   " + addresses.WitnetRequestBoard + " ")
-    WitnetRequestBoard = await hre.ethers.getContractAt(
-        witnet.artifacts.WitnetRequestBoard.abi,
-        addresses.WitnetRequestBoard,
+    process.stdout.write("WitnetOracle:   " + addresses.WitnetOracle + " ")
+    WitnetOracle = await hre.ethers.getContractAt(
+        witnet.artifacts.WitnetOracle.abi,
+        addresses.WitnetOracle,
     );
     process.stdout.write(
-        await _readUpgradableArtifactVersion(WitnetRequestBoard, addresses.WitnetRequestBoard)
+        await _readUpgradableArtifactVersion(WitnetOracle, addresses.WitnetOracle)
     );
 
     process.stdout.write("WitnetRequestFactory: " + addresses.WitnetRequestFactory + " ")

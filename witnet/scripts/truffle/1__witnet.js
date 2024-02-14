@@ -8,8 +8,8 @@ const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modu
 const assets = require(`${assets_relative_path}/assets`);
 const utils = require("../utils");
 
-const WitnetBytecodes = artifacts.require("WitnetBytecodes")
-const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
+const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
+const WitnetOracle = artifacts.require("WitnetOracle")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 
 module.exports = async function (deployer, network) {
@@ -18,9 +18,9 @@ module.exports = async function (deployer, network) {
 
   if (!isDryRun) {
     try {
-      WitnetRequestBoard.address = addresses.WitnetRequestBoard
-      const wrb = await WitnetRequestBoard.deployed()
-      WitnetBytecodes.address = await wrb.registry.call()
+      WitnetOracle.address = addresses.WitnetOracle
+      const wrb = await WitnetOracle.deployed()
+      WitnetRequestBytecodes.address = await wrb.registry.call()
       WitnetRequestFactory.address = await wrb.factory.call()
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
@@ -35,24 +35,24 @@ module.exports = async function (deployer, network) {
     const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
     await deployer.deploy(WitnetErrorsLib)
 
-    const WitnetMockedBytecodes = artifacts.require("WitnetMockedBytecodes");
-    await deployer.link(WitnetEncodingLib, WitnetMockedBytecodes);
-    await deployer.deploy(WitnetMockedBytecodes);
-    WitnetBytecodes.address = WitnetMockedBytecodes.address;
+    const WitnetMockedRequestBytecodes = artifacts.require("WitnetMockedRequestBytecodes");
+    await deployer.link(WitnetEncodingLib, WitnetMockedRequestBytecodes);
+    await deployer.deploy(WitnetMockedRequestBytecodes);
+    WitnetRequestBytecodes.address = WitnetMockedRequestBytecodes.address;
 
     const WitnetMockedRequestBoard = artifacts.require("WitnetMockedRequestBoard");
     await deployer.link(WitnetErrorsLib, WitnetMockedRequestBoard);
-    await deployer.deploy(WitnetMockedRequestBoard, WitnetBytecodes.address);
-    WitnetRequestBoard.address = WitnetMockedRequestBoard.address;
+    await deployer.deploy(WitnetMockedRequestBoard, WitnetRequestBytecodes.address);
+    WitnetOracle.address = WitnetMockedRequestBoard.address;
 
     const WitnetMockedRequestFactory = artifacts.require("WitnetMockedRequestFactory");
-    await deployer.deploy(WitnetMockedRequestFactory, WitnetRequestBoard.address);
+    await deployer.deploy(WitnetMockedRequestFactory, WitnetOracle.address);
     WitnetRequestFactory.address = WitnetMockedRequestFactory.address;
     await (await WitnetMockedRequestBoard.deployed()).setFactory(WitnetRequestFactory.address);
 
     addresses[network] = {
-      WitnetBytecodes: WitnetBytecodes.address,
-      WitnetRequestBoard: WitnetRequestBoard.address,
+      WitnetRequestBytecodes: WitnetRequestBytecodes.address,
+      WitnetOracle: WitnetOracle.address,
       WitnetRequestFactory: WitnetRequestFactory.address,
     }
 
@@ -60,20 +60,20 @@ module.exports = async function (deployer, network) {
   }
   
   utils.traceHeader("Witnet Artifacts:"); {
-    if (WitnetBytecodes.address) {
-      console.info("  ", "> WitnetBytecodes:      ", 
-        WitnetBytecodes.address, 
-        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetBytecodes)})`
+    if (WitnetOracle.address) {
+      console.info("  ", "> WitnetOracle:          ", 
+        WitnetOracle.address, 
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetOracle)})`
       )
     }
-    if (WitnetRequestBoard.address) {
-      console.info("  ", "> WitnetRequestBoard:   ", 
-        WitnetRequestBoard.address, 
-        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestBoard)})`
+    if (WitnetRequestBytecodes.address) {
+      console.info("  ", "> WitnetRequestBytecodes:", 
+        WitnetRequestBytecodes.address, 
+        `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestBytecodes)})`
       )
     }
     if (WitnetRequestFactory.address) {
-      console.info("  ", "> WitnetRequestFactory: ", 
+      console.info("  ", "> WitnetRequestFactory:  ", 
         WitnetRequestFactory.address, 
         `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
       )

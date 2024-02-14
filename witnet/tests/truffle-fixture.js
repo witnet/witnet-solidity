@@ -1,13 +1,13 @@
-const WitnetBytecodes = artifacts.require("WitnetBytecodes")
+const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
 const WitnetPriceFeeds = artifacts.require("WitnetPriceFeeds")
-const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
+const WitnetOracle = artifacts.require("WitnetOracle")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 
 const WitnetEncodingLib = artifacts.require("WitnetEncodingLib")
 const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
 const WitnetPriceFeedsLib = artifacts.require("WitnetPriceFeedsLib")
 
-const WitnetMockedBytecodes = artifacts.require("WitnetMockedBytecodes");
+const WitnetMockedRequestBytecodes = artifacts.require("WitnetMockedRequestBytecodes");
 const WitnetMockedRequestBoard = artifacts.require("WitnetMockedRequestBoard");
 const WitnetMockedRequestFactory = artifacts.require("WitnetMockedRequestFactory");
 const WitnetMockedPriceFeeds = artifacts.require("WitnetMockedPriceFeeds");
@@ -32,9 +32,9 @@ const utils = require("../../dist/utils")
 
     if (!isDryRun) {
         try {
-            WitnetBytecodes.address = addresses?.WitnetBytecodes
+            WitnetRequestBytecodes.address = addresses?.WitnetRequestBytecodes
             WitnetPriceFeeds.address = addresses?.WitnetPriceFeeds
-            WitnetRequestBoard.address = addresses?.WitnetRequestBoard
+            WitnetOracle.address = addresses?.WitnetOracle
             WitnetRequestFactory.address = addresses?.WitnetRequestFactory
         } catch (e) {
             console.error("Fatal: Witnet Foundation addresses were not provided!", e)
@@ -43,18 +43,18 @@ const utils = require("../../dist/utils")
 
     } else {
         WitnetEncodingLib.setAsDeployed(await WitnetEncodingLib.new());        
-        await WitnetEncodingLib.link(WitnetMockedBytecodes)
-        WitnetBytecodes.setAsDeployed(await WitnetMockedBytecodes.new());
+        await WitnetEncodingLib.link(WitnetMockedRequestBytecodes)
+        WitnetRequestBytecodes.setAsDeployed(await WitnetMockedRequestBytecodes.new());
 
         
         WitnetErrorsLib.setAsDeployed(await WitnetErrorsLib.new());
         await WitnetErrorsLib.link(WitnetMockedRequestBoard)
-        WitnetRequestBoard.setAsDeployed(await WitnetMockedRequestBoard.new(
-            WitnetBytecodes.address
+        WitnetOracle.setAsDeployed(await WitnetMockedRequestBoard.new(
+            WitnetRequestBytecodes.address
         ));
         
         WitnetRequestFactory.setAsDeployed(await WitnetMockedRequestFactory.new(
-            WitnetRequestBoard.address
+            WitnetOracle.address
         ));
         await (await WitnetMockedRequestBoard.deployed()).setFactory(
             WitnetRequestFactory.address
@@ -63,10 +63,10 @@ const utils = require("../../dist/utils")
         WitnetPriceFeedsLib.setAsDeployed(await WitnetPriceFeedsLib.new());
         await WitnetPriceFeedsLib.link(WitnetMockedPriceFeeds)
         WitnetPriceFeeds.setAsDeployed(await WitnetMockedPriceFeeds.new(
-            WitnetRequestBoard.address
+            WitnetOracle.address
         ));
         await deployer.link(WitnetPriceFeedsLib, WitnetMockedPriceFeeds);
-        await deployer.deploy(WitnetMockedPriceFeeds, WitnetRequestBoard.address);
+        await deployer.deploy(WitnetMockedPriceFeeds, WitnetOracle.address);
         WitnetPriceFeeds.address = WitnetMockedPriceFeeds.address;
 
         addresses = {}
@@ -76,16 +76,16 @@ const utils = require("../../dist/utils")
     }
 
     utils.traceHeader("Witnet Artifacts:"); {
-        if (WitnetBytecodes.address) {
-            console.info("  ", "> WitnetBytecodes:      ",
-                WitnetBytecodes.address,
-                `(${await _readUpgradableArtifactVersion(WitnetBytecodes)})`
+        if (WitnetRequestBytecodes.address) {
+            console.info("  ", "> WitnetRequestBytecodes:      ",
+                WitnetRequestBytecodes.address,
+                `(${await _readUpgradableArtifactVersion(WitnetRequestBytecodes)})`
             )
         }
-        if (WitnetRequestBoard.address) {
-            console.info("  ", "> WitnetRequestBoard:   ",
-                WitnetRequestBoard.address,
-                `(${await _readUpgradableArtifactVersion(WitnetRequestBoard)})`
+        if (WitnetOracle.address) {
+            console.info("  ", "> WitnetOracle:   ",
+                WitnetOracle.address,
+                `(${await _readUpgradableArtifactVersion(WitnetOracle)})`
             )
         }
         if (WitnetRequestFactory.address) {

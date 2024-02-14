@@ -12,7 +12,7 @@ const templates = (process.argv.includes("--all")
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
-const WitnetBytecodes = artifacts.require("WitnetBytecodes")
+const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
@@ -48,7 +48,7 @@ async function deployWitnetRequestTemplates (addresses, from, isDryRun, template
         try {
           const templateAddr = await utils.deployWitnetRequestTemplate(
             web3, from,
-            await WitnetBytecodes.deployed(),
+            await WitnetRequestBytecodes.deployed(),
             await WitnetRequestFactory.deployed(),
             template, key,
           )

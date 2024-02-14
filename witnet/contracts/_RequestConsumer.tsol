@@ -35,7 +35,7 @@ contract $_contractName
     /// ===============================================================================================================
     /// --- Implementing `IWitnetConsumer` interface ------------------------------------------------------------------
 
-    /// @notice Method to be called from the WitnetRequestBoard contract as soon as the given `_witnetQueryId`
+    /// @notice Method to be called from the WitnetOracle contract as soon as the given `_witnetQueryId`
     /// @notice gets reported, if solved with no errors.
     /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
     /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
@@ -56,7 +56,7 @@ contract $_contractName
         // TODO: gas consumed by this method SHOULD NEVER be greater than $_callbackGasLimit units.
     }
 
-    /// @notice Method to be called from the WitnetRequestBoard contract as soon as the given `_witnetQueryId`
+    /// @notice Method to be called from the WitnetOracle contract as soon as the given `_witnetQueryId`
     /// @notice gets reported, if solved WITH errors.
     /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
     /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
