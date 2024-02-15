@@ -20,6 +20,7 @@ module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = utils.isDryRun(network)
   
   const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
+  if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].templates) addresses[network].templates = {}
   
   addresses[network] = await deployWitnetRequestTemplates(addresses[network], from, isDryRun, templates) 
