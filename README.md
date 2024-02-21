@@ -4,6 +4,12 @@ Imports all required dependencies for any project to start interacting with any 
 
 The import of the following Solidity source files would enable your smart-contracts to:
 
+- **`witnet-solidity-bridge/contracts/WitnetOracle.sol`**:
+  - Estimate the reward in EVM-coins required for solving some given data request and SLA parameters.
+  - Query the Witnet Oracle layer-1 side-chain to asynchronously provide unmalleable up-to-date data points of some given data request.
+  - Check the current status of some previously posted data request.
+  - Read either a successfull result or possible resolution errors from some previously posted data request, as provided by the Witnet Oracle side-chain. 
+
 - **`witnet-solidity-bridge/contracts/requests/WitnetRequest.sol`**:
   - Refer `WitnetRequest` instances embedding Witnet-compliant RAD Requests payload. 
   - Introspect metadata of the embedded Witnet-compliant Data Request.
@@ -16,14 +22,6 @@ The import of the following Solidity source files would enable your smart-contra
 - **`witnet-solidity-bridge/contracts/WitnetRequestFactory.sol`**: 
   - Programmatically create your own parameterized `WitnetRequestTemplate` instances.
 
-- **`witnet-solidity-bridge/contracts/WitnetRequestBoard.sol`**:
-  - Estimate the reward in EVM-coins required for solving some given data request and SLA parameters.
-  - Query the Witnet Oracle layer-1 side-chain to asynchronously provide unmalleable up-to-date data points of some given data request.
-  - Check the current status of some previously posted data request.
-  - Read either a successfull result or possible resolution errors from some previously posted data request, as provided by the Witnet Oracle side-chain. 
-
-- **`witnet-solidity-bridge/contracts/WitnetRandomness.sol`**:
-  - Query the Witnet Oracle side-chain to asynchronously provide unmalleable 32-byte random seeds.
 
 - **WitnetPriceFeeds**:
 
@@ -114,7 +112,7 @@ Also, these two command-line utility tools will be ready just right out of the b
 
         $ npx witnet avail --chains <comma-separated-witnet-supported-ecosystems>
 
-        Note: the --chains operand can be omitted if the WITNET_SIDECHAIN environment variable is set.
+        Note: the --chains operand can be omitted if the WITNET_SOLIDITY_DEFAULT_CHAIN environment variable is set.
         ```
     - Show details of Witnet request artifacts:
         `$ npx witnet avail --requests [<comma-separated-request-artifact-names>]`
