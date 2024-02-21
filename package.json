@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -39,12 +39,9 @@
     "truffle"
   ],
   "dependencies": {
-    "cbor": "^9.0.1",
     "dotenv": "^16.4.1",
-    "graphql-query-compress": "^1.2.4",
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
-    "web3-jsonrpc-gateway": "^1.9.1",
     "witnet-solidity-bridge": "^2.0.3",
     "witnet-toolkit": "^2.0.3"
   },
