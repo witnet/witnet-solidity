@@ -8,7 +8,7 @@ const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
 const WitnetPriceFeedsLib = artifacts.require("WitnetPriceFeedsLib")
 
 const WitnetMockedRequestBytecodes = artifacts.require("WitnetMockedRequestBytecodes");
-const WitnetMockedRequestBoard = artifacts.require("WitnetMockedRequestBoard");
+const WitnetMockedOracle = artifacts.require("WitnetMockedOracle");
 const WitnetMockedRequestFactory = artifacts.require("WitnetMockedRequestFactory");
 const WitnetMockedPriceFeeds = artifacts.require("WitnetMockedPriceFeeds");
 
@@ -48,15 +48,15 @@ const utils = require("../../dist/utils")
 
         
         WitnetErrorsLib.setAsDeployed(await WitnetErrorsLib.new());
-        await WitnetErrorsLib.link(WitnetMockedRequestBoard)
-        WitnetOracle.setAsDeployed(await WitnetMockedRequestBoard.new(
+        await WitnetErrorsLib.link(WitnetMockedOracle)
+        WitnetOracle.setAsDeployed(await WitnetMockedOracle.new(
             WitnetRequestBytecodes.address
         ));
         
         WitnetRequestFactory.setAsDeployed(await WitnetMockedRequestFactory.new(
             WitnetOracle.address
         ));
-        await (await WitnetMockedRequestBoard.deployed()).setFactory(
+        await (await WitnetMockedOracle.deployed()).setFactory(
             WitnetRequestFactory.address
         );
 

@@ -40,15 +40,15 @@ module.exports = async function (deployer, network) {
     await deployer.deploy(WitnetMockedRequestBytecodes);
     WitnetRequestBytecodes.address = WitnetMockedRequestBytecodes.address;
 
-    const WitnetMockedRequestBoard = artifacts.require("WitnetMockedRequestBoard");
-    await deployer.link(WitnetErrorsLib, WitnetMockedRequestBoard);
-    await deployer.deploy(WitnetMockedRequestBoard, WitnetRequestBytecodes.address);
-    WitnetOracle.address = WitnetMockedRequestBoard.address;
+    const WitnetMockedOracle = artifacts.require("WitnetMockedOracle");
+    await deployer.link(WitnetErrorsLib, WitnetMockedOracle);
+    await deployer.deploy(WitnetMockedOracle, WitnetRequestBytecodes.address);
+    WitnetOracle.address = WitnetMockedOracle.address;
 
     const WitnetMockedRequestFactory = artifacts.require("WitnetMockedRequestFactory");
     await deployer.deploy(WitnetMockedRequestFactory, WitnetOracle.address);
     WitnetRequestFactory.address = WitnetMockedRequestFactory.address;
-    await (await WitnetMockedRequestBoard.deployed()).setFactory(WitnetRequestFactory.address);
+    await (await WitnetMockedOracle.deployed()).setFactory(WitnetRequestFactory.address);
 
     addresses[network] = {
       WitnetRequestBytecodes: WitnetRequestBytecodes.address,

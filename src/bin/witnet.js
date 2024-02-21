@@ -530,7 +530,7 @@ async function wizard() {
     var baseFeeOverhead = 10; // 10 %
     var constructorParams = answers?.witnetAddress ? "" : "WitnetOracle _witnetRequestBoard"
     var importWitnetMocks = answers.includeMocks
-        ? `\nimport "witnet-solidity-bridge/contracts/mocks/WitnetMockedRequestBoard.sol";`
+        ? `\nimport "witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol";`
         : ""
     ;
     var witnetAddress = answers?.witnetAddress || "_witnetRequestBoard"

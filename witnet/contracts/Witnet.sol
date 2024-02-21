@@ -6,5 +6,5 @@ import "witnet-solidity-bridge/contracts/apps/UsingWitnet.sol";
 import "witnet-solidity-bridge/contracts/apps/WitnetPriceFeeds.sol";
 
 // Witnet mocking contracts (only for local/unitary testing):
-import "witnet-solidity-bridge/contracts/mocks/WitnetMockedRequestBoard.sol";
+import "witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol";
 import "witnet-solidity-bridge/contracts/mocks/WitnetMockedPriceFeeds.sol";
