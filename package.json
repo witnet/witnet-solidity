@@ -44,8 +44,8 @@
     "graphql-query-compress": "^1.2.4",
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "^2.0.1",
-    "witnet-toolkit": "^2.0.1"
+    "web3-jsonrpc-gateway": "^1.9.1",
+    "witnet-solidity-bridge": "^2.0.2",
   },
   "devDependencies": {
     "cross-env": "7.0.3",

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const execSync = require('child_process').execSync;
+const { execSync, spawn } = require('node:child_process');
 const fs = require("fs");
 const inquirer = require("inquirer")
 const path = require("path")
@@ -34,6 +34,8 @@ if (process.argv.length >= 3) {
         truffleConsole();
     } else if (command === "deploy") {
         deploy();
+    } else if (command === "ethrpc") {
+        ethrpc();
     } else if (command === "version") {
         version();
     } else if (command === "wizard") {
@@ -59,8 +61,9 @@ function showMainUsage() {
     console.info("  ", "check", "\t\t=>", "Check that all Witnet assets are properly declared.")
     console.info("  ", "console", "\t\t=>", "Open Truffle console as to interact with Witnet deployed artifacts.")
     console.info("  ", "deploy", "\t\t=>", "Deploy Witnet requests and templates defined within the witnet/assets/ folder.")
+    console.info("  ", "ethrpc", "\t\t=>", "Run a local ETH/RPC gateway to the specified chain.")
     console.info("  ", "test", "\t\t=>", "Dry-run requests and templates defined within the witnet/assets/ folder.")
-    console.info("  ", "version", "\t\t=>", "Shows version.")
+    console.info("  ", "wizard", "\t\t=>", "Helps you to integrate the Witnet Oracle within your smart contracts.")
 }
 
 function showAvailUsage() {
@@ -306,6 +309,22 @@ function truffleConsole() {
         execSync(`npx truffle console --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]}`, { stdio: 'inherit' })
     } catch {}
 }
+
+function ethrpc() {
+    const shell = spawn("node", [
+        "./node_modules/web3-jsonrpc-gateway/dist/bin/w3gw.js",
+        ...process.argv.slice(3)
+    ]);
+    
+    shell.stdout.on('data', (data) => {
+        process.stdout.write(data.toString())
+    });
+      
+    shell.stderr.on('data', (data) => {
+        process.stderr.write(data.toString())
+    });
+}
+
 
 function deploy() {
     let chain
