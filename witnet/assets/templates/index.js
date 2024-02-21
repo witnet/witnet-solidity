@@ -1,3 +1,3 @@
 module.exports = {
-    legacy: { CCDR: require("./ccdr"), },
-};
+  legacy: { CCDR: require("./ccdr") },
+}

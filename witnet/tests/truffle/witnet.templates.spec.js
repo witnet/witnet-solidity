@@ -5,17 +5,20 @@ const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
 const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
 contract("witnet-solidity/templates", async () => {
-
-  const [, network] = utils.getRealmNetworkFromArgs();
+  const [, network] = utils.getRealmNetworkFromArgs()
   const addresses = require("./addresses")[network]
   const selection = utils.getWitnetArtifactsFromArgs()
   const templates = (process.argv.includes("--all")
-    ? require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets`).templates
-    : require(`${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets/templates`)
-  );
-  
-  let summary = []
-  
+    ? require(
+      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets`
+    ).templates
+    : require(
+      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets/templates`
+    )
+  )
+
+  const summary = []
+
   describe("My Witnet Request Templates...", async () => {
     if (addresses?.templates) {
       const crafts = utils.flattenWitnetArtifacts(templates)
@@ -23,14 +26,14 @@ contract("witnet-solidity/templates", async () => {
         const templateAddress = addresses?.templates[craft?.key] || ""
         if (
           templateAddress !== "" &&
-            (selection.length == 0 || selection.includes(craft?.key))
+            (selection.length === 0 || selection.includes(craft?.key))
         ) {
           describe(`${craft.key}`, async () => {
             for (const test in craft.artifact?.tests) {
               describe(`${test}`, async () => {
                 const args = craft.artifact.tests[test]
                 let bytecode
-                it("parameterized request gets built", async () => {        
+                it("parameterized request gets built", async () => {
                   const template = await WitnetRequestTemplate.at(templateAddress)
                   await template.verifyRadonRequest(args)
                 })
@@ -50,15 +53,15 @@ contract("witnet-solidity/templates", async () => {
                   } catch {
                     assert(false, "Invalid JSON: " + output)
                   }
-                  const result = utils.processDryRunJson(JSON.parse(output))
+                  const result = utils.processDryRunJson(json)
                   summary.push({
-                    "Artifact": craft.key,
-                    "Test": test,
-                    "Status": result.status,
+                    Artifact: craft.key,
+                    Test: test,
+                    Status: result.status,
                     "✓ Sources": result.totalSources - result.nokSources,
                     "∑ Sources": result.totalSources,
                     "Time (secs)": result.runningTime,
-                    "Result": !("RadonError" in result.tally) ? result.tally : "(Failed)"
+                    Result: !("RadonError" in result.tally) ? result.tally : "(Failed)",
                   })
                   if (result.status !== "OK") {
                     throw Error(result?.error || "Dry-run-failed!")
