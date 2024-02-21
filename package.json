@@ -20,8 +20,8 @@
     ".env_witnet"
   ],
   "scripts": {
-    "fmt": "eslint test --ext .js,.ts,.cjs --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
-    "fmt!": "eslint test --ext .js,.ts,.cjs --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
+    "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
+    "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "postinstall": "npx witnet-toolkit update",
     "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
   },
@@ -56,6 +56,7 @@
     "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.1.1",
     "ethers": "^6.10.0",
-    "hardhat": "^2.19.5"
+    "hardhat": "^2.19.5",
+    "solhint": "^4.1.1"
   }
 }
