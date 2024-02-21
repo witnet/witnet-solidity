@@ -3,6 +3,7 @@
 const { execSync, spawn } = require('node:child_process');
 const fs = require("fs");
 const inquirer = require("inquirer")
+const os = require("os")
 const path = require("path")
 
 const utils = require("witnet-solidity-bridge/utils")
@@ -311,8 +312,8 @@ function truffleConsole() {
 }
 
 function ethrpc() {
-    const shell = spawn("node", [
-        "./node_modules/web3-jsonrpc-gateway/dist/bin/w3gw.js",
+    const shell = spawn(os.type() === "Windows_NT" ? "npx.cmd" : "npx", [
+        "w3gw",
         ...process.argv.slice(3)
     ]);
     
