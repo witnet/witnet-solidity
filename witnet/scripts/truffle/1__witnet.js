@@ -6,6 +6,7 @@ const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet";
 
 const assets = require(`${assets_relative_path}/assets`);
+const fs = require("fs");
 const utils = require("../utils");
 
 const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
@@ -56,6 +57,10 @@ module.exports = async function (deployer, network) {
       WitnetRequestFactory: WitnetRequestFactory.address,
     }
 
+    // create test addresses file if none exists yet:
+    if (!fs.existsSync(`${witnet_module_path}/tests/truffle/addresses.json`)) {
+      fs.writeFileSync(`${witnet_module_path}/tests/truffle/addresses.json`, "{}")
+    }
     utils.saveAddresses(`${witnet_module_path}/tests/truffle`, addresses);
   }
   

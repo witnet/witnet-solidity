@@ -45,7 +45,7 @@
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
     "web3-jsonrpc-gateway": "^1.9.1",
-    "witnet-solidity-bridge": "^2.0.2",
+    "witnet-solidity-bridge": "^2.0.3",
     "witnet-toolkit": "^2.0.3"
   },
   "devDependencies": {
