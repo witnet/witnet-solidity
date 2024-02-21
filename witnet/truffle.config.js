@@ -1,10 +1,4 @@
-const { settings, utils } = require("witnet-solidity-bridge")
-const [ ecosystem, target ] = utils.getRealmNetworkFromArgs();
-if (ecosystem) {
-  const header = `${target.toUpperCase()}`
-  console.info(header)
-  console.info("=".repeat(header.length))
-} 
+const { settings } = require("witnet-solidity-bridge")
 
 module.exports = {
   build_directory: "./node_modules/witnet-solidity-bridge/build",

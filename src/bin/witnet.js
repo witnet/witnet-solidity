@@ -307,7 +307,7 @@ function truffleConsole() {
         console.info("  ", "None available.")
     }
     try {
-        execSync(`npx truffle console --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${chain[1]}`, { stdio: 'inherit' })
+        execSync(`npx truffle console --config ${witnet_config_file} --contracts_directory ${witnet_contracts_path} --migrations_directory ${witnet_migrations_path} --network ${network}`, { stdio: 'inherit' })
     } catch {}
 }
 
