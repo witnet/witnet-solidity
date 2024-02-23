@@ -4,6 +4,10 @@
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/witnet/witnet-solidity/tree/2.0"
+  },
   "private": false,
   "type": "commonjs",
   "bin": {
