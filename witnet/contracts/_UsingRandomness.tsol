@@ -16,7 +16,7 @@ contract $_contractName
         UsingWitnetRandomness(
             /* _witnetOracle */ $_witnetAddress,
             /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _callbackGasLimit */ uint24($_callbackGasLimit)
+            /* _witnetCallbackGasLimit */ uint24($_witnetCallbackGasLimit)
         )
     {
         // ...

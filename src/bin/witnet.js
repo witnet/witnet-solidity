@@ -104,6 +104,9 @@ async function init () {
   if (!fs.existsSync("./witnet/addresses.json")) {
     fs.writeFileSync("./witnet/addresses.json", "{}")
   }
+  if (!fs.existsSync("./witnet/_hardhat.config.js")) {
+    fs.cpSync("node_modules/witnet-solidity/witnet/_hardhat.config.js", "./witnet/_hardhat.config.js")
+  }
   if (!fs.existsSync("./witnet/_truffle.config.js")) {
     fs.cpSync("node_modules/witnet-solidity/witnet/_truffle.config.js", "./witnet/_truffle.config.js")
   }
