@@ -17,11 +17,7 @@ contract $_contractName
         WitnetRequestTemplateConsumer(
             /* _witnetRequestTemplate */ $_witnetAddress,
             /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _witnetCallbackGasLimit */ uint96($_callbackGasLimit),
-            /* _witnetDefaultSLA */ WitnetV2.RadonSLA({
-                witnessingCommitteeSize:  10, // up to 127
-                witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
-            })
+            /* _witnetCallbackGasLimit */ uint24($_callbackGasLimit),
         )
     {
         // ...

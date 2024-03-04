@@ -14,13 +14,9 @@ contract $_contractName
 
     constructor ($_constructorParams) 
         UsingWitnetRandomness(
-            /* _witnetRequestBoard */ $_witnetAddress,
+            /* _witnetOracle */ $_witnetAddress,
             /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _witnetCallbackGasLimit */ uint96($_callbackGasLimit),
-            /* _witnetDefaultSLA */ WitnetV2.RadonSLA({
-                witnessingCommitteeSize:  10, // up to 127
-                witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
-            })
+            /* _callbackGasLimit */ uint24($_callbackGasLimit)
         )
     {
         // ...

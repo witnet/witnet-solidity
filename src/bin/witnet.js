@@ -541,12 +541,12 @@ async function wizard () {
     }
   }
   const baseFeeOverhead = 10 // 10 %
-  let constructorParams = answers?.witnetAddress ? "" : "WitnetOracle _witnetRequestBoard"
+  let constructorParams = answers?.witnetAddress ? "" : "WitnetOracle _witnetOracle"
   const importWitnetMocks = answers.includeMocks
     ? "\nimport \"witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol\";"
     : ""
 
-  let witnetAddress = answers?.witnetAddress || "_witnetRequestBoard"
+  let witnetAddress = answers?.witnetAddress || "_witnetOracle"
   let templateFile = `${witnet_solidity_module_path}/contracts/`
   switch (appKind) {
     case "Randomness": {

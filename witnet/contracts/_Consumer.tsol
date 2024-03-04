@@ -14,15 +14,10 @@ contract $_contractName
     using WitnetV2 for WitnetV2.RadonSLA;
 
     constructor ($_constructorParams) 
-        UsingWitnet(/* _witnetRequestBoard */ $_witnetAddress),
-        WitnetConsumer(/* _witnetCallbackGasLimit */ uint96($_callbackGasLimit)
-        )
+        UsingWitnet(/* _witnetOracle */ $_witnetAddress),
+        WitnetConsumer(/* _callbackGasLimit */ uint24($_callbackGasLimit))
     {
         __witnetSetBaseFeeOverheadPercentage(uint16($_baseFeeOverhead));
-        __witnetSetDefaultSLA(WitnetV2.RadonSLA({
-            witnessingCommitteeSize:  10, // up to 127
-            witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
-        }));
         // ...
     }
 

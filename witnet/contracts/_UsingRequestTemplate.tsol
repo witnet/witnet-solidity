@@ -19,11 +19,7 @@ contract $_contractName
     constructor ($_constructorParams) 
         UsingWitnetRequestTemplate(
             /* _witnetRequestTemplate */ $_witnetAddress,
-            /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _witnetDefaultSLA */ WitnetV2.RadonSLA({
-                witnessingCommitteeSize:  10, // up to 127
-                witnessingWitTotalReward: 10 ** 9 // 1.0 WIT
-            })
+            /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead)
         )
     {
         // ...
