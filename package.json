@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "^2.0.3",
+    "witnet-solidity-bridge": "^2.0.5",
     "witnet-toolkit": "^2.0.3"
   },
   "devDependencies": {

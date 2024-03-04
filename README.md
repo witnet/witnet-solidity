@@ -17,11 +17,11 @@ Once you get this package installed and initialized, you will be able to:
 - Build and test your own parameterized **Witnet Data Requests**.
 - Check the EVM chains currently bridged to the Witnet Oracle Blockchain.
 - Check the number of Witnet data sources, templates and requests already available within your project.
-- Check the EVM addresses of all Witnet-based assets availabe on the specified chain.
+- Check the EVM addresses of all Witnet-based assets available on the specified chain.
 - Deploy your own Witnet-based assets (sources, templates and requests) onto the specified chain. 
 - Run a local ETH/RPC gateway and a Web3 console as to ease both the deployment and the interaction or testing of your Witnet-based assets.
 - Run the bundled **Witnet Solidity Wizard**,  as to generate smart contracts skeletons adapted to your actual needs.
-- Freely read from a selection of price feeds that get periodically updated by the Witnet Foundation, being able also to programatically force a price update from within your smart contract, or even introspect the actual providers being used by the Witnet Foundation for every update. 
+- Freely read from a selection of **Witnet Price Feeds** that get periodically updated by the Witnet Foundation, being able also to programatically force a price update from within your smart contract, or even introspect the actual providers being used by the Witnet Foundation for every update. 
 - Pull unmallable randomness from the Witnet Oracle Blockchain right into your smart contracts.
 
 Last but not least, you will be able to interact with the [Witnet Oracle Blockchain] in two different ways:
@@ -92,18 +92,17 @@ All assets checked successfully!
 > *Use the `npx witnet avail` as explained above to get more info about the Witnet assets being checked.*
 
 ### `$ npx witnet test`
-This command will simulate the deployment of the data requests and templates declared within your project, running also the tests that you may have optionally declared within the `witnet/assets` folder. These tests will dry-run the resolution of data requests exactly in the same way as they would be resolved by the Witnet Oracle blockchain. The tests will let you verify the correctness of the data sources being referred, and the actual data that they provide.
+This script will simulate the deployment of the data requests and templates declared within your project, running also the tests that you may have optionally declared within the `witnet/assets` folder. These tests will dry-run the resolution of data requests exactly in the same way as they would be resolved by the Witnet Oracle blockchain. The tests will let you verify the correctness of the data sources being referred, and the actual data that they provide.
 
 ```console
 Usage:
 
   $ npx witnet test <witnet-supported-chain> [--artifacts <comma-separated-artifacts-to-be-deployed> [--verbose]]
 ```
-> *If no artifacts are specified, all Witnet assets declared within your project will be tested instead.*
-> *If using the `--verbose` flag, your will see the details on every step that would be taken by the Witnet blockchain nodes involved in the resolution of your data requests. 
+> *If no artifacts are specified, all Witnet assets declared within your project will be tested instead. If using the `--verbose` flag, your will see the details about every step that would be ultimately taken by the Witnet blockchain nodes involved in the resolution of the data requests being tested.*
 
 ### `$ npx witnet ethrpc`
-This commands runs an off-the-shelf ETH/ROC local gateway, as exported by the [web-jsonrpc-gateway](https://github.com/witnet/web3-jsonrpc-gateway) package. The local gateway being launched is pre-configured with all EVM chains currently bridged to the Witnet Oracle blockchain.
+This script runs an off-the-shelf ETH/ROC local gateway, as exported by the [web-jsonrpc-gateway](https://github.com/witnet/web3-jsonrpc-gateway) package. The local gateway being launched is pre-configured with all EVM chains currently bridged to the Witnet Oracle blockchain.
 ```console
 Usage:
 
@@ -120,7 +119,7 @@ Optionally, you can specify a custom endpoint by setting:
 ```
 
 ### `$ npx witnet deploy`
-This command deploys the specified Witnet requests and/or templates into the specified chain. 
+This command deploys the specified Witnet requests and/or templates into the specified chain:
 ```console
 Usage:
 
@@ -135,6 +134,7 @@ However, if <witnet-supported-chain> is specified, that will always prevail upon
 ```
 
 ### `$ npx witnet console`
+This script runs a Truffle console as to interact with your deployed Witnet-based assets in the specified chain:
 ```console
 Usage:
 
