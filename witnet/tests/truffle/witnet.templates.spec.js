@@ -10,10 +10,10 @@ contract("witnet-solidity/templates", async () => {
   const selection = utils.getWitnetArtifactsFromArgs()
   const templates = (process.argv.includes("--all")
     ? require(
-      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets`
+      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../../witnet"}/assets`
     ).templates
     : require(
-      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../witnet"}/assets/templates`
+      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../../witnet"}/assets/templates`
     )
   )
 
