@@ -16,12 +16,12 @@ Once you get this package installed and initialized, you will be able to:
 
 - Build and test your own parameterized **Witnet Data Requests**.
 - Check the EVM chains currently bridged to the Witnet Oracle Blockchain.
-- Check the number of Witnet data sources, templates and requests already available within your project.
+- Check the number of Witnet data sources, templates and requests that are already available within your project.
 - Check the EVM addresses of all Witnet-based assets available on the specified chain.
 - Deploy your own Witnet-based assets (sources, templates and requests) onto the specified chain. 
-- Run a local ETH/RPC gateway and a Web3 console as to ease both the deployment and the interaction or testing of your Witnet-based assets.
-- Run the bundled **Witnet Solidity Wizard**,  as to generate smart contracts skeletons adapted to your actual needs.
-- Freely read from a selection of **Witnet Price Feeds** that get periodically updated by the Witnet Foundation, being able also to programatically force a price update from within your smart contract, or even introspect the actual providers being used by the Witnet Foundation for every update. 
+- Run a local ETH/RPC gateway and a Web3 console to ease both the deployment and the interaction or testing of your Witnet-based assets.
+- Run the bundled **Witnet Solidity Wizard** to generate smart contracts skeletons adapted to your actual needs.
+- Freely read from a selection of **Witnet Price Feeds** that get periodically updated by the Witnet Foundation, being able also to programmatically force a price update from within your smart contract, or even introspect the actual providers being used by the Witnet Foundation for every update. 
 - Pull unmallable randomness from the Witnet Oracle Blockchain right into your smart contracts.
 
 Last but not least, you will be able to interact with the [Witnet Oracle Blockchain] in two different ways:
