@@ -8936,10 +8936,10 @@ witnet-radon-js@^2.0.0:
     prettier "3.2.4"
     rosetta "1.1.0"
 
-witnet-solidity-bridge@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/witnet-solidity-bridge/-/witnet-solidity-bridge-2.0.3.tgz#d6a1e28131222188de2d0ceb0c199c5c9934bc0b"
-  integrity sha512-JHKqdWCwXoqei+a+h8SCBMl5IztTuGGQsqkJOA6tw2uSEPzBg58jupdf/nw0+0id68NoRR/oNhO6QncpqC+erw==
+witnet-solidity-bridge@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/witnet-solidity-bridge/-/witnet-solidity-bridge-2.0.5.tgz#99e3e38c042a84d540fd167bcfb0ed7ec6f5d6cc"
+  integrity sha512-U7ActedrynNKI4VZ56DxJ9y8QZVpxcaMkr6uaexzJh1ThZ39dgkeZQKuGa5gAvaSTsnbEmZAzonSsz7QMqc38A==
   dependencies:
     dotenv "^16.4.4"
     lodash.merge "^4.6.2"
