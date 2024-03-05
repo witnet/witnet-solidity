@@ -5,7 +5,7 @@ const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
 
 const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
-const requests = (process.argv.includes("--all")
+const requests = (process.argv.includes("--legacy")
   ? require(`${assets_relative_path}/assets`).requests
   : require(`${assets_relative_path}/assets/requests`)
 )

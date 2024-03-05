@@ -79,17 +79,19 @@ These config file templates illustrate how to address Witnet assets and supporte
 
 This script will perform a syntax check on the Witnet-based assets declared within the `witnet/assets` folder. Declaration of Witnet-based assets like data sources, aggregation filters or reducers, off-chain computation scripts (i.e. Witnet Radon scripts) and/or data requests (either static or parametrized) relies on the *Witnet Radon Typescript library* exported by the [`witnet-toolkit`](https://github.com/witnet/witnet-toolkit) package that gets installed together with `witnet-solidity`.
 
-There are some out-of-the-box assets being included in `witnet-solidity`, so right after initialization you should still see:
+Right after initialization you should see:
 ```console
    WITNET ASSETS
    -------------
-   > Data sources:      9
-   > Data requests:     2
-   > Request templates: 5
+   > Data sources:      0
+   > Data requests:     0
+   > Request templates: 0
 
-All assets checked successfully!
-``` 
-> *Use the `npx witnet avail` as explained above to get more info about the Witnet assets being checked.*
+Sorry, there are no assets to check.
+```
+Add asset declartions to the resource files within the `witnet/assets` folder as to meet the requirements for retrieving real world data to your smart contracts. 
+
+> *If getting an error during assets check, have a look into the stack trace to locate the asset resource file and line number.*
 
 ### `$ npx witnet test`
 This script will simulate the deployment of the data requests and templates declared within your project, running also the tests that you may have optionally declared within the `witnet/assets` folder. These tests will dry-run the resolution of data requests exactly in the same way as they would be resolved by the Witnet Oracle blockchain. The tests will let you verify the correctness of the data sources being referred, and the actual data that they provide.
@@ -99,7 +101,7 @@ Usage:
 
   $ npx witnet test <witnet-supported-chain> [--artifacts <comma-separated-artifacts-to-be-deployed> [--verbose]]
 ```
-> *If no artifacts are specified, all Witnet assets declared within your project will be tested instead. If using the `--verbose` flag, your will see the details about every step that would be ultimately taken by the Witnet blockchain nodes involved in the resolution of the data requests being tested.*
+> *If no artifacts are specified, all Witnet assets declared within your project will be tested instead. If using the `--verbose` flag, your will see the details about every step that would be ultimately taken by the Witnet blockchain nodes involved in the resolution of the data requests being tested. Add the `--legacy` flag in case you want to testany of Witnet "legacy" assets that are bundled within this package out-of-the-box and listed by `npx witnet avail`.
 
 ### `$ npx witnet ethrpc`
 This script runs an off-the-shelf ETH/ROC local gateway, as exported by the [web-jsonrpc-gateway](https://github.com/witnet/web3-jsonrpc-gateway) package. The local gateway being launched is pre-configured with all EVM chains currently bridged to the Witnet Oracle blockchain.
@@ -132,6 +134,8 @@ To get a list of <witnet-supported-chain>:
 No need to specify <witnet-supported-chain> if WITNET_SOLIDITY_DEFAULT_CHAIN environment variable is set, though.
 However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SOLIDITY_DEFAULT_CHAIN.
 ```
+
+> *Add the `--legacy` flag in case you want to deploy any of Witnet "legacy" assets that are bundled within this package out-of-the-box and listed by `npx witnet avail`. Deployable Witnet artifacts are unowned and use counter-factual addresses, so if anybody else had previously deployed any of these legacy assets on the specified chain, you would get just the same EVM address at a rather low cost*.
 
 ### `$ npx witnet console`
 This script runs a Truffle console as to interact with your deployed Witnet-based assets in the specified chain:

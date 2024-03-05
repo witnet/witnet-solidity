@@ -245,24 +245,31 @@ function avail () {
 
 function check () {
   _traceHeader("WITNET ASSETS")
+  let requests, templates, sources
   const assets = require(`${witnet_require_path}/assets`)
-  const [requests, templates, sources] = [
-    _countLeaves(Witnet.Artifacts.Class, assets?.requests),
-    _countLeaves(Witnet.Artifacts.Template, assets?.templates),
-    _countLeaves(Witnet.Sources.Class, assets?.sources),
-  ]
-
-  if (sources) {
-    console.info("  ", "> Data sources:     ", sources)
-  }
-  if (requests) {
-    console.info("  ", "> Data requests:    ", requests)
-  }
-  if (templates) {
-    console.info("  ", "> Request templates:", templates)
+  if (process.argv.includes("--legacy")) {
+    [requests, templates, sources] = [
+      _countLeaves(Witnet.Artifacts.Class, assets?.requests),
+      _countLeaves(Witnet.Artifacts.Template, assets?.templates),
+      _countLeaves(Witnet.Sources.Class, assets?.sources),
+    ]
+  } else {
+    [requests, templates, sources] = [
+      _countLeaves(Witnet.Artifacts.Class, require(`${witnet_require_path}/assets/requests`)),
+      _countLeaves(Witnet.Artifacts.Template, require(`${witnet_require_path}/assets/templates`)),
+      _countLeaves(Witnet.Sources.Class, require(`${witnet_require_path}/assets/sources`)),
+    ]
   }
 
-  console.info("\nAll assets checked successfully!")
+  console.info("  ", "> Data sources:     ", sources)
+  console.info("  ", "> Data requests:    ", requests)
+  console.info("  ", "> Request templates:", templates)
+
+  if (!sources && !requests && !templates) {
+    console.info("\nSorry, there are no assets to check.")
+  } else {
+    console.info("\nAll assets checked successfully!")
+  }
 }
 
 function test () {

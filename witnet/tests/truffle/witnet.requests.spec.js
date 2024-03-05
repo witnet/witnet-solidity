@@ -7,7 +7,7 @@ contract("witnet-solidity/requests", async () => {
   const [, network] = utils.getRealmNetworkFromArgs()
   const addresses = require("./addresses")[network]
   const selection = utils.getWitnetArtifactsFromArgs()
-  const requests = (process.argv.includes("--all")
+  const requests = (process.argv.includes("--legacy")
     ? require(
       `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../../witnet"}/assets`
     ).requests
