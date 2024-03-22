@@ -9,74 +9,70 @@ contract $_contractName
     is
         UsingWitnetRandomness
 {
-    using WitnetCBOR for WitnetCBOR.CBOR; 
     using WitnetV2 for WitnetV2.RadonSLA;
 
     constructor ($_constructorParams) 
-        UsingWitnetRandomness(
-            /* _witnetOracle */ $_witnetAddress,
-            /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _witnetCallbackGasLimit */ uint24($_callbackGasLimit)
-        )
+        UsingWitnetRandomness($_witnetAddress)
     {
-        // ...
+        /// ...
     }
 
-    /// ... Introspect the `UsingWitnetRandomness` contract to learn about 
-    /// ... the internal helper methods at your disposal for requesting new
-    /// ... randomness to Witnet, changing the Witnet SLA parameters to use
-    /// ... on next updates, or even using an buit-in uniform random number 
-    /// ... generator function.
+    /// @dev As to accept transfers back from the `WitnetRandomness` appliance
+    /// @dev when excessive fee is passed over to the `_RNG.randomize()` method. 
+
+    receive () external payable {}
+
+    
+    /// ... Introspect the `WitnetRandomness` appliance interface to learn 
+    /// ... about the public methods at your disposal via `__RNG` for pulling
+    /// ... unmalleable randomness from the Witnet Oracle blockchain.
+
+    /// ...
 
  
-    /// ===============================================================================================================
-    /// --- Implementing `IWitnetConsumer` interface ------------------------------------------------------------------
+    // ========================================================================
+    // --- Internal helper methods: Random extractions with/without repetitions
 
-    /// @notice Method to be called from the WitnetOracle contract as soon as the given `_witnetQueryId`
-    /// @notice gets reported, if solved with no errors.
-    /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
-    /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
-    /// @param _witnetResultTimestamp Timestamp at which the reported value was captured by the Witnet blockchain. 
-    /// @param _witnetEvmFinalityBlock EVM block at which the provided data can be considered to be final.
-    /// @param _witnetResultCborValue The CBOR-encoded resulting value of the Witnet query being reported.
-    function reportWitnetQueryResult(
-            uint256 _witnetQueryId, 
-            uint64  _witnetResultTimestamp,
-            bytes32 _witnetResultTallyHash,
-            uint256 _witnetEvmFinalityBlock,
-            WitnetCBOR.CBOR calldata _witnetResultCborValue
+    function _randomExtractionWithReps(
+            uint32 _range, 
+            uint32 _extractions, 
+            bytes32 _randomness
         )
-        override external
-        onlyFromWitnet
+        internal pure
+        returns (uint256[] memory _extraction)
     {
-        // TODO: this method MUST be implemented
-        // TODO: gas consumed by this method SHOULD NEVER be greater than $_callbackGasLimit units.
-        
-        bytes32 _witnetRandomness = _witnetReadRandomizeFromResultValue(_witnetResultCborValue);
-        // ...
+        unchecked {
+            _extraction = new uint256[](_extractions);
+            for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
+                _extraction[_ix] = uint256(
+                    WitnetV2.randomUniformUint32(_range, _ix, _randomness)
+                );
+            }
+        }
     }
 
-    /// @notice Method to be called from the WitnetOracle contract as soon as the given `_witnetQueryId`
-    /// @notice gets reported, if solved WITH errors.
-    /// @param _witnetQueryId The unique identifier of the Witnet query being reported.
-    /// @param _witnetResultTallyHash Hash of the commit/reveal witnessing act that took place in the Witnet blockahin.
-    /// @param _witnetResultTimestamp Timestamp at which the reported value was captured by the Witnet blockchain. 
-    /// @param _witnetEvmFinalityBlock EVM block at which the provided data can be considered to be final.
-    /// @param _errorCode The error code enum identifying the error produced during resolution on the Witnet blockchain.
-    /// @param _errorArgs Error arguments, if any. An empty buffer is to be passed if no error arguments apply.
-    function reportWitnetQueryError(
-            uint256 _witnetQueryId, 
-            uint64  _witnetResultTimestamp,
-            bytes32 _witnetResultTallyHash,
-            uint256 _witnetEvmFinalityBlock,
-            Witnet.ResultErrorCodes _errorCode, 
-            WitnetCBOR.CBOR calldata _errorArgs
+    function _randomExtractionNoReps(
+            uint32 _range, 
+            uint32 _extractions, 
+            bytes32 _randomness
         )
-        override external
-        onlyFromWitnet
+        internal pure
+        returns (uint256[] memory _extraction)
     {
-        // TODO: this method MUST be implemented
-        // TODO: gas consumed by this method SHOULD NEVER be greater than $_callbackGasLimit gas units.
+        unchecked {
+            uint256[] memory _numbers = new uint256[](_extractions);
+            for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
+                _numbers[_ix] = _ix;
+            }
+            _extraction = new uint256[](_extractions);
+            for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
+                uint256 _random = uint256(
+                    WitnetV2.randomUniformUint32(_range - _ix, _ix, _randomness)
+                );
+                _extraction[_ix] = uint256(_numbers[_random]);
+                _numbers[_random] = _numbers[_extractions - 1 - _ix];
+            }
+        }
     }
 
 }
