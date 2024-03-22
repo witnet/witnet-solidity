@@ -43,8 +43,8 @@ module.exports = async function (deployer, network) {
     WitnetRequestBytecodes.address = WitnetMockedRequestBytecodes.address
 
     const WitnetMockedOracle = artifacts.require("WitnetMockedOracle")
-    await deployer.link(WitnetErrorsLib, WitnetMockedOracle)  
-    await deployer.link(WitnetOracleDataLib, WitnetMockedOracle)  
+    await deployer.link(WitnetErrorsLib, WitnetMockedOracle)
+    await deployer.link(WitnetOracleDataLib, WitnetMockedOracle)
     await deployer.deploy(WitnetMockedOracle, WitnetRequestBytecodes.address)
     WitnetOracle.address = WitnetMockedOracle.address
 

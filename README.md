@@ -135,7 +135,7 @@ No need to specify <witnet-supported-chain> if WITNET_SOLIDITY_DEFAULT_CHAIN env
 However, if <witnet-supported-chain> is specified, that will always prevail upon the value of WITNET_SOLIDITY_DEFAULT_CHAIN.
 ```
 
-> *Add the `--legacy` flag in case you want to deploy any of Witnet "legacy" assets that are bundled within this package out-of-the-box and listed by `npx witnet avail`. Deployable Witnet artifacts are unowned and use counter-factual addresses, so if anybody else had previously deployed any of these legacy assets on the specified chain, you would get just the same EVM address at a rather low cost*.
+> *Add the `--legacy` flag in case you want to deploy any of Witnet "legacy" assets that are bundled out-of-the-box within this package and listed by `npx witnet avail`. Deployable Witnet artifacts are unowned and counter-factual, so if anybody else had previously deployed any of these legacy assets on the specified chain, you would get just the same EVM address at a rather low cost*.
 
 ### `$ npx witnet console`
 This script runs a Truffle console as to interact with your deployed Witnet-based assets in the specified chain:
@@ -153,17 +153,16 @@ However, if <witnet-supported-chain> is specified, that will always prevail upon
 ```
 
 ### `$ npx witnet wizard`
-A console-interactive wizard will run asking some questions about what you want to integrate the Witnet Oracle for:
+A CLI wizard will run asking some questions about what you want to integrate the Witnet Oracle for:
 
 ![alt text](./witnet/docs/wizard.png)
 
 > *Every time the wizard is run, a new Solidity file will be added to your project's `./contracts` subfolder.*
-
 
 ## License
 
 `witnet-solidity` is published under the [MIT license][license].
 
 [license]: https://github.com/witnet/witnet-solidity/blob/master/LICENSE
-[docs]: https://docs.witnet.io/smart-contracts/witnet-web-oracle
+[docs]: https://docs.witnet.io/smart-contracts/witnet-web-Oracle
 [Witnet Oracle Blockchain]: https://witnet.io

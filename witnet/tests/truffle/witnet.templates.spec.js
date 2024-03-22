@@ -87,36 +87,4 @@ contract("witnet-solidity/templates", async () => {
       }
     })
   })
-
-  // function findWitnetRequestTemplateCrafts (tree, headers) {
-  //   if (!headers) headers = []
-  //   const matches = []
-  //   for (const key in tree) {
-  //     if (tree[key]?.specs) {
-  //       matches.push({
-  //         key,
-  //         artifact: tree[key],
-  //         address: findWitnetRequestTemplateAddress(key),
-  //       })
-  //     } else if (typeof tree[key] === "object") {
-  //       matches.push(
-  //         ...findWitnetRequestTemplateCrafts(
-  //           tree[key],
-  //           [...headers, key]
-  //         )
-  //       )
-  //     }
-  //   }
-  //   return matches
-  // }
-
-  // function findWitnetRequestTemplateAddress (target) {
-  //   const addrs = addresses.default?.test.templates
-  //   for (const key in addrs) {
-  //     if (key === target) {
-  //       return addrs[key]
-  //     }
-  //   }
-  //   return ""
-  // }
 })

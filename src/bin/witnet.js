@@ -434,14 +434,15 @@ async function wizard () {
   const appKind = answers.usage.split(" ")[0]
   switch (appKind) {
     case "Randomness": {
-      break
-    }
-    case "Price": {
       answers = {
         ...await inquirer.prompt({
-          type: "confirm",
-          name: "pull",
-          message: "Would you like to force price updates from this contract?",
+          type: "list",
+          name: "randomness",
+          message: "Would you rather rely on the WitnetRandomness appliance or handle resolution of randomness requests at a lower level?",
+          choices: [
+            "Yes => use the WitnetRandomness appliance (randomize results need to be polled).",
+            "No  => I know how to handle randomness request callbacks, attend eventual faulty requests and protect against front-run attacks.",
+          ],
         }),
         ...answers,
       }
@@ -455,7 +456,7 @@ async function wizard () {
           message: "Will the underlying data sources or parameters vary in time",
           choices: [
             "Yes => either the data sources, or some request parameters, will vary in time.",
-            "No => the data sources and parameters will remain constant.",
+            "No  => the data sources and parameters will remain constant.",
           ],
         }),
         ...answers,
@@ -467,8 +468,8 @@ async function wizard () {
             name: "parameterized",
             message: "Will your contract have to deal with data request parameters?",
             choices: [
-              "Yes => my contract will have to process data request parameters onchain.",
-              "No => actual data requests will be provided by some pre-authorized offchain worflow.",
+              "Yes => my contract will have to generate actual parameter values onchain.",
+              "No => Witnet-compliant data request bytecode will be provided by some pre-authorized offchain worflow.",
             ],
           }),
           ...answers,
@@ -479,9 +480,9 @@ async function wizard () {
           ...await inquirer.prompt({
             type: "list",
             name: "callbacks",
-            message: "How would you like your contract to read data from the Witnet oracle?",
+            message: "How would you like your contract to read data from the Witnet Oracle?",
             choices: [
-              "Asynchronously => my contract will eventually read the result from Witnet, if available.",
+              "Asynchronously => my contract will eventually read the result from Witnet, when available.",
               "Synchronously => my contract is to be called as soon as data is reported from Witnet.",
             ],
           }),
@@ -492,7 +493,11 @@ async function wizard () {
     }
   }
   // console.info()
-  if (appKind === "Randomness" || answers?.callbacks?.split(" ")[0] === "Synchronously") {
+  if (
+    answers?.randomness?.split(" ")[0] === "No" ||
+    answers?.callbacks?.split(" ")[0] === "Synchronously" ||
+    answers?.parameterized?.split(" ")[0] === "No"
+  ) {
     let callbackGasLimit
     do {
       callbackGasLimit = parseInt((await inquirer.prompt({
@@ -504,39 +509,47 @@ async function wizard () {
     } while (!callbackGasLimit)
     answers = { callbackGasLimit, ...answers }
   }
+  let importWitnetMocks = ""
   if (
     appKind === "Randomness" ||
         appKind === "Price" ||
-        answers?.parameterized?.split(" ")[0] === "Yes"
+        answers?.parameterized?.split(" ")[0] === "No"
   ) {
     answers = {
       ...await inquirer.prompt({
         type: "confirm",
         name: "includeMocks",
-        message: "Do you intend to include this new contract within your unitary Solidity tests?",
+        message: "Do you intend to include your new contract within unitary Solidity tests?",
         default: false,
       }),
       ...answers,
     }
     if (!answers.includeMocks) {
-      const choices = assets.supportedEcosystems()
+      const choices = assets.supportedEcosystems().map(e => e.toUpperCase())
       answers = {
         ...await inquirer.prompt({
           type: "checkbox",
           name: "ecosystems",
           message: "Please, select the ecosystem(s) where you intend to deploy this new contract:",
           choices,
-          pageSize: 16,
+          pageSize: 32,
           loop: true,
           validate: (ans) => { return (ans.length > 0) },
         }),
         ...answers,
       }
-      // const artifact = appKind === "Price" ? "WitnetPriceFeeds" : "WitnetOracle"
+      const artifact = (appKind === "Price"
+        ? "WitnetPriceFeeds"
+        : answers?.randomness?.split(" ")[0] === "Yes"
+          ? "WitnetRandomnessV2"
+          : (
+            "WitnetOracle"
+          )
+      )
       const findings = []
       answers?.ecosystems.forEach(ecosystem => {
         assets.supportedNetworks(ecosystem.toLowerCase()).forEach(network => {
-          const artifactAddr = assets.getAddresses(network)?.artifact
+          const artifactAddr = assets.getAddresses(network)[artifact]
           if (artifactAddr && !findings.includes(artifactAddr)) {
             findings.push(artifactAddr)
           }
@@ -547,26 +560,67 @@ async function wizard () {
           ...answers,
           witnetAddress: findings[0],
         }
+      } else if (findings.length === 0) {
+        throw Error(`Sorry, required ${artifact} contract is not available on selected ecosystems: ${answers?.ecosystems}`)
       }
+    } else {
+      importWitnetMocks = "\nimport \"witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol\";"
     }
   }
-  const baseFeeOverhead = 10 // 10 %
-  let constructorParams = answers?.witnetAddress ? "" : "WitnetOracle _witnetOracle"
-  const importWitnetMocks = answers.includeMocks
-    ? "\nimport \"witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol\";"
-    : ""
 
-  let witnetAddress = answers?.witnetAddress || "_witnetOracle"
+  let baseFeeOverhead = 5 // 5%
+  answers = {
+    ...await inquirer.prompt([{
+      type: "rawlist",
+      name: "overhead",
+      message: "How much extra fee would you pay as to to prevent EVM gas price variations affecting data resolution time?",
+      choices: [
+        "Stingy (+5%)",
+        "Average (+15%)",
+        "Generous (+30%)",
+        "Precautious (+50%)",
+      ],
+    }]),
+    ...answers,
+  }
+  switch (answers.overhead.split(" ")[0].toLowerCase()) {
+    case "average": baseFeeOverhead = 15; break
+    case "generous": baseFeeOverhead = 30; break
+    case "precautious": baseFeeOverhead = 50; break
+  }
+
+  let constructorParams = ""
+  let witnetAddress = ""
   let templateFile = `${witnet_solidity_module_path}/contracts/`
   switch (appKind) {
     case "Randomness": {
-      templateFile += "_UsingRandomness.tsol"
+      if (answers?.randomness?.split(" ")[0] === "Yes") {
+        if (!answers?.witnetAddress) {
+          constructorParams = "WitnetRandomness _witnetRandomness"
+          witnetAddress = "_witnetRandomness"
+        } else {
+          witnetAddress = `WitnetRandomness(${answers.witnetAddress})`
+        }
+        templateFile += "_UsingRandomness.tsol"
+      } else {
+        if (!answers?.witnetAddress) {
+          constructorParams = "WitnetOracle _witnetOracle"
+          witnetAddress = "_witnetOracle"
+        } else {
+          witnetAddress = `WitnetOracle(${answers.witnetAddress})`
+        }
+        templateFile += "_RandomnessRequestConsumer.tsol"
+      }
       break
     }
     case "Price": {
-      constructorParams = answers?.witnetAddr ? "" : "WitnetPriceFeeds _witnetPriceFeeds"
+      if (!answers?.witnetAddress) {
+        constructorParams = "WitnetPriceFeeds _witnetPriceFeeds"
+        witnetAddress = "_witnetPriceFeeds"
+      } else {
+        witnetAddress = `WitnetPriceFeeds(${answers.witnetAddress})`
+      }
       templateFile += "_UsingPriceFeeds.tsol"
-      witnetAddress = answers?.witnetAddress || "_witnetPriceFeeds"
       break
     }
     case "Public": {
@@ -579,6 +633,12 @@ async function wizard () {
             : "_UsingRequestTemplate.tsol"
           )
         } else {
+          if (!answers?.witnetAddress) {
+            constructorParams = "WitnetOracle _witnetOracle"
+            witnetAddress = "_witnetOracle"
+          } else {
+            witnetAddress = `WitnetOracle(${answers.witnetAddress})`
+          }
           templateFile += "_Consumer.tsol"
         }
       } else {
@@ -592,6 +652,7 @@ async function wizard () {
       break
     }
   }
+
   const solidity = fs.readFileSync(templateFile, "utf-8")
     .replaceAll("$_importWitnetMocks", importWitnetMocks)
     .replaceAll("$_contractName", contractName)
