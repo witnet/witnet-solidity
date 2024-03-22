@@ -1,6 +1,6 @@
 {
   "name": "witnet-solidity",
-  "version": "2.0.2-beta.0",
+  "version": "2.0.2-beta.2",
   "description": "Witnet CLI import module for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -46,12 +46,12 @@
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "^2.0.8",
-    "witnet-toolkit": "^2.0.3"
+    "witnet-solidity-bridge": "^2.0.10",
+    "witnet-toolkit": "^2.0.6"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
-    "eslint": "^8.42.0",
+    "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^16.0.0",
