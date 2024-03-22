@@ -9,32 +9,17 @@ contract $_contractName
     is
         WitnetConsumer
 {
+    using Witnet for Witnet.Result;
     using WitnetCBOR for WitnetCBOR.CBOR;
     using WitnetCBOR for WitnetCBOR.CBOR[];  
     using WitnetV2 for WitnetV2.RadonSLA;
 
     constructor ($_constructorParams) 
-        UsingWitnet(/* _witnetOracle */ $_witnetAddress),
+        UsingWitnet($_witnetAddress)
         WitnetConsumer(/* _callbackGasLimit */ uint24($_callbackGasLimit))
     {
-        __witnetSetBaseFeeOverheadPercentage(uint16($_baseFeeOverhead));
+        __witnetBaseFeeOverheadPercentage = uint16($_baseFeeOverhead);
         // ...
-    }
-
-    function _witnetEstimateEvmReward() 
-        virtual override(UsingWitnetRequest, WitnetConsumer)
-        internal view
-        returns (uint256)
-    {
-        return WitnetConsumer._witnetEstimateEvmReward();
-    } 
-
-    function _witnetEstimateEvmReward(uint16)
-        virtual override(UsingWitnet, WitnetConsumer)
-        internal view
-        returns (uint256)
-    {
-        return WitnetConsumer._witnetEstimateEvmReward();
     }
 
     function __witnetRequestData(
@@ -46,7 +31,7 @@ contract $_contractName
         return __witnetRequestData(
             _witnetEvmReward, 
             _witnetDataRequestBytecode,
-            _witnetDefaultSLA()
+            __witnetDefaultSLA
         );
     }
 
@@ -59,14 +44,15 @@ contract $_contractName
     {
         return __witnet.postRequestWithCallback{value: _witnetEvmReward}(
             _witnetDataRequestBytecode,
-            _witnetQuerySLA
+            _witnetQuerySLA,
+            __witnetCallbackGasLimit
         );
     }
 
 
     /// ... Introspect the `WitnetConsumer` and the `UsingWitnet` abstract contracts to learn 
     /// ... about the internal helper methods at your disposal for pulling
-    /// ... data updates from the Witnet oracle.
+    /// ... data updates from the Witnet Oracle.
 
  
     /// ===============================================================================================================

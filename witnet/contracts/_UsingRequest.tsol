@@ -12,9 +12,7 @@ contract $_contractName
     using Witnet for Witnet.Result;
     using WitnetCBOR for WitnetCBOR.CBOR; 
     using WitnetCBOR for WitnetCBOR.CBOR[]; 
-    using WitnetV2 for WitnetV2.Query;
-    using WitnetV2 for WitnetV2.Request;
-    using WitnetV2 for WitnetV2.Response;
+    using WitnetV2 for WitnetV2.RadonSLA;
 
     constructor ($_constructorParams) 
         UsingWitnetRequest(
@@ -27,6 +25,6 @@ contract $_contractName
 
     /// ... Introspect the `UsingWitnetRequestTemplate` abstract contract to learn 
     /// ... about the internal helper methods at your disposal for pulling
-    /// ... data updates from the Witnet oracle.
+    /// ... data updates from the Witnet Oracle via the `_witnet*` internal methods.
 
 }

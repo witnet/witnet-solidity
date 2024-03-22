@@ -5,21 +5,30 @@ pragma experimental ABIEncoderV2;
 
 import "witnet-solidity-bridge/contracts/WitnetPriceFeeds.sol";$_importWitnetMocks
 
-contract $_contractName {
+contract $_contractName
+    is
+        IWitnetOracleEvents
+{
+    using WitnetV2 for WitnetV2.RadonSLA;
 
-    WitnetPriceFeeds public immutable firstOracle;
     WitnetOracle public immutable witnet;
+    WitnetPriceFeeds internal immutable __PFS;
     
     constructor ($_constructorParams) {
-        firstOracle = $_witnetAddress;
-        witnet = firstOracle.witnet();
+        require(
+            address($_witnetAddress).code.length > 0
+                && $_witnetAddress.specs() == type(IWitnetPriceFeeds).interfaceId,
+            "$_contractName: uncompliant WitnetPriceFeeds appliance"
+        );
+        __PFS = $_witnetAddress;
+        witnet = __PFS.witnet();
     }
 
     /// @dev See ERC-2362 as to understand how price feed captions are composed:
     function _witnetPriceFeedIdOf(string memory _caption)
         internal pure returns (bytes4)
     {
-        return bytes4(keccak256(_caption));
+        return bytes4(keccak256(bytes(_caption)));
     }
 
     function _witnetPriceFeedIdOf(
@@ -33,14 +42,38 @@ contract $_contractName {
             "Price-", 
             _base, "/", 
             _quote, "-", 
-            Witnet.toString(_decimals)
+            _toString(_decimals)
         )));
     }
 
+    /// @dev Convert a `uint8` into a 1, 2 or 3 characters long `string` representing its
+    /// three less significant decimal values.
+    function _toString(uint8 _u)
+        internal pure
+        returns (string memory)
+    {
+        if (_u < 10) {
+            bytes memory b1 = new bytes(1);
+            b1[0] = bytes1(uint8(_u) + 48);
+            return string(b1);
+        } else if (_u < 100) {
+            bytes memory b2 = new bytes(2);
+            b2[0] = bytes1(uint8(_u / 10) + 48);
+            b2[1] = bytes1(uint8(_u % 10) + 48);
+            return string(b2);
+        } else {
+            bytes memory b3 = new bytes(3);
+            b3[0] = bytes1(uint8(_u / 100) + 48);
+            b3[1] = bytes1(uint8(_u % 100 / 10) + 48);
+            b3[2] = bytes1(uint8(_u % 10) + 48);
+            return string(b3);
+        }
+    }
+
     /// ... Introspect the `IWitnetPriceFeeds` interface to learn about 
-    /// ... the methods at your disposal for checking supported price feeds,
-    /// ... as well as current status, or timestamp and audit trail proofs for latest 
-    /// ... updates as resolved by the Witnet blockhain, or even the actual data sources 
+    /// ... the methods under `__PFS` for checking the list of supported price feeds,
+    /// ... as well as their current status, or timestamp and audit trail proofs for latest 
+    /// ... updates as resolved by the Witnet Oracle blockhain, or even the actual data sources 
     /// ... and APIs being used under the hood for every supported price feed.
 
 }

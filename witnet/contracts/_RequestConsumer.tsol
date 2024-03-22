@@ -9,6 +9,7 @@ contract $_contractName
     is
         WitnetRequestConsumer
 {
+    using Witnet for Witnet.Result;
     using WitnetCBOR for WitnetCBOR.CBOR;
     using WitnetCBOR for WitnetCBOR.CBOR[];  
     using WitnetV2 for WitnetV2.RadonSLA;
@@ -25,7 +26,7 @@ contract $_contractName
 
     /// ... Introspect the `WitnetRequestConsumer` abstract contract to learn 
     /// ... about the internal helper methods at your disposal for pulling
-    /// ... data updates from the Witnet oracle.
+    /// ... data updates from the Witnet Oracle.
 
  
     /// ===============================================================================================================

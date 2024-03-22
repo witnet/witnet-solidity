@@ -9,15 +9,16 @@ contract $_contractName
     is
         WitnetRequestTemplateConsumer
 {
-    using WitnetCBOR for WitnetCBOR.CBOR; 
-    using WitnetCBOR for WitnetCBOR.CBOR[]; 
+    using Witnet for Witnet.Result;
+    using WitnetCBOR for WitnetCBOR.CBOR;
+    using WitnetCBOR for WitnetCBOR.CBOR[];  
     using WitnetV2 for WitnetV2.RadonSLA;
 
     constructor ($_constructorParams) 
         WitnetRequestTemplateConsumer(
             /* _witnetRequestTemplate */ $_witnetAddress,
             /* _witnetBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
-            /* _witnetCallbackGasLimit */ uint24($_callbackGasLimit),
+            /* _witnetCallbackGasLimit */ uint24($_callbackGasLimit)
         )
     {
         // ...
@@ -25,7 +26,7 @@ contract $_contractName
 
     /// ... Introspect the `WitnetRequestTemplateConsumer` abstract contract to learn 
     /// ... about the internal helper methods at your disposal for pulling
-    /// ... data updates from the Witnet oracle.
+    /// ... data updates from the Witnet Oracle.
 
  
     /// ===============================================================================================================
