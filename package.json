@@ -46,7 +46,7 @@
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
     "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "^2.0.8",
+    "witnet-solidity-bridge": "^2.0.10",
     "witnet-toolkit": "^2.0.3"
   },
   "devDependencies": {
