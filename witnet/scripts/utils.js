@@ -48,7 +48,7 @@ async function deployWitnetRequest (web3, from, registry, factory, request, temp
     request?.args?.forEach((subargs, index) => {
       console.info(
         "     ",
-        `Source #${index}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`
+        `Source #${index + 1}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`
       )
       args[index] = subargs
     })
