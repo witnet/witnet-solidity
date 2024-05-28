@@ -16,14 +16,19 @@ const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
 const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
 const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
 
-module.exports = async function (_deployer, network, [from]) {
+module.exports = async function (_deployer, network, [from, ]) {
   const isDryRun = utils.isDryRun(network)
 
   const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
   if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].requests) addresses[network].requests = {}
 
-  addresses[network] = await deployWitnetRequests(addresses[network], from, isDryRun, requests)
+  addresses[network] = await deployWitnetRequests(
+    addresses[network], 
+    utils.getFromFromArgs() || from, 
+    isDryRun, 
+    requests
+  )
 
   if (Object.keys(addresses[network].requests).length > 0) {
     addresses[network].requests = utils.orderObjectKeys(addresses[network].requests)

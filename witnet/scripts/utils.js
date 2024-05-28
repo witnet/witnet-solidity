@@ -9,6 +9,7 @@ module.exports = {
   dryRunBytecode: toolkit.dryRunBytecode,
   dryRunBytecodeVerbose: toolkit.dryRunBytecodeVerbose,
   flattenWitnetArtifacts,
+  getFromFromArgs,
   getRealmNetworkFromArgs: utils.getRealmNetworkFromArgs,
   getWitnetArtifactsFromArgs: utils.getWitnetArtifactsFromArgs,
   getWitnetRequestMethodString: utils.getWitnetRequestMethodString,
@@ -128,6 +129,15 @@ function flattenWitnetArtifacts (tree, headers) {
     }
   }
   return matches
+};
+
+function getFromFromArgs () {
+  const fromIndex = process.argv.indexOf("--from")
+  if (fromIndex >= 0) {
+    return process.argv[fromIndex + 1]
+  } else {
+    return null
+  }
 };
 
 function isNullAddress (addr) {
