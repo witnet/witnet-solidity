@@ -1,31 +1,24 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.0 <0.9.0;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.0 <0.9.0;
 
-import "witnet-solidity-bridge/contracts/apps/UsingWitnetRandomness.sol";$_importWitnetMocks
+import "witnet-solidity-bridge/contracts/mockups/UsingWitRandomness.sol";$_importWitnetMocks
 
 contract $_contractName
     is
-        UsingWitnetRandomness
+        UsingWitRandomness
 {
-    using WitnetV2 for WitnetV2.RadonSLA;
+    using Witnet for Witnet.QuerySLA;
 
     constructor ($_constructorParams) 
-        UsingWitnetRandomness($_witnetAddress)
+        UsingWitRandomness($_witOracleAddress)
     {
         /// ...
     }
-
-    /// @dev As to accept transfers back from the `WitnetRandomness` appliance
-    /// @dev when excessive fee is passed over to the `_RNG.randomize()` method. 
-
-    receive () external payable {}
-
     
-    /// ... Introspect the `WitnetRandomness` appliance interface to learn 
+    /// ... Introspect the `WitRandomness` appliance interface to learn 
     /// ... about the public methods at your disposal via `__RNG` for pulling
-    /// ... unmalleable randomness from the Witnet Oracle blockchain.
+    /// ... unmalleable randomness from the Wit/Oracle blockchain.
 
     /// ...
 
@@ -34,45 +27,48 @@ contract $_contractName
     // --- Internal helper methods: Random extractions with/without repetitions
 
     function _randomExtractionWithReps(
-            uint32 _range, 
-            uint32 _extractions, 
-            bytes32 _randomness
+            uint32  _range, 
+            uint32  _extractions, 
+            bytes32 _seed
         )
         internal pure
-        returns (uint256[] memory _extraction)
+        returns (uint32[] memory _extraction)
     {
         unchecked {
             _extraction = new uint256[](_extractions);
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
-                _extraction[_ix] = uint256(
-                    WitnetV2.randomUniformUint32(_range, _ix, _randomness)
+                _extraction[_ix] = Witnet.randomUniformUint32(
+                    _range, 
+                    _ix, 
+                    _seed
                 );
             }
         }
     }
 
     function _randomExtractionNoReps(
-            uint32 _range, 
-            uint32 _extractions, 
-            bytes32 _randomness
+            uint32  _range, 
+            uint32  _extractions, 
+            bytes32 _seed
         )
         internal pure
-        returns (uint256[] memory _extraction)
+        returns (uint32[] memory _extraction)
     {
         unchecked {
-            uint256[] memory _numbers = new uint256[](_extractions);
+            uint32[] memory _numbers = new uint32[](_extractions);
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
                 _numbers[_ix] = _ix;
             }
             _extraction = new uint256[](_extractions);
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
-                uint256 _random = uint256(
-                    WitnetV2.randomUniformUint32(_range - _ix, _ix, _randomness)
+                uint256 _random = Witnet.randomUniformUint32(
+                    _range - _ix, 
+                    _ix, 
+                    _seed
                 );
-                _extraction[_ix] = uint256(_numbers[_random]);
+                _extraction[_ix] = _numbers[_random];
                 _numbers[_random] = _numbers[_extractions - 1 - _ix];
             }
         }
     }
-
 }
