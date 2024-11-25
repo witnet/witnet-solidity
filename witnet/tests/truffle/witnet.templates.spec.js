@@ -1,8 +1,7 @@
 const utils = require("../../scripts/utils")
 
-const WitnetRequest = artifacts.require("WitnetRequest")
-const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
-const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
+const WitOracleRequest = artifacts.require("WitOracleRequest")
+const WitOracleRequestTemplate = artifacts.require("WitOracleRequestTemplate")
 
 contract("witnet-solidity/templates", async () => {
   const [, network] = utils.getRealmNetworkFromArgs()
@@ -34,18 +33,17 @@ contract("witnet-solidity/templates", async () => {
                 const args = craft.artifact.tests[test]
                 let bytecode
                 it("parameterized request gets built", async () => {
-                  const template = await WitnetRequestTemplate.at(templateAddress)
+                  const template = await WitOracleRequestTemplate.at(templateAddress)
                   await template.verifyRadonRequest(args)
                 })
                 it("parameterized request dryruns successfully", async () => {
-                  const template = await WitnetRequestTemplate.at(templateAddress)
-                  const tx = await template.buildRequest(args)
-                  const events = tx.logs.filter(log => log.event === "WitnetRequestBuilt")
-                  assert(events.length > 0, "No WitnetRequest contract was built!")
-                  const request = await WitnetRequest.at(events[0].args.request)
-                  const radHash = await request.radHash.call()
-                  const registry = await WitnetRequestBytecodes.at(await request.registry.call())
-                  bytecode = (await registry.bytecodeOf.call(radHash)).slice(2)
+                  const template = await WitOracleRequestTemplate.at(templateAddress)
+                  const tx = await template.methods["buildWitOracleRequest(string[][])"](args)
+                  const events = tx.logs.filter(log => log.event === "WitOracleRequestBuilt")
+                  assert(events.length > 0, "No WitOracleRequest contract was built!")
+                  const request = await WitOracleRequest.at(events[0].args.request)
+                  // const radHash = await request.radHash.call()
+                  bytecode = (await request.bytecode.call()).slice(2)
                   const output = await utils.dryRunBytecode(bytecode)
                   let json
                   try {

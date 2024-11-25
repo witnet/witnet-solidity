@@ -1,7 +1,6 @@
 const utils = require("../../scripts/utils")
 
-const WitnetRequest = artifacts.require("WitnetRequest")
-const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
+const WitOracleRequest = artifacts.require("WitOracleRequest")
 
 contract("witnet-solidity/requests", async () => {
   const [, network] = utils.getRealmNetworkFromArgs()
@@ -30,13 +29,12 @@ contract("witnet-solidity/requests", async () => {
           await describe(`${craft.key}`, async () => {
             let bytecode, radHash
             it("request was actually deployed", async () => {
-              const request = await WitnetRequest.at(requestAddress)
+              const request = await WitOracleRequest.at(requestAddress)
               radHash = await request.radHash.call()
             })
             it("request dryruns successfully", async () => {
-              const request = await WitnetRequest.at(requestAddress)
-              const registry = await WitnetRequestBytecodes.at(await request.registry.call())
-              bytecode = (await registry.bytecodeOf.call(await request.radHash.call())).slice(2)
+              const request = await WitOracleRequest.at(requestAddress)
+              bytecode = (await request.bytecode.call()).slice(2)
               const output = await utils.dryRunBytecode(bytecode)
               let json
               try {
