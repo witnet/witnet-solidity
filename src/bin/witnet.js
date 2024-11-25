@@ -757,17 +757,17 @@ function _traceWitnetArtifact (artifact) {
       if (specs.retrieve[0]?.argsCount) {
         if (!args || args.length === 0) {
           console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${
-            utils.getWitnetRequestMethodString(specs.retrieve[0].method)
+            utils.getWitOracleRequestMethodString(specs.retrieve[0].method)
           }(\x1b[0;32m<${
             specs.retrieve[0].argsCount
           } args>\x1b[1;32m)\x1b[0m`
           )
         } else {
           // eslint-disable-next-line
-          console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitnetRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
+          console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitOracleRequestMethodString(specs.retrieve[0].method)}(\x1b[0;32m${JSON.stringify(args[0])}\x1b[1;32m\x1b[0m`)
         }
       } else {
-        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitnetRequestMethodString(specs.retrieve[0].method)}()\x1b[0m`)
+        console.info("  ", `[1] RETRIEVE:\t\x1b[1;32m${utils.getWitOracleRequestMethodString(specs.retrieve[0].method)}()\x1b[0m`)
       }
     } else {
       console.info("  ", "[1] RETRIEVE:")
@@ -777,14 +777,14 @@ function _traceWitnetArtifact (artifact) {
         if (value?.argsCount) {
           if (!args[index] || args[index].length === 0) {
             // eslint-disable-next-line
-            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitOracleRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
           } else {
             // eslint-disable-next-line
-            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
+            console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitOracleRequestMethodString(value.method)}(\x1b[0;32m${JSON.stringify(args[index])}\x1b[1;32m)\x1b[0m`)
           }
         } else {
           // eslint-disable-next-line
-          console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}()\x1b[0m`)
+          console.info("  ", `    [#${index}]\t\t\x1b[1;32m${utils.getWitOracleRequestMethodString(value.method)}()\x1b[0m`)
         }
       }
       _traceWitnetArtifactSource(value)
@@ -862,9 +862,9 @@ function _traceWitnetSource (value) {
   if (value?.method) {
     if (value?.argsCount) {
       // eslint-disable-next-line
-      console.info("  ", `> Method:    \x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
+      console.info("  ", `> Method:    \x1b[1;32m${utils.getWitOracleRequestMethodString(value.method)}(\x1b[0;32m<${value.argsCount} args>\x1b[1;32m)\x1b[0m`)
     } else {
-      console.info("  ", `> Method:    \x1b[1;32m${utils.getWitnetRequestMethodString(value.method)}()\x1b[0m`)
+      console.info("  ", `> Method:    \x1b[1;32m${utils.getWitOracleRequestMethodString(value.method)}()\x1b[0m`)
     }
     if (value?.url) {
       console.info("  ", `> URL:       \x1b[32m${value.url}\x1b[0m`)

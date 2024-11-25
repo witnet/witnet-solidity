@@ -10,7 +10,7 @@ const sources = Witnet.Dictionary(
 module.exports = {
   /// //// REQUEST TEMPLATES ///////////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitnetRequestTemplateXXX: Witnet.RequestTemplate({
+  //      WitOracleRequestTemplateXXX: Witnet.RequestTemplate({
   //          retrieve: [ sources['source-name-x'], ... ],
   //          aggregate?: Witnet.Reducers..,
   //          tally?: Witnet.Reducers..,

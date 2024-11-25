@@ -6,7 +6,7 @@ const sources = Witnet.Dictionary(
 )
 
 module.exports = {
-  WitnetRequestTemplateEthBlockNumber: Witnet.RequestTemplate({
+  WitOracleRequestTemplateEthBlockNumber: Witnet.RequestTemplate({
     retrieve: sources["eth-block-number"],
     tests: {
       "get block number from sepolia works": [
@@ -14,7 +14,7 @@ module.exports = {
       ],
     },
   }),
-  WitnetRequestTemplateEthGasPrice: Witnet.RequestTemplate({
+  WitOracleRequestTemplateEthGasPrice: Witnet.RequestTemplate({
     retrieve: sources["eth-gas-price"],
     tests: {
       "get balance from sepolia works": [
@@ -22,7 +22,7 @@ module.exports = {
       ],
     },
   }),
-  WitnetRequestTemplateEthTransactionByHash: Witnet.RequestTemplate({
+  WitOracleRequestTemplateEthTransactionByHash: Witnet.RequestTemplate({
     retrieve: sources["eth-get-transaction-by-hash"],
     tests: {
       "get transaction by hash from sepolia works": [
@@ -31,7 +31,7 @@ module.exports = {
       ],
     },
   }),
-  WitnetRequestTemplateWitSupplyInfo: Witnet.RequestTemplate({
+  WitOracleRequestTemplateWitSupplyInfo: Witnet.RequestTemplate({
     retrieve: sources["wit-supply-info"],
     tests: {
       "get witnet supply info": [
@@ -39,7 +39,7 @@ module.exports = {
       ],
     },
   }),
-  WitnetRequestTemplateWitTransactionByHash: Witnet.RequestTemplate({
+  WitOracleRequestTemplateWitTransactionByHash: Witnet.RequestTemplate({
     retrieve: sources["wit-get-transaction-by-hash"],
     tests: {
       "get transaction by hash from witnet works": [

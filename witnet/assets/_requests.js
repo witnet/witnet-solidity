@@ -14,18 +14,18 @@ const templates = Witnet.Dictionary(
 module.exports = {
   /// //// STATIC REQUESTS /////////////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitnetRequestXXX: Witnet.StaticRequest({
+  //      WitOracleRequestXXX: Witnet.StaticRequest({
   //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
   //          aggregate?: Witnet.Reducers..,
   //          tally?: Witnet.Reducers..,
   //      }),
   /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-  //      WitnetRequestYYY: Witnet.RequestFromTemplate(
-  //          templates['WitnetRequestTemplateUniqueNameX'],
+  //      WitOracleRequestYYY: Witnet.RequestFromTemplate(
+  //          templates['WitOracleRequestTemplateUniqueNameX'],
   //          [ [ .. ], .. ], // args: string[][]
   //      ),
   /// /// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
-  //      WitnetRequestZZZ: Witnet.RequestFromDictionary({
+  //      WitOracleRequestZZZ: Witnet.RequestFromDictionary({
   //          retrieve: {
   //              dict: sources,
   //              tags: {

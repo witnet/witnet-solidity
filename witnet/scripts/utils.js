@@ -12,7 +12,7 @@ module.exports = {
   getFromFromArgs,
   getRealmNetworkFromArgs: utils.getRealmNetworkFromArgs,
   getWitnetArtifactsFromArgs: utils.getWitnetArtifactsFromArgs,
-  getWitnetRequestMethodString: utils.getWitnetRequestMethodString,
+  getWitOracleRequestMethodString: utils.getWitOracleRequestMethodString,
   isDryRun: utils.isDryRun,
   isNullAddress,
   orderObjectKeys,
@@ -254,7 +254,7 @@ async function verifyRadonRetrieval (from, registry, source) {
       if (source?.url) {
         console.info(`   > URL:        \x1b[1;32m${source.url}\x1b[0m`)
       }
-      console.info(`   > Method:     \x1b[1;32m${utils.getWitnetRequestMethodString(source?.method)}\x1b[0m`)
+      console.info(`   > Method:     \x1b[1;32m${utils.getWitOracleRequestMethodString(source?.method)}\x1b[0m`)
       if (source?.body) {
         console.info(`   > Body:       \x1b[1;32m${source.body}\x1b[0m`)
       }

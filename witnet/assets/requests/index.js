@@ -2,7 +2,7 @@ const Witnet = require("witnet-toolkit")
 
 module.exports = {
   legacy: {
-    WitnetRequestPriceUsdtWit9: Witnet.StaticRequest({
+    WitOracleRequestPriceUsdtWit9: Witnet.StaticRequest({
       retrieve: [
         Witnet.Sources.HttpGet({
           url: "https://api-cloud.bitmart.com/spot/v1/ticker?symbol=WIT_USDT",
@@ -40,7 +40,7 @@ module.exports = {
       aggregate: Witnet.Reducers.Median(Witnet.Filters.Stdev(1.4)),
       tally: Witnet.Reducers.PriceTally(),
     }),
-    WitnetRequestRandomness: Witnet.StaticRequest({
+    WitOracleRequestRandomness: Witnet.StaticRequest({
       retrieve: [Witnet.Sources.RNG()],
       tally: Witnet.Reducers.ConcatHash(),
     }),
