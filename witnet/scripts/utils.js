@@ -4,8 +4,8 @@ const utils = require("witnet-solidity-bridge/utils")
 const Witnet = require("witnet-toolkit")
 
 module.exports = {
-  deployWitnetRequest,
-  deployWitnetRequestTemplate,
+  deployWitOracleRequest,
+  deployWitOracleRequestTemplate,
   dryRunBytecode: toolkit.dryRunBytecode,
   dryRunBytecodeVerbose: toolkit.dryRunBytecodeVerbose,
   flattenWitnetArtifacts,
@@ -23,11 +23,11 @@ module.exports = {
   overwriteJsonFile: utils.overwriteJsonFile,
   traceHeader: utils.traceHeader,
   traceTx,
-  verifyWitnetRadonReducer,
-  verifyWitnetRadonRetrieval,
+  verifyRadonReducer,
+  verifyRadonRetrieval,
 }
 
-async function buildWitnetRequestFromTemplate (web3, from, templateContract, args) {
+async function buildWitOracleRequestFromTemplate (web3, from, templateContract, args) {
   // convert all args values to string
   args = args.map(subargs => subargs.map(v => v.toString()))
   const requestAddr = await templateContract.buildRequest.call(args, { from })
@@ -39,49 +39,77 @@ async function buildWitnetRequestFromTemplate (web3, from, templateContract, arg
   return requestAddr
 }
 
-async function deployWitnetRequest (web3, from, registry, factory, request, templateArtifact, key) {
-  const templateAddr = await deployWitnetRequestTemplate(web3, from, registry, factory, request)
-  if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
-  console.info("  ", "> Template address: ", templateAddr)
-  const args = []
-  if (request?.args) {
-    console.info("  ", "> Instance parameters:")
-    request?.args?.forEach((subargs, index) => {
-      console.info(
-        "     ",
-        `Source #${index + 1}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`
-      )
-      args[index] = subargs
-    })
+async function deployWitOracleRequest (web3, from, registry, factory, request, templateArtifact, key) {
+  if (request instanceof Witnet.Artifacts.Parameterized) {
+    const templateAddr = await deployWitOracleRequestTemplate(web3, from, registry, factory, request)
+    if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+    console.info("  ", "> Template address: ", templateAddr)
+    const args = []
+    if (request?.args) {
+      console.info("  ", "> Instance parameters:")
+      request?.args?.forEach((subargs, index) => {
+        console.info(
+          "     ",
+          `Source #${index + 1}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`
+        )
+        args[index] = subargs
+      })
+    } else {
+      request.specs.retrieve.map(_source => args.push([]))
+    }
+    return await buildWitOracleRequestFromTemplate(web3, from, await templateArtifact.at(templateAddr), args)
   } else {
-    request.specs.retrieve.map(_source => args.push([]))
+    const sources = await verifyRadonRetrievals(from, registry, request.specs.retrieve)
+    if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+    let requestAddr = await factory.buildWitOracleRequest.call(
+      sources,
+      encodeWitnetRadon(request.specs.aggregate),
+      encodeWitnetRadon(request.specs.tally),
+      { from }
+    )
+    if (isNullAddress(requestAddr) || (await web3.eth.getCode(requestAddr)).length <= 3) {
+      const tx = await factory.buildWitOracleRequest(
+        sources,
+        encodeWitnetRadon(request.specs.aggregate),
+        encodeWitnetRadon(request.specs.tally),
+        { from }
+      )
+      traceTx(tx.receipt)
+      tx.logs = tx.logs.filter(log => log.event === "WitOracleRequestBuilt")
+      requestAddr = tx.logs[0].args.request
+    }
+    return requestAddr
   }
-  return await buildWitnetRequestFromTemplate(web3, from, await templateArtifact.at(templateAddr), args)
 }
 
-async function deployWitnetRequestTemplate (web3, from, registry, factory, template, key) {
-  const aggregate = await verifyWitnetRadonReducer(from, registry, template.specs.aggregate)
-  const tally = await verifyWitnetRadonReducer(from, registry, template.specs.tally)
+async function verifyRadonRetrievals (from, registry, retrievals) {
   const sources = []
-  const args = []
-  for (let j = 0; j < template?.specs.retrieve.length; j++) {
-    sources.push(await verifyWitnetRadonRetrieval(from, registry, template.specs.retrieve[j]))
-    args.push([])
+  for (let j = 0; j < retrievals.length; j++) {
+    sources.push(
+      await verifyRadonRetrieval(from, registry, retrievals[j])
+    )
   }
+  return sources
+}
+
+async function deployWitOracleRequestTemplate (web3, from, registry, factory, template, key) {
+  const sources = await verifyRadonRetrievals(from, registry, template.specs.retrieve)
   if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
-  let templateAddr = await factory.buildRequestTemplate.call(
-    sources, aggregate, tally,
-    template?.specs?.maxSize || 32,
+  let templateAddr = await factory.buildWitOracleRequestTemplate.call(
+    sources,
+    encodeWitnetRadon(template.specs.aggregate),
+    encodeWitnetRadon(template.specs.tally),
     { from }
   )
   if (isNullAddress(templateAddr) || (await web3.eth.getCode(templateAddr)).length <= 3) {
-    const tx = await factory.buildRequestTemplate(
-      sources, aggregate, tally,
-      template?.specs?.maxSize || 32,
+    const tx = await factory.buildWitOracleRequestTemplate(
+      sources,
+      encodeWitnetRadon(template.specs.aggregate),
+      encodeWitnetRadon(template.specs.tally),
       { from }
     )
     traceTx(tx.receipt)
-    tx.logs = tx.logs.filter(log => log.event === "WitnetRequestTemplateBuilt")
+    tx.logs = tx.logs.filter(log => log.event === "WitOracleRequestTemplateBuilt")
     templateAddr = tx.logs[0].args.template
   }
   return templateAddr
@@ -187,7 +215,7 @@ function processDryRunJson (dryrun) {
   }
 }
 
-async function verifyWitnetRadonReducer (from, registry, reducer) {
+async function verifyRadonReducer (from, registry, reducer) {
   let hash
   if (reducer instanceof Witnet.Reducers.Class) {
     hash = await registry.verifyRadonReducer.call(encodeWitnetRadon(reducer), { from })
@@ -207,7 +235,7 @@ async function verifyWitnetRadonReducer (from, registry, reducer) {
   return hash
 };
 
-async function verifyWitnetRadonRetrieval (from, registry, source) {
+async function verifyRadonRetrieval (from, registry, source) {
   // get actual hash for this data source
   let hash
   if (source) {

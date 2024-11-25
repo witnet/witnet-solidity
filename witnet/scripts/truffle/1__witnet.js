@@ -9,9 +9,9 @@ const assets = require(`${assets_relative_path}/assets`)
 const fs = require("fs")
 const utils = require("../utils")
 
-const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
-const WitnetOracle = artifacts.require("WitnetOracle")
-const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
+const WitOracle = artifacts.require("WitOracle")
+const WitOracleRadonRegistry = artifacts.require("WitOracleRadonRegistry")
+const WitOracleRequestFactory = artifacts.require("WitOracleRequestFactory")
 
 module.exports = async function (deployer, network) {
   const addresses = assets.getAddresses(network)
@@ -19,44 +19,43 @@ module.exports = async function (deployer, network) {
 
   if (!isDryRun) {
     try {
-      WitnetOracle.address = addresses.WitnetOracle
-      const wrb = await WitnetOracle.deployed()
-      WitnetRequestBytecodes.address = await wrb.registry.call()
-      WitnetRequestFactory.address = await wrb.factory.call()
+      WitOracle.address = addresses.WitOracle
+      const wrb = await WitOracle.deployed()
+      WitOracleRadonRegistry.address = await wrb.registry.call()
+      // WitOracleRequestFactory.address = await wrb.factory.call()
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
     }
   } else {
-    const WitnetEncodingLib = artifacts.require("WitnetEncodingLib")
-    await deployer.deploy(WitnetEncodingLib)
+    const WitOracleRadonEncodingLib = artifacts.require("WitOracleRadonEncodingLib")
+    await deployer.deploy(WitOracleRadonEncodingLib)
 
-    const WitnetErrorsLib = artifacts.require("WitnetErrorsLib")
-    await deployer.deploy(WitnetErrorsLib)
+    const WitOracleResultStatusLib = artifacts.require("WitOracleResultStatusLib")
+    await deployer.deploy(WitOracleResultStatusLib)
 
-    const WitnetOracleDataLib = artifacts.require("WitnetOracleDataLib")
-    await deployer.deploy(WitnetOracleDataLib)
+    const WitOracleDataLib = artifacts.require("WitOracleDataLib")
+    await deployer.deploy(WitOracleDataLib)
 
-    const WitnetMockedRequestBytecodes = artifacts.require("WitnetMockedRequestBytecodes")
-    await deployer.link(WitnetEncodingLib, WitnetMockedRequestBytecodes)
-    await deployer.deploy(WitnetMockedRequestBytecodes)
-    WitnetRequestBytecodes.address = WitnetMockedRequestBytecodes.address
+    const WitMockedRadonRegistry = artifacts.require("WitMockedRadonRegistry")
+    await deployer.link(WitOracleRadonEncodingLib, WitMockedRadonRegistry)
+    await deployer.deploy(WitMockedRadonRegistry)
+    WitOracleRadonRegistry.address = WitMockedRadonRegistry.address
 
-    const WitnetMockedOracle = artifacts.require("WitnetMockedOracle")
-    await deployer.link(WitnetErrorsLib, WitnetMockedOracle)
-    await deployer.link(WitnetOracleDataLib, WitnetMockedOracle)
-    await deployer.deploy(WitnetMockedOracle, WitnetRequestBytecodes.address)
-    WitnetOracle.address = WitnetMockedOracle.address
+    const WitMockedOracle = artifacts.require("WitMockedOracle")
+    await deployer.link(WitOracleResultStatusLib, WitMockedOracle)
+    await deployer.link(WitOracleDataLib, WitMockedOracle)
+    await deployer.deploy(WitMockedOracle, WitOracleRadonRegistry.address)
+    WitOracle.address = WitMockedOracle.address
 
-    const WitnetMockedRequestFactory = artifacts.require("WitnetMockedRequestFactory")
-    await deployer.deploy(WitnetMockedRequestFactory, WitnetOracle.address)
-    WitnetRequestFactory.address = WitnetMockedRequestFactory.address
-    await (await WitnetMockedOracle.deployed()).setFactory(WitnetRequestFactory.address)
+    const WitMockedRequestFactory = artifacts.require("WitMockedRequestFactory")
+    await deployer.deploy(WitMockedRequestFactory, WitOracle.address)
+    WitOracleRequestFactory.address = WitMockedRequestFactory.address
 
     addresses[network] = {
-      WitnetRequestBytecodes: WitnetRequestBytecodes.address,
-      WitnetOracle: WitnetOracle.address,
-      WitnetRequestFactory: WitnetRequestFactory.address,
+      WitOracle: WitOracle.address,
+      WitOracleRadonRegistry: WitOracleRadonRegistry.address,
+      WitOracleRequestFactory: WitOracleRequestFactory.address,
     }
 
     // create test addresses file if none exists yet:
@@ -67,22 +66,22 @@ module.exports = async function (deployer, network) {
   }
 
   utils.traceHeader("Witnet Artifacts:")
-  if (WitnetOracle.address) {
-    console.info("  ", "> WitnetOracle:          ",
-      WitnetOracle.address,
-      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetOracle)})`
+  if (WitOracle.address) {
+    console.info("  ", "> WitOracle:          ",
+      WitOracle.address,
+      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracle)})`
     )
   }
-  if (WitnetRequestBytecodes.address) {
-    console.info("  ", "> WitnetRequestBytecodes:",
-      WitnetRequestBytecodes.address,
-      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestBytecodes)})`
+  if (WitOracleRadonRegistry.address) {
+    console.info("  ", "> WitOracleRadonRegistry:",
+      WitOracleRadonRegistry.address,
+      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracleRadonRegistry)})`
     )
   }
-  if (WitnetRequestFactory.address) {
-    console.info("  ", "> WitnetRequestFactory:  ",
-      WitnetRequestFactory.address,
-      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitnetRequestFactory)})`
+  if (WitOracleRequestFactory.address) {
+    console.info("  ", "> WitOracleRequestFactory:  ",
+      WitOracleRequestFactory.address,
+      `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracleRequestFactory)})`
     )
   }
 }

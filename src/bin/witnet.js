@@ -64,7 +64,7 @@ function showMainUsage () {
   console.info("  ", "deploy", "\t\t=>", "Deploy Witnet requests and templates defined within the witnet/assets/ folder.")
   console.info("  ", "ethrpc", "\t\t=>", "Run a local ETH/RPC gateway to the specified chain.")
   console.info("  ", "test", "\t\t=>", "Dry-run requests and templates defined within the witnet/assets/ folder.")
-  console.info("  ", "wizard", "\t\t=>", "Helps you to integrate the Witnet Oracle within your smart contracts.")
+  console.info("  ", "wizard", "\t\t=>", "Helps you to integrate the Wit/Oracle blockchain within your smart contracts.")
 }
 
 function showAvailUsage () {
@@ -480,7 +480,7 @@ async function wizard () {
           ...await inquirer.prompt({
             type: "list",
             name: "callbacks",
-            message: "How would you like your contract to read data from the Witnet Oracle?",
+            message: "How would you like your contract to read data from the Wit/Oracle blockchain?",
             choices: [
               "Asynchronously => my contract will eventually read the result from Witnet, when available.",
               "Synchronously => my contract is to be called as soon as data is reported from Witnet.",
@@ -539,11 +539,11 @@ async function wizard () {
         ...answers,
       }
       const artifact = (appKind === "Price"
-        ? "WitnetPriceFeeds"
+        ? "WitPriceFeeds"
         : answers?.randomness?.split(" ")[0] === "Yes"
           ? "WitnetRandomnessV2"
           : (
-            "WitnetOracle"
+            "WitOracle"
           )
       )
       const findings = []
@@ -564,7 +564,7 @@ async function wizard () {
         throw Error(`Sorry, required ${artifact} contract is not available on selected ecosystems: ${answers?.ecosystems}`)
       }
     } else {
-      importWitnetMocks = "\nimport \"witnet-solidity-bridge/contracts/mocks/WitnetMockedOracle.sol\";"
+      importWitnetMocks = "\nimport \"witnet-solidity-bridge/contracts/mocks/WitMockedOracle.sol\";"
     }
   }
 
@@ -604,10 +604,10 @@ async function wizard () {
         templateFile += "_UsingRandomness.tsol"
       } else {
         if (!answers?.witnetAddress) {
-          constructorParams = "WitnetOracle _witnetOracle"
-          witnetAddress = "_witnetOracle"
+          constructorParams = "WitOracle _witOracle"
+          witnetAddress = "_witOracle"
         } else {
-          witnetAddress = `WitnetOracle(${answers.witnetAddress})`
+          witnetAddress = `WitOracle(${answers.witnetAddress})`
         }
         templateFile += "_RandomnessRequestConsumer.tsol"
       }
@@ -615,10 +615,10 @@ async function wizard () {
     }
     case "Price": {
       if (!answers?.witnetAddress) {
-        constructorParams = "WitnetPriceFeeds _witnetPriceFeeds"
+        constructorParams = "WitPriceFeeds _witnetPriceFeeds"
         witnetAddress = "_witnetPriceFeeds"
       } else {
-        witnetAddress = `WitnetPriceFeeds(${answers.witnetAddress})`
+        witnetAddress = `WitPriceFeeds(${answers.witnetAddress})`
       }
       templateFile += "_UsingPriceFeeds.tsol"
       break
@@ -626,24 +626,24 @@ async function wizard () {
     case "Public": {
       if (answers?.dynamic.split(" ")[0] === "Yes") {
         if (answers.parameterized.split(" ")[0] === "Yes") {
-          constructorParams = "WitnetRequestTemplate _witnetRequestTemplate"
-          witnetAddress = "_witnetRequestTemplate"
+          constructorParams = "WitOracleRequestTemplate _witOracleRequestTemplate"
+          witnetAddress = "_witOracleRequestTemplate"
           templateFile += (answers?.callbacks.split(" ")[0] === "Synchronously"
             ? "_RequestTemplateConsumer.tsol"
             : "_UsingRequestTemplate.tsol"
           )
         } else {
           if (!answers?.witnetAddress) {
-            constructorParams = "WitnetOracle _witnetOracle"
-            witnetAddress = "_witnetOracle"
+            constructorParams = "WitOracle _witOracle"
+            witnetAddress = "_witOracle"
           } else {
-            witnetAddress = `WitnetOracle(${answers.witnetAddress})`
+            witnetAddress = `WitOracle(${answers.witnetAddress})`
           }
           templateFile += "_Consumer.tsol"
         }
       } else {
-        constructorParams = "WitnetRequest _witnetRequest"
-        witnetAddress = "_witnetRequest"
+        constructorParams = "WitOracleRequest _witOracleRequest"
+        witnetAddress = "_witOracleRequest"
         templateFile += (answers?.callbacks.split(" ")[0] === "Synchronously"
           ? "_RequestConsumer.tsol"
           : "_UsingRequest.tsol"

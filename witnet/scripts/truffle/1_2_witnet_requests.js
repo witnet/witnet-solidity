@@ -12,21 +12,21 @@ const requests = (process.argv.includes("--legacy")
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
-const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
-const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
-const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
+const WitOracleRadonRegistry = artifacts.require("WitOracleRadonRegistry")
+const WitOracleRequestFactory = artifacts.require("WitOracleRequestFactory")
+const WitOracleRequestTemplate = artifacts.require("WitOracleRequestTemplate")
 
-module.exports = async function (_deployer, network, [from, ]) {
+module.exports = async function (_deployer, network, [from]) {
   const isDryRun = utils.isDryRun(network)
 
   const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
   if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].requests) addresses[network].requests = {}
 
-  addresses[network] = await deployWitnetRequests(
-    addresses[network], 
-    utils.getFromFromArgs() || from, 
-    isDryRun, 
+  addresses[network] = await deployWitOracleRequests(
+    addresses[network],
+    utils.getFromFromArgs() || from,
+    isDryRun,
     requests
   )
 
@@ -40,7 +40,7 @@ module.exports = async function (_deployer, network, [from, ]) {
   }
 }
 
-async function deployWitnetRequests (addresses, from, isDryRun, requests) {
+async function deployWitOracleRequests (addresses, from, isDryRun, requests) {
   for (const key in requests) {
     const request = requests[key]
     if (request?.specs) {
@@ -54,11 +54,11 @@ async function deployWitnetRequests (addresses, from, isDryRun, requests) {
           (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
-          const requestAddress = await utils.deployWitnetRequest(
+          const requestAddress = await utils.deployWitOracleRequest(
             web3, from,
-            await WitnetRequestBytecodes.deployed(),
-            await WitnetRequestFactory.deployed(),
-            request, WitnetRequestTemplate, key
+            await WitOracleRadonRegistry.deployed(),
+            await WitOracleRequestFactory.deployed(),
+            request, WitOracleRequestTemplate, key
           )
           console.info("  ", `> Request address:   \x1b[1;37m${requestAddress}\x1b[0m`)
           addresses.requests[key] = requestAddress
@@ -71,7 +71,7 @@ async function deployWitnetRequests (addresses, from, isDryRun, requests) {
         console.info("  ", `> Request address:   \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
-      addresses = await deployWitnetRequests(addresses, from, isDryRun, request)
+      addresses = await deployWitOracleRequests(addresses, from, isDryRun, request)
     }
   }
   return addresses

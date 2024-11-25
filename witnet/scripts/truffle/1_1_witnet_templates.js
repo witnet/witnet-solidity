@@ -12,21 +12,21 @@ const templates = (process.argv.includes("--legacy")
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
-const WitnetRequestBytecodes = artifacts.require("WitnetRequestBytecodes")
-const WitnetRequestFactory = artifacts.require("WitnetRequestFactory")
-const WitnetRequestTemplate = artifacts.require("WitnetRequestTemplate")
+const WitOracleRadonRegistry = artifacts.require("WitOracleRadonRegistry")
+const WitOracleRequestFactory = artifacts.require("WitOracleRequestFactory")
+const WitOracleRequestTemplate = artifacts.require("WitOracleRequestTemplate")
 
-module.exports = async function (_deployer, network, [from, ]) {
+module.exports = async function (_deployer, network, [from]) {
   const isDryRun = utils.isDryRun(network)
 
   const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
   if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].templates) addresses[network].templates = {}
 
-  addresses[network] = await deployWitnetRequestTemplates(
-    addresses[network], 
-    utils.getFromFromArgs() || from, 
-    isDryRun, 
+  addresses[network] = await deployWitOracleRequestTemplates(
+    addresses[network],
+    utils.getFromFromArgs() || from,
+    isDryRun,
     templates
   )
   if (Object.keys(addresses[network].templates).length > 0) {
@@ -38,7 +38,7 @@ module.exports = async function (_deployer, network, [from, ]) {
   }
 }
 
-async function deployWitnetRequestTemplates (addresses, from, isDryRun, templates) {
+async function deployWitOracleRequestTemplates (addresses, from, isDryRun, templates) {
   for (const key in templates) {
     const template = templates[key]
     if (template?.specs) {
@@ -52,15 +52,16 @@ async function deployWitnetRequestTemplates (addresses, from, isDryRun, template
           (await web3.eth.getCode(targetAddr)).length <= 3)
       ) {
         try {
-          const templateAddr = await utils.deployWitnetRequestTemplate(
+          const templateAddr = await utils.deployWitOracleRequestTemplate(
             web3, from,
-            await WitnetRequestBytecodes.deployed(),
-            await WitnetRequestFactory.deployed(),
+            await WitOracleRadonRegistry.deployed(),
+            await WitOracleRequestFactory.deployed(),
             template, key,
           )
-          const templateContract = await WitnetRequestTemplate.at(templateAddr)
-          console.info("  ", "> Template registry:  ", await templateContract.registry.call())
-          console.info("  ", `> Template address:    \x1b[1;37m${templateContract.address}\x1b[0m`)
+          const templateContract = await WitOracleRequestTemplate.at(templateAddr)
+          console.info("  ", `> Template address:  \x1b[1;37m${templateContract.address}\x1b[0m`)
+          console.info("  ", "> Template class:   ", await templateContract.class.call())
+          console.info("  ", "> Template version: ", await templateContract.version.call())
           addresses.templates[key] = templateAddr
         } catch (e) {
           utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
@@ -71,7 +72,7 @@ async function deployWitnetRequestTemplates (addresses, from, isDryRun, template
         console.info("  ", `> Template address:  \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
-      addresses = await deployWitnetRequestTemplates(addresses, from, isDryRun, template)
+      addresses = await deployWitOracleRequestTemplates(addresses, from, isDryRun, template)
     }
   }
   return addresses
