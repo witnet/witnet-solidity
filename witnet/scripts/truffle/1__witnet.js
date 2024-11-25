@@ -22,11 +22,12 @@ module.exports = async function (deployer, network) {
       WitOracle.address = addresses.WitOracle
       const wrb = await WitOracle.deployed()
       WitOracleRadonRegistry.address = await wrb.registry.call()
-      // WitOracleRequestFactory.address = await wrb.factory.call()
+      WitOracleRequestFactory.address = addresses.WitOracleRequestFactory;
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
     }
+  
   } else {
     const WitOracleRadonEncodingLib = artifacts.require("WitOracleRadonEncodingLib")
     await deployer.deploy(WitOracleRadonEncodingLib)
@@ -67,19 +68,19 @@ module.exports = async function (deployer, network) {
 
   utils.traceHeader("Witnet Artifacts:")
   if (WitOracle.address) {
-    console.info("  ", "> WitOracle:          ",
+    console.info("  ", "> WitOracle:              ",
       WitOracle.address,
       `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracle)})`
     )
   }
   if (WitOracleRadonRegistry.address) {
-    console.info("  ", "> WitOracleRadonRegistry:",
+    console.info("  ", "> WitOracleRadonRegistry: ",
       WitOracleRadonRegistry.address,
       `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracleRadonRegistry)})`
     )
   }
   if (WitOracleRequestFactory.address) {
-    console.info("  ", "> WitOracleRequestFactory:  ",
+    console.info("  ", "> WitOracleRequestFactory:",
       WitOracleRequestFactory.address,
       `(${isDryRun ? "mocked" : await _readUpgradableArtifactVersion(WitOracleRequestFactory)})`
     )
