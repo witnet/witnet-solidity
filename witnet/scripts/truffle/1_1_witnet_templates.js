@@ -42,14 +42,10 @@ async function deployWitOracleRequestTemplates (addresses, from, isDryRun, templ
   for (const key in templates) {
     const template = templates[key]
     if (template?.specs) {
-      const targetAddr = addresses?.templates[key] ?? null
       if (
-        (process.argv.includes("--all") ||
-          selection.includes(key) ||
-          (selection.length === 0 && isDryRun)
-        ) && (
-          utils.isNullAddress(targetAddr) ||
-          (await web3.eth.getCode(targetAddr)).length <= 3)
+        process.argv.includes("--all") 
+        || selection.includes(key)
+        || (selection.length === 0 && isDryRun)
       ) {
         try {
           const templateAddr = await utils.deployWitOracleRequestTemplate(
@@ -67,9 +63,6 @@ async function deployWitOracleRequestTemplates (addresses, from, isDryRun, templ
           utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
           process.exit(0)
         }
-      } else if (!utils.isNullAddress(targetAddr)) {
-        utils.traceHeader(`Skipping '\x1b[1;37m${key}\x1b[0m'`)
-        console.info("  ", `> Template address:  \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
       addresses = await deployWitOracleRequestTemplates(addresses, from, isDryRun, template)

@@ -44,14 +44,10 @@ async function deployWitOracleRequests (addresses, from, isDryRun, requests) {
   for (const key in requests) {
     const request = requests[key]
     if (request?.specs) {
-      const targetAddr = addresses.requests[key] ?? null
       if (
-        (process.argv.includes("--all") ||
-          selection.includes(key) ||
-          (selection.length === 0 && isDryRun)
-        ) && (
-          utils.isNullAddress(targetAddr) ||
-          (await web3.eth.getCode(targetAddr)).length <= 3)
+        process.argv.includes("--all") 
+        || selection.includes(key)
+        || (selection.length === 0 && isDryRun)
       ) {
         try {
           const requestAddress = await utils.deployWitOracleRequest(
@@ -66,9 +62,6 @@ async function deployWitOracleRequests (addresses, from, isDryRun, requests) {
           utils.traceHeader(`Failed '\x1b[1;31m${key}\x1b[0m': ${e}`)
           process.exit(0)
         }
-      } else if (!utils.isNullAddress(targetAddr)) {
-        utils.traceHeader(`Skipping '\x1b[1;37m${key}\x1b[0m'`)
-        console.info("  ", `> Request address:   \x1b[1;37m${targetAddr}\x1b[0m`)
       }
     } else {
       addresses = await deployWitOracleRequests(addresses, from, isDryRun, request)
