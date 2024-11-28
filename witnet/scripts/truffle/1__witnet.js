@@ -19,10 +19,9 @@ module.exports = async function (deployer, network) {
 
   if (!isDryRun) {
     try {
-      WitOracle.address = addresses.WitOracle
-      const wrb = await WitOracle.deployed()
-      WitOracleRadonRegistry.address = await wrb.registry.call()
-      WitOracleRequestFactory.address = addresses.WitOracleRequestFactory;
+      WitOracle.address = addresses.core?.WitOracle
+      WitOracleRadonRegistry.address = addresses.core?.WitOracleRadonRegistry
+      WitOracleRequestFactory.address = addresses.core?.WitOracleRequestFactory;
     } catch (e) {
       console.error("Fatal: Witnet Foundation addresses were not provided!", e)
       process.exit(1)
