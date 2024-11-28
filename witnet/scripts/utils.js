@@ -30,9 +30,9 @@ module.exports = {
 async function buildWitOracleRequestFromTemplate (web3, from, templateContract, args) {
   // convert all args values to string
   args = args.map(subargs => subargs.map(v => v.toString()))
-  const requestAddr = await templateContract.buildRequest.call(args, { from })
+  const requestAddr = await templateContract.methods['buildWitOracleRequest(string[][])'].call(args, { from })
   if ((await web3.eth.getCode(requestAddr)).length <= 3) {
-    const tx = await templateContract.buildRequest(args, { from })
+    const tx = await templateContract.methods['buildWitOracleRequest(string[][])'](args, { from })
     console.info("  ", "> Template settlement hash:", tx.receipt.transactionHash)
     console.info("  ", "> Template settlement gas: ", tx.receipt.gasUsed)
   }
