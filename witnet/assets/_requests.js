@@ -2,39 +2,26 @@
 
 const Witnet = require("witnet-toolkit")
 
-const sources = Witnet.Dictionary(
-  Witnet.Sources.Class,
-  require("./sources")
-)
-const templates = Witnet.Dictionary(
-  Witnet.Artifacts.Template,
-  require("./templates")
-)
-
+const retrievals = require("./retrievals")
+const templates = require("./templates")
+ 
 module.exports = {
-  /// //// STATIC REQUESTS /////////////////////////////////////////////////////////
+  /// //// REQUESTS FROM RETRIEVALS /////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitOracleRequestXXX: Witnet.StaticRequest({
-  //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
-  //          aggregate?: Witnet.Reducers..,
-  //          tally?: Witnet.Reducers..,
+  //      WitOracleRequestXXX: Witnet.Radon.Request({
+  //          retrieve: [ 
+  //              retrievals...RadonRetrieval1,
+  //              retrievals...RadonRetrieval2.foldArgs("value21"),
+  //              retrievals...RadonRetrieval3.foldArgs("value31", "value32"),
+  //              ... 
+  //          ],
+  //          aggregate?: Witnet.Radon.Reducers..,
+  //          tally?: Witnet.Radon.Reducers..,
   //      }),
   /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-  //      WitOracleRequestYYY: Witnet.RequestFromTemplate(
-  //          templates['WitOracleRequestTemplateUniqueNameX'],
-  //          [ [ .. ], .. ], // args: string[][]
-  //      ),
-  /// /// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
-  //      WitOracleRequestZZZ: Witnet.RequestFromDictionary({
-  //          retrieve: {
-  //              dict: sources,
-  //              tags: {
-  //                  'source-name-1': [ [ .. ], .. ], // args: string[][]
-  //                  ...
-  //              },
-  //          },
-  //          aggregate?: Witnet.Reducers.., // aggregate
-  //          tally?: Witnet.Reducers.., // tally
-  //      }),
+  //      WitOracleRequestYYY: Witnet.Radon.RequestFromTemplate(
+  //          templates..WitOracleRequestTemplateYY1,
+  //          ...params: string[] | string[][]
+  //      })
   // }, ... },
 }

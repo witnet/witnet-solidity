@@ -1,15 +1,19 @@
-const witnet = require("witnet-solidity-bridge/assets")
+const framework = require("witnet-solidity-bridge")
+const legacy = require("witnet-toolkit/assets").legacy
 module.exports = {
   getAddresses: (network) => {
     return {
-      ...witnet.getAddresses(network.toLowerCase()),
+      ...framework.getAddresses(network.toLowerCase()),
       ...require("../addresses.json")[network.toLowerCase()],
     }
   },
-  supportedEcosystems: witnet.supportedEcosystems,
-  supportedNetworks: witnet.supportedNetworks,
-  artifacts: witnet.artifacts,
-  requests: require("./requests"),
-  sources: require("./sources"),
-  templates: require("./templates"),
+  supportedEcosystems: framework.supportedEcosystems,
+  supportedNetworks: framework.supportedNetworks,
+  supportsNetwork: framework.supportsNetwork,
+  ABIs: framework.ABIs,
+  legacy: {
+    requests: { ...legacy.requests, ...require("./requests") },
+    retrievals: { ...legacy.retrievals, ...require("./retrievals") },
+    templates: { ...legacy.templates, ...require("./templates") },
+  }
 }

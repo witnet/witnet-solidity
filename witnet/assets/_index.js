@@ -1,15 +1,18 @@
-const witnet = require("witnet-solidity/assets")
+const assets = require("witnet-solidity/assets")
 module.exports = {
   getAddresses: (network) => {
     return {
-      ...witnet.getAddresses(network.toLowerCase()),
+      ...assets.getAddresses(network.toLowerCase()),
       ...require("../addresses.json")[network.toLowerCase()],
     }
   },
-  supportedEcosystems: witnet.supportedEcosystems,
-  supportedNetworks: witnet.supportedNetworks,
-  artifacts: witnet.artifacts,
-  requests: { ...witnet.requests, ...require("./requests") },
-  sources: { ...witnet.sources, ...require("./sources") },
-  templates: { ...witnet.templates, ...require("./templates") },
+  supportedEcosystems: assets.supportedEcosystems,
+  supportedNetworks: assets.supportedNetworks,
+  supportsNetwork: assets.supportsNetwork,
+  ABIs: assets.ABIs,
+  legacy: {
+    requests: { ...assets.legacy.requests, ...require("./requests") },
+    retrievals: { ...assets.legacy.retrievals, ...require("./retrievals") },
+    templates: { ...assets.legacy.templates, ...require("./templates") },
+  },
 }
