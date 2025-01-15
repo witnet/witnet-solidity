@@ -1,13 +1,11 @@
-const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
-  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
-  : "../../../../../witnet"
-)
+const Witnet = require("witnet-toolkit")
 
-const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
+const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../../witnet/assets"
+const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
 const requests = (process.argv.includes("--legacy")
-  ? require(`${assets_relative_path}/assets`).requests
-  : require(`${assets_relative_path}/assets/requests`)
+  ? require(`${WITNET_ASSETS_PATH}`).legacy.requests
+  : require(`${WITNET_ASSETS_PATH}/requests`)
 )
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
@@ -19,7 +17,7 @@ const WitOracleRequestTemplate = artifacts.require("WitOracleRequestTemplate")
 module.exports = async function (_deployer, network, [from]) {
   const isDryRun = utils.isDryRun(network)
 
-  const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
+  const addresses = utils.loadAddresses(isDryRun ? `${MODULE_WITNET_PATH}/tests/truffle` : "./witnet")
   if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].requests) addresses[network].requests = {}
 
@@ -34,7 +32,7 @@ module.exports = async function (_deployer, network, [from]) {
     addresses[network].requests = utils.orderObjectKeys(addresses[network].requests)
     addresses[network] = utils.orderObjectKeys(addresses[network])
     utils.saveAddresses(
-      isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet",
+      isDryRun ? `${MODULE_WITNET_PATH}/tests/truffle` : "./witnet",
       addresses
     )
   }
@@ -43,10 +41,10 @@ module.exports = async function (_deployer, network, [from]) {
 async function deployWitOracleRequests (addresses, from, isDryRun, requests) {
   for (const key in requests) {
     const request = requests[key]
-    if (request?.specs) {
+    if (request instanceof Witnet.RadonRequest) {
       if (
         process.argv.includes("--all") 
-        || selection.includes(key)
+        || selection.find(artifact => key.toLowerCase().endsWith(artifact.toLowerCase()))
         || (selection.length === 0 && isDryRun)
       ) {
         try {

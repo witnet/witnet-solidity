@@ -1,14 +1,13 @@
-const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
-  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
-  : "../../../../../witnet"
-)
+const Witnet = require("witnet-toolkit")
 
-const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
+const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../../witnet/assets"
+const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
 const templates = (process.argv.includes("--legacy")
-  ? require(`${assets_relative_path}/assets`).templates
-  : require(`${assets_relative_path}/assets/templates`)
+  ? require(`${WITNET_ASSETS_PATH}`).legacy.templates
+  : require(`${WITNET_ASSETS_PATH}/templates`)
 )
+
 const utils = require("../utils")
 const selection = utils.getWitnetArtifactsFromArgs()
 
@@ -19,7 +18,7 @@ const WitOracleRequestTemplate = artifacts.require("WitOracleRequestTemplate")
 module.exports = async function (_deployer, network, [from]) {
   const isDryRun = utils.isDryRun(network)
 
-  const addresses = utils.loadAddresses(isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet")
+  const addresses = utils.loadAddresses(isDryRun ? `${MODULE_WITNET_PATH}/tests/truffle` : "./witnet")
   if (!addresses[network]) addresses[network] = {}
   if (!addresses[network].templates) addresses[network].templates = {}
 
@@ -32,7 +31,7 @@ module.exports = async function (_deployer, network, [from]) {
   if (Object.keys(addresses[network].templates).length > 0) {
     addresses[network].templates = utils.orderObjectKeys(addresses[network].templates)
     utils.saveAddresses(
-      isDryRun ? `${witnet_module_path}/tests/truffle` : "./witnet",
+      isDryRun ? `${MODULE_WITNET_PATH}/tests/truffle` : "./witnet",
       addresses
     )
   }
@@ -44,7 +43,7 @@ async function deployWitOracleRequestTemplates (addresses, from, isDryRun, templ
     if (template?.specs) {
       if (
         process.argv.includes("--all") 
-        || selection.includes(key)
+        || selection.find(artifact => key.toLowerCase().endsWith(artifact.toLowerCase()))
         || (selection.length === 0 && isDryRun)
       ) {
         try {

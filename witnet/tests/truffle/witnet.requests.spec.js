@@ -1,5 +1,4 @@
 const utils = require("../../scripts/utils")
-
 const WitOracleRequest = artifacts.require("WitOracleRequest")
 
 contract("witnet-solidity/requests", async () => {
@@ -8,16 +7,13 @@ contract("witnet-solidity/requests", async () => {
   const selection = utils.getWitnetArtifactsFromArgs()
   const requests = (process.argv.includes("--legacy")
     ? require(
-      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../../witnet"}/assets`
-    ).requests
+      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SOLIDITY_ASSETS_PATH || "../../../../../witnet/assets"}`
+    ).legacy.requests
     : require(
-      `${process.env.WITNET_SOLIDITY_REQUIRE_PATH || process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH || "../../../../../witnet"}/assets/requests`
+      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SOLIDITY_ASSETS_PATH || "../../../../../witnet/assets"}/requests`
     )
   )
-
-  const summary = []
-
-  describe("My Witnet Requests...", async () => {
+  describe("Radon Requests", async () => {
     if (addresses?.requests) {
       const crafts = utils.flattenWitnetArtifacts(requests)
       crafts.forEach(async (craft) => {
@@ -26,53 +22,22 @@ contract("witnet-solidity/requests", async () => {
           requestAddress !== "" &&
             (selection.length === 0 || selection.includes(craft?.key))
         ) {
-          await describe(`${craft.key}`, async () => {
+          await describe(`\x1b[1;98m${craft.key}\x1b[0m`, async () => {
             let bytecode, radHash
-            it("request was actually deployed", async () => {
-              const request = await WitOracleRequest.at(requestAddress)
-              radHash = await request.radHash.call()
+            const radon = craft.artifact
+            it("validate rad hash", async () => {
+              const deployed = await WitOracleRequest.at(requestAddress)
+              radHash = await deployed.radHash.call()
+              assert.equal(radHash.slice(2), radon.radHash(), "Deployed RAD hash mistmatch")
             })
-            it("request dryruns successfully", async () => {
-              const request = await WitOracleRequest.at(requestAddress)
-              bytecode = (await request.bytecode.call()).slice(2)
-              const output = await utils.dryRunBytecode(bytecode)
-              let json
-              try {
-                json = JSON.parse(output)
-              } catch {
-                assert(false, "Invalid JSON: " + output)
-              }
-              const result = utils.processDryRunJson(json)
-              summary.push({
-                Artifact: craft.key,
-                "RAD hash": radHash.slice(2),
-                Status: result.status,
-                "✓ Sources": result.totalSources - result.nokSources,
-                "∑ Sources": result.totalSources,
-                "Time (secs)": result.runningTime,
-                Result: !("RadonError" in result.tally) ? result.tally : "(Failed)",
-              })
-              if (result.status !== "OK") {
-                throw Error(result?.error || "Dry-run failed!")
-              }
-            })
-            after(async () => {
-              if (process.argv.includes("--verbose")) {
-                const output = await utils.dryRunBytecodeVerbose(bytecode)
-                console.info(output.split("\n").slice(0, -1).join("\n"))
-                console.info("-".repeat(120))
-              }
+            it("validate bytecode", async () => {
+              const deployed = await WitOracleRequest.at(requestAddress)
+              bytecode = await deployed.bytecode.call()
+              assert.equal(bytecode, radon.toBytecode(), "Deployed bytecode mismatch")
             })
           })
         }
       })
     }
-
-    after(async () => {
-      if (summary.length > 0) {
-        console.info(`\n${"=".repeat(148)}\n> REQUEST DRY-RUNS:`)
-        console.table(summary)
-      }
-    })
   })
 })

@@ -1,11 +1,8 @@
-const assets_relative_path = (process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH
-  ? `${process.env.WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH}`
-  : "../../../../../witnet"
-)
 
-const witnet_module_path = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
+const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../../witnet/assets"
+const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
-const assets = require(`${assets_relative_path}/assets`)
+const assets = require(`${WITNET_ASSETS_PATH}`)
 const fs = require("fs")
 const utils = require("../utils")
 
@@ -59,13 +56,17 @@ module.exports = async function (deployer, network) {
     }
 
     // create test addresses file if none exists yet:
-    if (!fs.existsSync(`${witnet_module_path}/tests/truffle/addresses.json`)) {
-      fs.writeFileSync(`${witnet_module_path}/tests/truffle/addresses.json`, "{}")
+    if (!fs.existsSync(`${MODULE_WITNET_PATH}/tests/truffle/addresses.json`)) {
+      fs.writeFileSync(`${MODULE_WITNET_PATH}/tests/truffle/addresses.json`, "{}")
     }
-    utils.saveAddresses(`${witnet_module_path}/tests/truffle`, addresses)
+    utils.saveAddresses(`${MODULE_WITNET_PATH}/tests/truffle`, addresses)
   }
 
-  utils.traceHeader("Witnet Artifacts:")
+  if (isDryRun) {
+    utils.traceHeader("DEPLOYMENT DRY-RUN")
+  } else {
+    utils.traceHeader(network.toUpperCase())
+  }
   if (WitOracle.address) {
     console.info("  ", "> WitOracle:              ",
       WitOracle.address,
