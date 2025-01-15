@@ -23,6 +23,7 @@
   "files": [
     "dist",
     "src/bin",
+    "src/lib/cli",
     "witnet",
     ".env_witnet"
   ],
@@ -31,7 +32,7 @@
     "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "prepare": "pnpm run build",
-    "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
+    "test": "cross-env-shell WITNET_SOLIDITY_ASSETS_PATH='../../witnet/assets' WITNET_SOLIDITY_ASSETS_RELATIVE_PATH='../../../witnet/assets' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/solidity.js"
   },
   "keywords": [
     "solidity",
@@ -64,7 +65,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.1.1",
-    "ethers": "^6.10.0",
+    "ethers": "^5.2.0",
     "hardhat": "^2.19.5",
     "solhint": "^4.1.1"
   }
