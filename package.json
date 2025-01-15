@@ -14,19 +14,23 @@
     "witnet": "src/bin/witnet.js"
   },
   "exports": {
-    ".": "./witnet/assets/index.js",
-    "./assets": "./witnet/assets/index.js",
-    "./utils": "./witnet/scripts/utils.js"
+    ".": {
+      "require": "./dist/index.js",
+      "types": "./dist/lib/radon/*.d.ts"
+    },
+    "./assets": "./witnet/assets/index.js"
   },
   "files": [
-    "src",
+    "dist",
+    "src/bin",
     "witnet",
     ".env_witnet"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
-    "postinstall": "npx witnet-toolkit update",
+    "prepare": "pnpm run build",
     "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
   },
   "keywords": [
@@ -50,7 +54,9 @@
     "witnet-toolkit": "^2.0.9"
   },
   "devDependencies": {
-    "cbor": "^9.0.2",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "cbor": "^10.0.3",
     "cross-env": "7.0.3",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
