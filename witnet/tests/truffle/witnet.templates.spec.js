@@ -20,7 +20,7 @@ contract("witnet-solidity/templates", async () => {
 
   describe("My Witnet Request Templates...", async () => {
     if (addresses?.templates) {
-      const crafts = utils.flattenWitnetArtifacts(templates)
+      const crafts = utils.flattenRadonAssets(templates)
       crafts.forEach(async (craft) => {
         const templateAddress = addresses?.templates[craft?.key] || ""
         if (

@@ -1,1 +1,14 @@
-{}
+{
+    "polygon:amoy": {
+        "requests": {
+            "WitOracleRequestPriceUsdtWit9": "0xd312959017961B6f13f3F6BccaA51bA3baF8D450",
+            "WitOracleRequestRandomness": "0x48960cA057224E3EE97AB5F48EC70a4E501c8E40"
+        }
+    },
+    "optimism:sepolia": {
+        "requests": {
+            "WitOracleRequestPriceUsdtWit9": "0x88190003E2922D09cEc051850a9E6122B5d77f72",
+            "WitOracleRequestRandomness": "0x2E1238996CBB42c3E920DBb6496392AE6e67635b"
+        }
+    }
+}

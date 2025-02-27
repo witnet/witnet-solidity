@@ -44,7 +44,7 @@ async function deployWitOracleRequests (addresses, from, isDryRun, requests) {
     if (request instanceof Witnet.RadonRequest) {
       if (
         process.argv.includes("--all") 
-        || selection.find(artifact => key.toLowerCase().endsWith(artifact.toLowerCase()))
+        || selection.find(artifact => key.toLowerCase().indexOf(artifact.toLowerCase()) >= 0)
         || (selection.length === 0 && isDryRun)
       ) {
         try {

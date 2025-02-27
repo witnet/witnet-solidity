@@ -43,7 +43,7 @@ async function deployWitOracleRequestTemplates (addresses, from, isDryRun, templ
     if (template?.specs) {
       if (
         process.argv.includes("--all") 
-        || selection.find(artifact => key.toLowerCase().endsWith(artifact.toLowerCase()))
+        || selection.find(artifact => key.toLowerCase().indexOf(artifact.toLowerCase()) >= 0)
         || (selection.length === 0 && isDryRun)
       ) {
         try {

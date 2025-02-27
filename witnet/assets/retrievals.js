@@ -1,42 +1,36 @@
-const Witnet = require("witnet-toolkit")
-const retrievals = require("./retrievals")
+const { utils, Witnet } = require("witnet-toolkit")
+const { legacy } = require("witnet-toolkit/assets")
 
 module.exports = {
-    CCDR: {
-        "ccdr/ethBlockNumber": 
-            Witnet.RadonRetrieve.CrossChainRPC({
-                rpc: Witnet.RadonRetrieve.CCDR.ETH.blockNumber(),
-                script: Witnet.RadonScript(Witnet.RadonString)
-                    .parseJSONMap()
-                    .getString("result"),
-            }),
-        "ccdr/ethGasPrice": 
-            Witnet.RadonRetrieve.CrossChainRPC({
-                rpc: Witnet.RadonRetrieve.CCDR.ETH.gasPrice(),
-                script: Witnet.RadonScript(Witnet.RadonString)
-                    .parseJSONMap()
-                    .getString("result"),
-            }),
-        "ccdr/ethTransactionByHash": 
-            Witnet.RadonRetrieve.CrossChainRPC({
-                rpc: Witnet.RadonRetrieve.CCDR.ETH.getBalance("\\1\\"),
-                script: Witnet.RadonScript(Witnet.RadonString)
-                    .parseJSONMap()
-                    .getString("result"),
-            }),
-        "ccdr/witSupplyInfo":
-            Witnet.RadonRetrieve.CrossChainRPC({
-                rpc: Witnet.RadonRetrieve.CCDR.WIT.getSupplyInfo(),
-                script: Witnet.RadonScript(Witnet.RadonString)
-                    .parseJSONMap()
-                    .getMap("result"),
-            }),
-        "ccdr/witTransactionByHash":
-            Witnet.RadonRetrieve.CrossChainRPC({
-                rpc: Witnet.RadonRetrieve.CCDR.WIT.getTransactionByHash("\\1\\"),
-                script: Witnet.RadonScript(Witnet.RadonString)
-                    .parseJSONMap()
-                    .getMap("result"),
-            }),
-    },
-};
+  // path: { ... path: {
+  /// //// HTTP-GET RETRIEVALS /////////////////////////////////////////////////////
+  //      RadonRetrievalXX1: Witnet.Radon.Retrievals.HttpGet(
+  //          url: "http-or-https://authority/path?query",
+  //          headers?: {
+  //              "http-header-tag": "http-header-value",
+  //              ...,
+  //          },
+  //          script?: Witnet.Radon.Script()..,
+  //      }),
+  /// //// HTTP-POST RETRIEVALS ////////////////////////////////////////////////////
+  //      RadonRetrievalXX2: Witnet.Radon.Retrievals.HttpPost(
+  //          url: "http-or-https://authority/path?query",
+  //          body?: "...",
+  //          headers?: {
+  //              "http-header-tag": "http-header-value",
+  //              ...,
+  //          },
+  //          script?: Witnet.Radon.Script()..,
+  //      }),
+  /// //// GRAPH-QL QUERIES ////////////////////////////////////////////////////////
+  //      RadonRetrievalXX3: Witnet.Radon.Retrievals.GraphQLQuery(
+  //          url: "http-or-https://authority/path?query",
+  //          query: "...",
+  //          headers?: {
+  //              "http-header-tag": "http-header-value",
+  //              ...,
+  //          },
+  //          script?: Witnet.Radon.Script()..,
+  //      }),
+  // }, ... },
+}

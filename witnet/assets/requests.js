@@ -1,7 +1,23 @@
-const Witnet = require("witnet-toolkit")
+const { utils, Witnet } = require("witnet-toolkit")
+const { legacy } = require("witnet-toolkit/assets")
+
+const retrievals = require('./retrievals')
+const templates = require('./templates')
+
 module.exports = {
-    WitOracleRandomnessBomb: new Witnet.RadonRequest({
-        retrieve: Witnet.RadonRetrieve.RNG(),
-        tally: Witnet.RadonReducers.ConcatHash(Witnet.RadonFilters.Mode())
-    })
+  /// //// REQUESTS FROM RETRIEVALS /////////////////////////////////////////////////
+  // path: { ... path: {
+  //      WitOracleRequestXXX: new Witnet.RadonRequest({
+  //          retrieve: [ 
+  //              retrievals...RadonRetrieval1,
+  //              retrievals...RadonRetrieval2.foldArgs("value21"),
+  //              retrievals...RadonRetrieval3.foldArgs("value31", "value32"),
+  //              ... 
+  //          ],
+  //          aggregate?: Witnet.Radon.Reducers..,
+  //          tally?: Witnet.Radon.Reducers..,
+  //      }),
+  /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
+  //      WitOracleRequestYYY: templates...RadonTemplate1.buildRequest([["arg11", "arg12", ..], ..])
+  // }, ... },
 }

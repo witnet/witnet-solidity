@@ -1,25 +1,26 @@
 const cbor = require("cbor")
-const utils = require("witnet-solidity-bridge/utils")
-const Witnet = require("witnet-toolkit")
+const framework = require("witnet-solidity-bridge/utils")
+const { utils, Witnet } = require("witnet-toolkit")
 
 module.exports = {
   deployWitOracleRequest,
   deployWitOracleRequestTemplate,
-  flattenWitnetArtifacts,
+  encodeWitnetRadon, 
+  flattenRadonAssets: utils.radon.assets.flatten,
   getFromFromArgs,
-  getRealmNetworkFromArgs: utils.getRealmNetworkFromArgs,
-  getRealmNetworkFromString: utils.getRealmNetworkFromString,
+  getRealmNetworkFromArgs: framework.getRealmNetworkFromArgs,
+  getRealmNetworkFromString: framework.getRealmNetworkFromString,
   getWitnetArtifactsFromArgs,
-  getWitOracleRequestMethodString: utils.getWitOracleRequestMethodString,
-  isDryRun: utils.isDryRun,
+  getWitOracleRequestMethodString: framework.getWitOracleRequestMethodString,
+  isDryRun: framework.isDryRun,
   isNullAddress,
   orderObjectKeys,
   processDryRunJson,
   loadAddresses,
   saveAddresses,
-  readJsonFromFile: utils.readJsonFromFile,
-  overwriteJsonFile: utils.overwriteJsonFile,
-  traceHeader: utils.traceHeader,
+  readJsonFromFile: framework.readJsonFromFile,
+  overwriteJsonFile: framework.overwriteJsonFile,
+  traceHeader: framework.traceHeader,
   traceTx,
   verifyRadonReducer,
   verifyRadonRetrieval,
@@ -40,7 +41,7 @@ async function buildWitOracleRequestFromTemplate (web3, from, templateContract, 
 async function deployWitOracleRequest (web3, from, registry, factory, request, templateArtifact, key) {
   if (request instanceof Witnet.RadonRequest) {
     const sources = await verifyRadonRetrievals(from, registry, request?.retrieve)
-    if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+    if (key) framework.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
     let requestAddr = await factory.buildWitOracleRequest.call(
       sources,
       encodeWitnetRadon(request.aggregate),
@@ -74,7 +75,7 @@ async function verifyRadonRetrievals (from, registry, retrievals) {
 
 async function deployWitOracleRequestTemplate (web3, from, registry, factory, template, key) {
   const sources = await verifyRadonRetrievals(from, registry, template.specs.retrieve)
-  if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+  if (key) framework.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
   let templateAddr = await factory.buildWitOracleRequestTemplate.call(
     sources,
     encodeWitnetRadon(template.specs.aggregate),
@@ -118,29 +119,6 @@ function encodeWitnetRadon (T) {
     return T.toBytecode()
   }
   return T
-};
-
-function flattenWitnetArtifacts (tree, headers) {
-  if (!headers) headers = []
-  const matches = []
-  for (const key in tree) {
-    if (
-      tree[key] instanceof Witnet.RadonRequest
-        || tree[key] instanceof Witnet.RadonTemplate 
-        || tree[key] instanceof Witnet.RadonRetrieval
-    ) {
-      matches.push({
-        key,
-        artifact: tree[key],
-      })
-    } else if (typeof tree[key] === "object") {
-      matches.push(...flattenWitnetArtifacts(
-        tree[key],
-        [...headers, key]
-      ))
-    }
-  }
-  return matches
 };
 
 function getFromFromArgs () {
@@ -207,7 +185,7 @@ async function verifyRadonReducer (from, registry, reducer) {
       await registry.lookupRadonReducer.call(hash, { from })
     } catch {
       // register new reducer, otherwise:
-      utils.traceHeader("Verifying Radon Reducer ...")
+      framework.traceHeader("Verifying Radon Reducer ...")
       console.info(`   > Hash:        \x1b[35m${hash}\x1b[0m`)
       console.info(`   > Reducer:     \x1b[1;35m${reducer.toString()}\x1b[0m`)
       const tx = await registry.verifyRadonReducer(encodeWitnetRadon(reducer), { from })
@@ -234,12 +212,12 @@ async function verifyRadonRetrieval (from, registry, source) {
       await registry.lookupRadonRetrieval.call(hash, { from })
     } catch {
       // register new source, otherwise:
-      utils.traceHeader("Verifying Radon Retrieval ...")
+      framework.traceHeader("Verifying Radon Retrieval ...")
       console.info(`   > Hash:       \x1b[32m${hash}\x1b[0m`)
       if (source?.url) {
         console.info(`   > URL:        \x1b[1;32m${source.url}\x1b[0m`)
       }
-      console.info(`   > Method:     \x1b[1;32m${utils.getWitOracleRequestMethodString(source?.method)}\x1b[0m`)
+      console.info(`   > Method:     \x1b[1;32m${framework.getWitOracleRequestMethodString(source?.method)}\x1b[0m`)
       if (source?.body) {
         console.info(`   > Body:       \x1b[1;32m${source.body}\x1b[0m`)
       }

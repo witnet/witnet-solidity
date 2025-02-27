@@ -15,12 +15,15 @@ contract("witnet-solidity/requests", async () => {
   )
   describe("Radon Requests", async () => {
     if (addresses?.requests) {
-      const crafts = utils.flattenWitnetArtifacts(requests)
+      const crafts = utils.flattenRadonAssets(requests)
       crafts.forEach(async (craft) => {
         const requestAddress = addresses?.requests[craft?.key] || ""
         if (
           requestAddress !== "" &&
-            (selection.length === 0 || selection.includes(craft?.key))
+            (
+              selection.length === 0 
+              || selection.find(artifact => craft?.key.toLowerCase().indexOf(artifact.toLowerCase()) >= 0)
+            )
         ) {
           await describe(`\x1b[1;98m${craft.key}\x1b[0m`, async () => {
             let bytecode, radHash

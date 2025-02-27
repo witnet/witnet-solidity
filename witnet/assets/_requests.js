@@ -1,14 +1,13 @@
-/* eslint-disable no-unused-vars */
+const { utils, Witnet } = require("witnet-solidity")
+const { legacy } = require("witnet-solidity/assets")
 
-const Witnet = require("witnet-toolkit")
+const retrievals = require('./retrievals')
+const templates = require('../templates')
 
-const retrievals = require("./retrievals")
-const templates = require("./templates")
- 
 module.exports = {
   /// //// REQUESTS FROM RETRIEVALS /////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitOracleRequestXXX: Witnet.Radon.Request({
+  //      WitOracleRequestXXX: new Witnet.RadonRequest({
   //          retrieve: [ 
   //              retrievals...RadonRetrieval1,
   //              retrievals...RadonRetrieval2.foldArgs("value21"),
@@ -19,9 +18,6 @@ module.exports = {
   //          tally?: Witnet.Radon.Reducers..,
   //      }),
   /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-  //      WitOracleRequestYYY: Witnet.Radon.RequestFromTemplate(
-  //          templates..WitOracleRequestTemplateYY1,
-  //          ...params: string[] | string[][]
-  //      })
+  //      WitOracleRequestYYY: templates...RadonTemplate1.buildRequest([["arg11", "arg12", ..], ..])
   // }, ... },
 }

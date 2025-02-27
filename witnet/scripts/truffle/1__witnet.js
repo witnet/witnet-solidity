@@ -11,7 +11,7 @@ const WitOracleRadonRegistry = artifacts.require("WitOracleRadonRegistry")
 const WitOracleRequestFactory = artifacts.require("WitOracleRequestFactory")
 
 module.exports = async function (deployer, network) {
-  const addresses = assets.getAddresses(network)
+  const addresses = assets.getNetworkAddresses(network)
   const isDryRun = utils.isDryRun(network)
 
   if (!isDryRun) {
@@ -63,7 +63,7 @@ module.exports = async function (deployer, network) {
   }
 
   if (isDryRun) {
-    utils.traceHeader("DEPLOYMENT DRY-RUN")
+    utils.traceHeader("DEPLOY DRY-RUN")
   } else {
     utils.traceHeader(network.toUpperCase())
   }

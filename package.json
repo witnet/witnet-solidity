@@ -15,15 +15,15 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/index.js",
-      "types": "./dist/lib/radon/*.d.ts"
+      "require": "./dist/src/index.js",
+      "default": "./dist/src/index.js",
+      "types": "./dist/src/*.d.ts"
     },
     "./assets": "./witnet/assets/index.js"
   },
   "files": [
     "dist",
     "src/bin",
-    "src/lib/cli",
     "witnet",
     ".env_witnet"
   ],
@@ -32,6 +32,7 @@
     "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
     "prepare": "pnpm run build",
+    "postinstall": "npx witnet-solidity --install --version",
     "test": "cross-env-shell WITNET_SOLIDITY_ASSETS_PATH='../../witnet/assets' WITNET_SOLIDITY_ASSETS_RELATIVE_PATH='../../../witnet/assets' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/solidity.js"
   },
   "keywords": [
@@ -51,22 +52,24 @@
   "dependencies": {
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
+    "lodash.merge": "^4.6.2",
     "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "2.1.0-beta.0",
-    "witnet-toolkit": "^2.0.9"
+    "web3-jsonrpc-gateway": "../web3-jsonrpc-gateway",
+    "witnet-solidity-bridge": "link:..\\witnet-solidity-bridge",
+    "witnet-toolkit": "link:..\\witnet-toolkit"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "typescript": "^5.7.2",
     "cbor": "^10.0.3",
     "cross-env": "7.0.3",
-    "eslint": "^8.57.0",
+    "eslint": "^9.16.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^16.0.0",
-    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-n": "^17.15.0",
+    "eslint-plugin-promise": "^7.2.1",
     "ethers": "^5.2.0",
     "hardhat": "^2.19.5",
-    "solhint": "^4.1.1"
+    "solhint": "^5.0.3",
+    "typescript": "^5.7.2"
   }
 }

@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
-
-const Witnet = require("witnet-toolkit")
+const { utils, Witnet } = require("witnet-solidity")
+const { legacy } = require("witnet-solidity/assets")
 
 module.exports = {
   // path: { ... path: {
