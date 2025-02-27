@@ -13,7 +13,7 @@ contract $_contractName
 
     constructor ($_constructorParams) 
         WitOracleRandomnessConsumer(
-            $_witOracleAddress,
+            $_witnetAddress,
             /* _witOracleBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
             /* _witOracleCallbackGasLimit */ uint24($_callbackGasLimit)
         )

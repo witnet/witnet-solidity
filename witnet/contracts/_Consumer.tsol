@@ -15,7 +15,7 @@ contract $_contractName
     
 
     constructor ($_constructorParams) 
-        UsingWitOracle($_witOracleAddress)
+        UsingWitOracle($_witnetAddress)
         WitOracleConsumer(/* _callbackGasLimit */ uint24($_callbackGasLimit))
     {
         __witOracleBaseFeeOverheadPercentage = uint16($_baseFeeOverhead);

@@ -3,47 +3,18 @@
 require('dotenv').config()
 const fs = require("fs")
 
-const helpers = require("../lib/helpers")
+const helpers = require("./helpers")
 const { green, yellow, lwhite } = helpers.colors
-
-/// ENVIRONMENT ACQUISITION =========================================================================================
-
-const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_PATH || "../../../../witnet/assets"
-const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
-
-let args = process.argv
-let force;
-let forceIndex = args.indexOf('--force');
-if (forceIndex >= 2) {
-  force = args[forceIndex]
-  args.splice(forceIndex, 1)
-}
-
-let help = false
-if (args.includes('--help')) {
-  help = true
-  args.splice(args.indexOf('--help'), 1)
-}
-
-let version = false
-if (args.includes('--version')) {
-  version = true
-  args.splice(args.indexOf('--version'), 1)
-}
 
 
 /// CONSTANTS AND GLOBALS =============================================================================================
 
+const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
 const settings = {
   checks: {
     toolkitRadonIsInitialized: fs.existsSync("./witnet/assets/index.js"),
     packageIsInitialized: fs.existsSync("./witnet/addresses.json")
-  },
-  flags: {
-    force,
-    help,
-    showVersion: version,
   },
   paths: {
     truffleConfigFile: `${MODULE_WITNET_PATH}/scripts/truffle.config.js`,
@@ -51,141 +22,205 @@ const settings = {
     truffleMigrationsPath: `${MODULE_WITNET_PATH}/scripts/truffle`,
     truffleTestsPath: `${MODULE_WITNET_PATH}/tests/truffle`,
   },
+  flags: {
+    apps: "Includes Wit/Oracle appliances",
+    await: "Holds on until next event is triggered",
+    "dry-run": "Dry-runs deployment workfow into a mocked environment",
+    force: "Forces operation without user intervention", 
+    help: "Describes command's usage",
+    legacy: "Includes artifacts from Witnet legacy packages",
+    mainnets: "Lists supported EVM mainnets",
+    requests: "Includes WitOracleRequest artifacts",
+    templates: "Includes WitOracleRequestTemplate artifacts",
+    testnets: "Lists supported EVM testnets",
+    version: "Prints tool name and version as headline",
+  },
+  options: {
+    consumer: {
+      hint: "Consuming contract address where to push data results from the Wit/Oracle",
+      param: "EVM_ADDRESS"
+    },
+    contract: {
+      hint: "Path or name of the new mockup contract to be created",
+      param: "path/to/output"
+    },
+    from: {
+      hint: "Reporter's address other than default (must be known by the ETH/RPC gateway)",
+      param: "EVM_ADDRESS"
+    },
+    fromBlock: {
+      hint: "Process events since given EVM block number",
+      param: "EVM_BLOCK"
+    },
+    gasLimit: {
+      hint: "Maximum gas to spend in the EVM transaction",
+      param: "GAS_LIMIT"
+    }, 
+    network: {
+      hint: "EVM network to connect instead of the one settled as default",
+      param: "NETWORK",
+    },
+    provider: {
+      hint: "Forces the local gateway to rely on this remote ETH/RPC provider",
+      param: "ETHRPC_PROVIDER_URL"
+    },
+    radHash: {
+      hint: "Filters events referring given RAD hash",
+      param: "RAD_HASH",
+    },
+    requester: {
+      hint: "Filters events triggered by given requester",
+      param: "EVM_ADDRESS",
+    },
+  },
+  envars: {
+    ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
+    WITNET_SOLIDITY_DEFAULT_CONSUMER: "=> Default EVM consuming contract, if no otherwise specified.",
+    WITNET_SOLIDITY_DEFAULT_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
+  },
 }
 
 const router = {
   console: {
     hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
-    options: {
-      apps: {
-        hint: "Injects Wit/Oracle appliances into the console runtime",
-      },
-      core: {
-        hint: "Injects Wit/Oracle core artifacts into the console runtime",
-      },
-      network: {
-        hint: "Connects to this EVM network instead of the one settled as default",
-        param: "EVM_NETWORK"
-      },
-    },
-    envars: {
-      ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
-      WITNET_SOLIDITY_DEFAULT_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
-    },
+    params: "[ASSET_NAMES ...]",
+    flags: [ 'apps', 'legacy', 'requests', 'templates', ],
+    options: [ 'network', ],
+    envars: [ 
+      'ETHRPC_PRIVATE_KEYS',
+      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+    ],
   },
   contracts: {
-    hint: "List available Witnet-related EVM addresses on some given network.",
+    hint: "List available Witnet-related EVM addresses on the specified EVM chain.",
     params: "[ASSET_NAMES ...]",
-    options: {
-      apps: {
-        hint: "Includes Wit/Oracle appliances",
-      },
-      network: {
-        hint: "Connects to this EVM network instead of the one settled as default",
-        param: "EVM_NETWORK"
-      },
-      requests: {
-        hint: "Includes WitOracleRequest artifacts",
-      },
-      templates: {
-        hint: "Includes WitOracleRequestTemplate artifacts",
-      },
-    },
-    envars: {
-      WITNET_SOLIDITY_DEFAULT_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
-    },
+    flags: [ 
+      'apps', 
+      'legacy', 
+      'requests', 
+      'templates', 
+    ],
+    options: [ 
+      'network', 
+    ],
+    envars: [ 
+      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+    ],
   },
   deploy: {
-    hint: "Deploy specified Radon artifacts into some given EVM network.",
-    params: ["[ARTIFACT_NAMES ...]",],
-    options: {
-      "dry-run": {
-        hint: "Dry-runs deployment workflow into a mocked environment",
-      },
-      legacy: {
-        hint: "Includes artifacts from Witnet legacy packages",
-      },
-      network: {
-        hint: "Connects to this EVM network instead of the one settled as default",
-        param: "EVM_NETWORK"
-      },
-    }
+    hint: "Deploy specified Radon artifacts into some EVM chain.",
+    params: [
+      "[ARTIFACT_NAMES ...]",
+    ],
+    flags: [ 
+      'all', 
+      'dry-run', 
+      'legacy', 
+    ],
+    options: [ 
+      'network', 
+    ],
+    envars: [ 
+      'ETHRPC_PRIVATE_KEYS',
+      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+    ],
   },
   ethrpc: {
-    hint: "Run a local ETH/RPC gateway to the specified network.",
-    options: {
-      provider: {
-        hint: "Forces the local gateway to rely on this ETH/RPC provider",
-        param: "ETHRPC_PROVIDER_URL"
-      },
-      network: {
-        hint: "Connects to this EVM network instead of the one settled as default",
-        param: "EVM_NETWORK"
-      },
-    },
-    envars: {
-      ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
-      WITNET_SOLIDITY_DEFAULT_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
-    },
+    hint: "Run a local ETH/RPC gateway connecting to the specified network.",
+    options: [ 
+      'network', 
+      'provider', 
+    ],
+    envars: [ 
+      'ETHRPC_PRIVATE_KEYS',
+      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+    ],
+  },
+  events: {
+    hint: "Trace latest events logged by the WitOracle core contract",
+    params: "[TOPICS ...]",
+    flags: [ 
+      'await', 
+    ],
+    options: [ 
+      'fromBlock', 
+      'network', 
+      'requester', 
+      'radHash', 
+    ],
+    envars: [
+      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+    ],
   },
   networks: {
-    hint: "List ecosystems and EVM networks currently bridged to the Wit/Oracle blockchain.",
+    hint: "List EVMs and networks currently bridged to the Wit/Oracle blockchain.",
     params: "[ECOSYSTEM]",
-    options: {
-      mainnets: {
-        hint: "Lists supported EVM mainnets",
-      },
-      testnets: {
-        hint: "Lists supported EVM testnets",
-      },
-    },
+    flags: [
+      'mainnets', 
+      'testnets', 
+    ],
+  },
+  report: {
+    hint: "Push into some consumer contract the result to a data request transaction in the Wit/Oracle blockchain.",
+    params: "DR_TX_HASH",
+    flags: [
+      'force', 
+    ],
+    options: [
+      'consumer',
+      'from', 
+      'gasLimit', 
+      'network', 
+    ],
+    envars: [
+      'ETHRPC_PRIVATE_KEYS', 
+      'WITNET_SOLIDITY_DEFAULT_CONSUMER', 
+      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+    ],
   },
   wizard: {
     hint: "Generate Solidity mockup contracts adapted to your use case.",
-    options: {
-      contract: {
-        hint: "Path and name of new mockup contract to be created",
-        param: "CONTRACT_NAME"
-      },
-      subfolder: {
-        hint: "Settles output contracts subfolder (default: contracts/)",
-        param: "RELATIVE_PATH"
-      }
-    }
+    options: [
+      'contract', 
+      'network', 
+    ],
+    envars: [
+      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+    ],
   },
   commands: {
-    console: require("../lib/cli/console"),
-    contracts: require("../lib/cli/contracts"),
-    deploy: require("../lib/cli/deploy"),
-    ethrpc: require("../lib/cli/ethrpc"),
-    networks: require("../lib/cli/networks"),
-    wizard: require("../lib/cli/wizard"),
+    console: require("./cli/console"),
+    contracts: require("./cli/contracts"),
+    deploy: require("./cli/deploy"),
+    ethrpc: require("./cli/ethrpc"),
+    events: require("./cli/events"),
+    networks: require("./cli/networks"),
+    report: require("./cli/report"),
+    wizard: require("./cli/wizard"),
   }
 }
 
 
 /// MAIN WORKFLOW =====================================================================================================
 
-var assets = {}
-
 main()
 
 async function main() {
-  if (settings.flags.showVersion) {
-    showVersion()
+  var [args, flags, ] = helpers.extractFlagsFromArgs(process.argv.slice(2), Object.keys(settings.flags))
+  if (flags.version) {
+    helpers.showVersion()
   }
   if (!settings.checks.toolkitRadonIsInitialized || !settings.checks.packageIsInitialized) {
     install()
   }
-  assets = require(`${WITNET_ASSETS_PATH}`)
-  if (args[2] && router.commands[args[2]]) {
-    const cmd = args[2]
-    if (settings.flags.help) {
+  var [args, options, ] = helpers.extractOptionsFromArgs(args, Object.keys(settings.options))
+  if (args[0] && router.commands[args[0]]) {
+    const cmd = args[0]
+    if (flags.help) {
       showCommandUsage(cmd, router[cmd])
     } else {
-      [args, options] = helpers.extractFromArgs(args.slice(3), router[cmd]?.options)
       try {
-        await router.commands[cmd](settings, args, options)
+        await router.commands[cmd]({...settings, ...flags, ...options}, args.slice(1))
       } catch (e) {
         showUsageError(cmd, router[cmd], e)
       }
@@ -224,31 +259,30 @@ function install() {
 
 function showMainUsage() {
   showUsageHeadline()
-  showUsageFlags()
+  showUsageFlags([ 'help', 'version', ])
   console.info(`\nCOMMANDS:`)
   var maxLength = Object.keys(router.commands).map(key => key.length).reduce((prev, curr) => curr > prev ? curr : prev)
   Object.keys(router.commands).forEach(cmd => {
-    console.info("  ", `${cmd}${" ".repeat(maxLength - cmd.length)}`, "  ", router[cmd]?.hint)
+    console.info("  ", `${cmd}${" ".repeat(maxLength - cmd.length)}`, " ", router[cmd]?.hint)
   })
 }
 
 function showCommandUsage(cmd, specs) {
   showUsageHeadline(cmd, specs)
-  showUsageFlags()
-  showUsageOptions(specs?.options || {})
-  showEnvarsUsage(specs?.envars || [])
+  showUsageFlags(specs?.flags || [])
+  showUsageOptions(specs?.options || [])
+  showUsageEnvars(specs?.envars || [])
 }
 
-function showEnvarsUsage(envars) {
-  var envars = Object.entries(envars)//.filter(([envar,]) => !process.env[envar])
+function showUsageEnvars(envars) {
   if (envars.length > 0) {
     console.info(`\nENVARS:`)
-    const maxWidth = envars.map(([envar,]) => envar.length).reduce((curr, prev) => curr > prev ? curr : prev)
-    envars.forEach(([envar, hint]) => {
+    const maxWidth = envars.map(envar => envar.length).reduce((curr, prev) => curr > prev ? curr : prev)
+    envars.forEach(envar => {
       if (envar.toUpperCase().indexOf("KEY") < 0 && process.env[envar]) {
-        console.info("  ", `${yellow(envar.toUpperCase())}${" ".repeat(maxWidth - envar.length)}`, "  ", `Currently settled to: ${process.env[envar]}`)
+        console.info("  ", `${yellow(envar.toUpperCase())}${" ".repeat(maxWidth - envar.length)}`, ` => Settled to "${process.env[envar]}"`)
       } else {
-        console.info("  ", `${yellow(envar.toUpperCase())}${" ".repeat(maxWidth - envar.length)}`, "  ", `${hint}`)
+        console.info("  ", `${yellow(envar.toUpperCase())}${" ".repeat(maxWidth - envar.length)}`, ` ${settings.envars[envar]}`)
       }
     })
   }
@@ -262,14 +296,22 @@ function showUsageError(cmd, specs, error) {
   }
 }
 
-function showUsageFlags() {
-  console.info("\nFLAGS:")
-  console.info("    --help      Describes command usage")
-  console.info("    --version   Prints tool name and version as headline")
+function showUsageFlags(flags) {
+  if (flags.length > 0) {
+    const maxWidth = flags.map(flag => flag.length).reduce((curr, prev) => curr > prev ? curr : prev)
+    console.info("\nFLAGS:")
+    flags.forEach(flag => {
+      if (settings.flags[flag]) {
+        console.info(`   --${flag}${" ".repeat(maxWidth - flag.length)}   ${settings.flags[flag]}`)
+      }
+    })
+  }
 }
 
 function showUsageHeadline(cmd, specs) {
   console.info("USAGE:")
+  const flags = cmd && (!specs?.flags || specs.flags.length === 0) ? "" : "[FLAGS] "
+  const options = specs?.options && specs.options.length > 0 ? "[OPTIONS] " : ""
   if (cmd) {
     if (specs?.params) {
       var optionalize = (str) => str.endsWith(' ...]') ? `[<${str.slice(1, -5)}> ...]` : (
@@ -278,28 +320,32 @@ function showUsageHeadline(cmd, specs) {
       if (Array.isArray(specs?.params)) {
         params = specs.params.map(param => optionalize(param)).join(' ') + " "
       } else {
-        params = optionalize(specs?.params)
+        params = optionalize(specs?.params) + " "
       }
-      console.info(`    ${lwhite(`npx witnet-solidity ${cmd}`)} [FLAGS] ${params ? green(params) + " " : ""}${specs?.options && Object.keys(specs?.options).length > 0 ? "[OPTIONS]" : ""}`)
+      console.info(`   ${lwhite(`npx witnet-solidity ${cmd}`)} ${params ? green(params) : ""}${flags}${options}`)
     } else {
-      console.info(`    ${lwhite(`npx witnet-solidity ${cmd}`)} [FLAGS] <COMMAND>`)
+      console.info(`   ${lwhite(`npx witnet-solidity ${cmd}`)} ${flags}${options}`)
     }
+    console.info(`\nDESCRIPTION:`)
+    console.info(`   ${router[cmd].hint}`)
   } else {
-    console.info(`    ${lwhite("npx witnet-solidity")} [FLAGS] <COMMAND>`)
+    console.info(`   ${lwhite("npx witnet-solidity")} <COMMAND> ${flags}${options}`)
   }
 }
 
 function showUsageOptions(options) {
-  var options = Object.entries(options)
   if (options.length > 0) {
     console.info(`\nOPTIONS:`)
     var maxLength = options
-      .map(option => option[1].param ? option[1].param.length + option[0].length + 3 : option[0].length)
+      .map(option => settings.options[option].param 
+        ? settings.options[option].param.length + option.length + 3 
+        : option.length
+      )
       .reduce((prev, curr) => curr > prev ? curr : prev);
     options.forEach(option => {
-      if (option[1].hint) {
-        var str = `${option[0]}${option[1].param ? ` <${option[1].param}>` : ""}`
-        console.info("  ", `--${str}${" ".repeat(maxLength - str.length)}`, "  ", option[1].hint)
+      if (settings.options[option].hint) {
+        var str = `${option}${settings.options[option].param ? ` <${settings.options[option].param}>` : ""}`
+        console.info("  ", `--${str}${" ".repeat(maxLength - str.length)}`, "  ", settings.options[option].hint)
       }
     })
   }

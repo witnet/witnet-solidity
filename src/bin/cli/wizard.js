@@ -2,6 +2,8 @@ const fs = require("fs")
 const inquirer = require("inquirer")
 const path = require("path")
 
+const { supportsNetwork, supportedEcosystems } = require("witnet-solidity-bridge")
+
 const helpers = require("../helpers")
 
 const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../witnet/assets"
@@ -12,12 +14,13 @@ const assets = require(`${WITNET_ASSETS_PATH}`)
 const camelizeDashedString = (str) => str.split("-").map(part => capitalizeFirstLetter(part)).join("")
 const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 
-module.exports = async function (settings, _args, options) {
-    if (!settings.flags.showVersion) {
-        helpers.showVersion()
+module.exports = async function (flags = {}) {
+    const network = flags?.network || process.env.WITNET_SOLIDITY_DEFAULT_NETWORK
+    if (network && !supportsNetwork(network)) {
+        throw `Unsupported network "${network}"`
     }
     var contractPath = "contracts/"
-    var contractName = options?.contract || ""
+    var contractName = flags?.contract || ""
     var isFirstMockup = true
     let namedByUser = false
     if (contractName !== "") {
@@ -49,7 +52,7 @@ module.exports = async function (settings, _args, options) {
             type: "rawlist",
             name: "usage",
             message: `What will ${isFirstMockup ? "your first" : (namedByUser ? `the ${contractName}` : "your next")
-                } Solidity contract be using Witnet for?`,
+                } Solidity contract be using the Wit/Oracle for?`,
             choices: [
                 "Randomness => unmalleable source of entropy.",
                 "Price feeds => based on multiple, reliable and public data sources.",
@@ -64,9 +67,9 @@ module.exports = async function (settings, _args, options) {
                 ...await inquirer.prompt({
                     type: "list",
                     name: "randomness",
-                    message: "Would you rather rely on the WitnetRandomness appliance or handle resolution of randomness requests at a lower level?",
+                    message: "Would you rather rely on the WitRandomness appliance or handle resolution of randomness requests at a lower level?",
                     choices: [
-                        "Yes => use the WitnetRandomness appliance (randomize results need to be polled).",
+                        "Yes => use the WitRandomness appliance (randomize results need to be polled).",
                         "No  => I know how to handle randomness request callbacks, attend eventual faulty requests and protect against front-run attacks.",
                     ],
                 }),
@@ -95,7 +98,7 @@ module.exports = async function (settings, _args, options) {
                         message: "Will your contract have to deal with data request parameters?",
                         choices: [
                             "Yes => my contract will have to generate actual parameter values onchain.",
-                            "No => Witnet-compliant data request bytecode will be provided by some pre-authorized offchain worflow.",
+                            "No => Witnet-compliant data request bytecode will be provided by some Externally Owned Account.",
                         ],
                     }),
                     ...answers,
@@ -106,10 +109,10 @@ module.exports = async function (settings, _args, options) {
                     ...await inquirer.prompt({
                         type: "list",
                         name: "callbacks",
-                        message: "How would you like your contract to read data from the Wit/Oracle blockchain?",
+                        message: "How would you like your contract to fetch data provided from the Wit/Oracle?",
                         choices: [
-                            "Asynchronously => my contract will eventually read the result from Witnet, when available.",
-                            "Synchronously => my contract is to be called as soon as data is reported from Witnet.",
+                            "Asynchronously => my contract will eventually read the result from the WitOracle contract.",
+                            "Synchronously => my contract is to be called as soon as data is reported from the Wit/Oracle.",
                         ],
                     }),
                     ...answers,
@@ -141,47 +144,53 @@ module.exports = async function (settings, _args, options) {
         appKind === "Price" ||
         answers?.parameterized?.split(" ")[0] === "No"
     ) {
-        answers = {
-            ...await inquirer.prompt({
-                type: "confirm",
-                name: "includeMocks",
-                message: "Do you intend to include your new contract within unitary Solidity tests?",
-                default: false,
-            }),
-            ...answers,
-        }
+        // answers = {
+        //     ...await inquirer.prompt({
+        //         type: "confirm",
+        //         name: "includeMocks",
+        //         message: "Do you intend to include your new contract within unitary Solidity tests?",
+        //         default: false,
+        //     }),
+        //     ...answers,
+        // }
+        answers.includeMocks = false
         if (!answers.includeMocks) {
-            const choices = assets.supportedEcosystems().map(e => e.toUpperCase())
-            answers = {
-                ...await inquirer.prompt({
-                    type: "checkbox",
-                    name: "ecosystems",
-                    message: "Please, select the ecosystem(s) where you intend to deploy this new contract:",
-                    choices,
-                    pageSize: 32,
-                    loop: true,
-                    validate: (ans) => { return (ans.length > 0) },
-                }),
-                ...answers,
-            }
             const artifact = (appKind === "Price"
-                ? "WitPriceFeeds"
+                ? "apps.WitPriceFeeds"
                 : answers?.randomness?.split(" ")[0] === "Yes"
-                    ? "WitRandomnessV2"
-                    : (
-                        "WitOracle"
-                    )
+                    ? "apps.WitRandomnessV2"
+                    : "core.WitOracle"
             )
             const findings = []
-            answers?.ecosystems.forEach(ecosystem => {
-                Object.keys(assets.supportedNetworks(ecosystem)).forEach(network => {
-                    const addrs = assets.getAddresses(network)
-                    const artifactAddr = addrs?.apps[artifact] || addrs.core[artifact]
-                    if (artifactAddr && !findings.includes(artifactAddr)) {
-                        findings.push(artifactAddr)
-                    }
+            if (!network) {
+                const choices = supportedEcosystems().map(e => e.toUpperCase())
+                answers = {
+                    ...await inquirer.prompt({
+                        type: "checkbox",
+                        name: "ecosystems",
+                        message: "Please, select the ecosystem(s) where you intend to deploy this new contract:",
+                        choices,
+                        pageSize: 32,
+                        loop: true,
+                        validate: (ans) => { return (ans.length > 0) },
+                    }),
+                    ...answers,
+                }
+                answers?.ecosystems.forEach(ecosystem => {
+                    Object.keys(supportedNetworks(ecosystem)).forEach(network => {
+                        const addrs = helpers.flattenObject(assets.getNetworkAddresses(network))
+                        const artifactAddr = addrs[artifact]
+                        if (artifactAddr && !findings.includes(artifactAddr)) {
+                            findings.push(artifactAddr)
+                        }
+                    })
                 })
-            })
+            } else {
+                const addrs = helpers.flattenObject(assets.getNetworkAddresses(network))
+                if (addrs[artifact]) {
+                    findings.push(addrs[artifact])
+                }
+            }
             if (findings.length === 1) {
                 answers = {
                     ...answers,
@@ -200,12 +209,12 @@ module.exports = async function (settings, _args, options) {
         ...await inquirer.prompt([{
             type: "rawlist",
             name: "overhead",
-            message: "How much extra fee would you pay as to to prevent EVM gas price variations affecting data resolution time?",
+            message: "How much extra fee would you pay as to to prevent EVM gas price variations affecting queries resolution time?",
             choices: [
-                "Stingy (+5%)",
                 "Average (+15%)",
                 "Generous (+30%)",
                 "Precautious (+50%)",
+                "Stingy (+5%)",
             ],
         }]),
         ...answers,
@@ -223,10 +232,10 @@ module.exports = async function (settings, _args, options) {
         case "Randomness": {
             if (answers?.randomness?.split(" ")[0] === "Yes") {
                 if (!answers?.witnetAddress) {
-                    constructorParams = "WitnetRandomness _witnetRandomness"
+                    constructorParams = "WitRandomness _witnetRandomness"
                     witnetAddress = "_witnetRandomness"
                 } else {
-                    witnetAddress = `WitnetRandomness(${answers.witnetAddress})`
+                    witnetAddress = `WitRandomness(${answers.witnetAddress})`
                 }
                 templateFile += "_UsingRandomness.tsol"
             } else {

@@ -15,7 +15,7 @@ contract $_contractName
     
     constructor ($_constructorParams) 
         WitOracleRequestConsumer(
-            /* _witOracleRequest */ $_witOracleAddress,
+            /* _witOracleRequest */ $_witnetAddress,
             /* _witOracleBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead),
             /* _witOracleCallbackGasLimit */ uint24($_callbackGasLimit)
         )

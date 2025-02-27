@@ -15,11 +15,11 @@ contract $_contractName
     
     constructor ($_constructorParams) {
         require(
-            address($_witOracleAddress).code.length > 0
-                && $_witOracleAddress.specs() == type(IWitPriceFeeds).interfaceId,
+            address($_witnetAddress).code.length > 0
+                && $_witnetAddress.specs() == type(IWitPriceFeeds).interfaceId,
             "$_contractName: uncompliant WitPriceFeeds appliance"
         );
-        __PFS = $_witOracleAddress;
+        __PFS = $_witnetAddress;
         witOracle = __PFS.witOracle();
     }
 

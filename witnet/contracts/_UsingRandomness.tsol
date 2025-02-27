@@ -11,7 +11,7 @@ contract $_contractName
     using Witnet for Witnet.QuerySLA;
 
     constructor ($_constructorParams) 
-        UsingWitRandomness($_witOracleAddress)
+        UsingWitRandomness($_witnetAddress)
     {
         /// ...
     }
@@ -35,7 +35,7 @@ contract $_contractName
         returns (uint32[] memory _extraction)
     {
         unchecked {
-            _extraction = new uint256[](_extractions);
+            _extraction = new uint32[](_extractions);
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
                 _extraction[_ix] = Witnet.randomUniformUint32(
                     _range, 
@@ -59,7 +59,7 @@ contract $_contractName
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
                 _numbers[_ix] = _ix;
             }
-            _extraction = new uint256[](_extractions);
+            _extraction = new uint32[](_extractions);
             for (uint32 _ix = 0; _ix < _extractions; _ix ++) {
                 uint256 _random = Witnet.randomUniformUint32(
                     _range - _ix, 

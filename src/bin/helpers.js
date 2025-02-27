@@ -12,38 +12,74 @@ module.exports = {
         lcyan, lwhite,
         mcyan, 
     },
-    deleteExtraFlags, extractFromArgs,
-    orderKeys,
-    showVersion,
-    traceHeader, traceWitnetAddresses,
+    deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
+    flattenObject, orderKeys,
+    showVersion, traceHeader, traceWitnetAddresses,
 }
 
 function deleteExtraFlags(args) {
-    return args?.filter(arg => !arg.startsWith('--'))
+    deleted = []
+    return [
+        args?.filter(arg => { 
+            if (arg.startsWith('--')) {
+                deleted.push(arg.slice(2))
+                return false
+            } else {
+                return true
+            }
+        }),
+        deleted
+    ];
 }
 
-function extractFromArgs(args, options) {
+function extractFlagsFromArgs(args, flags) {
     const curated = {}
-    if (args && options) {
-        Object.keys(options).forEach(option => {
+    if (args && Array.isArray(args) && flags) {
+        flags.forEach(flag => {
+            const index = args.indexOf(`--${flag}`)
+            if (index >= 0) {
+                curated[flag] = true
+                args.splice(index, 1)
+            }
+        })
+    }
+    return [args || [], curated,]
+}
+
+function extractOptionsFromArgs(args, options) {
+    const curated = {}
+    if (args && Array.isArray(args) && options) {
+        options.forEach(option => {
             const index = args.indexOf(`--${option}`)
             if (index >= 0) {
-                if (options[option].param) {
-                    curated[option] = args[index]
-                    if (!args[index + 1] || args[index + 1].startsWith('--')) {
-                        throw `Missing required parameter for --${option}`
-                    } else {
-                        curated[option] = args[index + 1]
-                        args.splice(index, 2)
-                    }
+                curated[option] = args[index]
+                if (!args[index + 1] || args[index + 1].startsWith('--')) {
+                    throw `Missing required parameter for --${option}`
                 } else {
-                    curated[option] = true
-                    args.splice(index, 1)
+                    curated[option] = args[index + 1]
+                    args.splice(index, 2)
                 }
             }
         })
     }
-    return [args, curated,]
+    return [args || [], curated,]
+}
+
+function flattenObject(ob) {
+    var toReturn = {};
+    for (const i in ob) {
+        if (!ob.hasOwnProperty(i)) continue;
+        if ((typeof ob[i]) == 'object' && ob[i] !== null) {
+            const flatObject = flattenObject(ob[i]);
+            for (var x in flatObject) {
+                if (!flatObject.hasOwnProperty(x)) continue;
+                toReturn[i + '.' + x] = flatObject[x];
+            }
+        } else {
+            toReturn[i] = ob[i];
+        }
+    }
+    return toReturn;
 }
 
 function orderKeys(obj) {
@@ -64,7 +100,7 @@ function orderKeys(obj) {
 }
 
 function showVersion() {
-    console.info(`${lcyan(`Witnet Solidity v${require("../../package.json").version}`)}`)
+    console.info(`${mcyan(`Wit/Oracle Solidity CLI v${require("../../package.json").version}`)}`)
 }
 
 function traceHeader(header, color = white, indent = "") {
@@ -92,9 +128,9 @@ function traceWitnetAddresses(addresses, artifacts, indent = "", level) {
             ) {
                 found++
                 if (includes(artifacts, key)) {
-                    console.info(`${indent}${lcyan(addresses[key])}`, "\t<=", `${lwhite(key)}`)
+                    console.info(`${indent}${mcyan(addresses[key])}`, "<=", `${lwhite(key)}`)
                 } else {
-                    console.info(`${indent}${cyan(addresses[key])}`, "\t<=", `${white(key)}`)
+                    console.info(`${indent}${cyan(addresses[key])}`, "<=", `${white(key)}`)
                 }
             }
         }

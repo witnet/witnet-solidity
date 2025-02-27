@@ -15,7 +15,7 @@ contract $_contractName
 
     constructor ($_constructorParams) 
         UsingWitOracleRequest(
-            /* _witOracleRequest */ $_witOracleAddress,
+            /* _witOracleRequest */ $_witnetAddress,
             /* _witOracleBaseFeeOverheadPercentage */ uint16($_baseFeeOverhead)
         )
     {
