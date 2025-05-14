@@ -1,5 +1,5 @@
-import { utils, Witnet } from 'witnet-toolkit'
+import { assets, Witnet } from "witnet-toolkit"
+import * as utils from "./lib/utils"
 
-export { utils, Witnet }
-module.exports = { utils, Witnet }
-
+export { assets, utils, Witnet }
+module.exports = { assets, utils, Witnet }

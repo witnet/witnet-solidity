@@ -1,5 +1,5 @@
 const { supportsNetwork } = require("witnet-solidity-bridge")
-const { Witnet } = require("witnet-toolkit")
+const { utils, Witnet } = require("witnet-toolkit")
 
 const helpers = require("../helpers")
 
@@ -13,7 +13,8 @@ module.exports = async function (flags = {}, args = []) {
         if (network) throw `Unsupported network "${network}"`
         else throw "No EVM network was specified!";
     }
-    const allAddrs = assets.getNetworkAddresses(network)
+    const allAddrs = helpers.getNetworkAddresses(network)
+    const constructorArgs = helpers.getNetworkConstructorArgs(network)
     const addresses = {}    
     if (flags?.apps) {
         addresses.apps = allAddrs?.apps
@@ -21,31 +22,18 @@ module.exports = async function (flags = {}, args = []) {
     if (flags?.core) {
         addresses.core = allAddrs?.core
     }
-    if (flags?.legacy) {
-        if (flags?.requests) {
-            if (allAddrs?.requests) addresses.requests = allAddrs.requests
+    if (flags?.requests) {
+        const dict = utils.flattenRadonRequests(assets)
+        // console.log(dict)
+        if (dict && allAddrs?.requests) {
+            addresses.requests = Object.fromEntries(Object.entries(allAddrs?.requests).filter(([key,]) => dict[key]))
         }
-        if (flags?.templates) {
-            if (allAddrs?.templates) addresses.templates = allAddrs.templates
-        }
-    } else {
-        if (flags?.requests) {
-            const dict = Witnet.RadonDictionary(Witnet.RadonRequest, require(`${WITNET_ASSETS_PATH}/requests`))
-            // console.log(dict)
-            if (dict && allAddrs?.requests) {
-                addresses.requests = Object.fromEntries(Object.entries(allAddrs?.requests).filter(([key,]) => {
-                    // if (dict[key]) console.log(key, "=>", dict[key])
-                    return dict[key]
-                }))
-                // console.log(addresses.requests)
-            }
-        }
-        if (flags?.templates) {
-            const dict = Witnet.Dictionary(Witnet.RadonTemplate, require(`${WITNET_ASSETS_PATH}/templates`))
-            // console.log(dict, allAddrs?.templates)
-            if (dict && allAddrs?.templates) {
-                addresses.template = Object.fromEntries(Object.entries(allAddrs?.templates).filter(([key,]) => dict[key]))
-            }
+    }
+    if (flags?.templates) {
+        const dict = utils.flattenRadonTemplates(assets)
+        // console.log(dict, allAddrs?.templates)
+        if (dict && allAddrs?.templates) {
+            addresses.templates = Object.fromEntries(Object.entries(allAddrs?.templates).filter(([key,]) => dict[key]))
         }
     }
     extraFlags.forEach(flag => {
@@ -69,7 +57,7 @@ module.exports = async function (flags = {}, args = []) {
     ));
     // console.log(addrs, addresses)
     // console.log(args, extraFlags, addresses)
-    if (!helpers.traceWitnetAddresses(addrs, args, "  ")) {
+    if (!helpers.traceWitnetAddresses(addrs, constructorArgs, args, "  ")) {
         throw `No artifacts named after: ${JSON.stringify(args)}`
     }
     return [network, addresses]

@@ -50,18 +50,19 @@
     "truffle"
   ],
   "dependencies": {
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
     "lodash.merge": "^4.6.2",
     "truffle": "^5.11.5",
-    "web3-jsonrpc-gateway": "~2.0.1",
-    "witnet-solidity-bridge": "~2.1.0-beta.0",
-    "witnet-toolkit": "~2.1.0-beta.0"
+    "web3-jsonrpc-gateway": "../web3-jsonrpc-gateway",
+    "witnet-solidity-bridge": "link:..\\witnet-solidity-bridge",
+    "witnet-toolkit": "link:..\\witnet-toolkit"
   },
   "devDependencies": {
+    "@types/lodash.merge": "^4.6.9",
     "@types/node": "^22.10.2",
     "cbor": "^10.0.3",
-    "cross-env": "7.0.3",
     "eslint": "^9.16.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",

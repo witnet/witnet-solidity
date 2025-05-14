@@ -6,6 +6,8 @@ const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
 
+const framework = require("witnet-solidity-bridge")
+
 module.exports = {
     colors: {
         cyan, green, yellow, white,
@@ -15,6 +17,8 @@ module.exports = {
     deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
     flattenObject, orderKeys,
     showVersion, traceHeader, traceWitnetAddresses,
+    getNetworkAddresses, 
+    getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
 }
 
 function deleteExtraFlags(args) {
@@ -82,6 +86,13 @@ function flattenObject(ob) {
     return toReturn;
 }
 
+function getNetworkAddresses(network) {
+    return require("lodash.merge")(
+        framework.getNetworkAddresses(network.toLowerCase()),
+        require("../../witnet/addresses.json")[network.toLowerCase()],
+    )
+}
+
 function orderKeys(obj) {
     const keys = Object.keys(obj).sort(function keyOrder(k1, k2) {
         if (k1 < k2) return -1
@@ -109,7 +120,7 @@ function traceHeader(header, color = white, indent = "") {
     console.info(`${indent}└─${"─".repeat(header.length)}─┘`)
 }
 
-function traceWitnetAddresses(addresses, artifacts, indent = "", level) {
+function traceWitnetAddresses(addresses, constructorArgs, artifacts, indent = "", level) {
     const includes = (selection, key) => {
         return selection.filter(
             artifact => key.toLowerCase().indexOf(artifact.toLowerCase()) >= 0
@@ -118,12 +129,15 @@ function traceWitnetAddresses(addresses, artifacts, indent = "", level) {
     let found = 0
     for (const key in orderKeys(addresses)) {
         if (typeof addresses[key] === "object") {
-            found += traceWitnetAddresses(addresses[key], artifacts, indent, (level || 0) + 1)
+            found += traceWitnetAddresses(addresses[key], constructorArgs, artifacts, indent, (level || 0) + 1)
         } else {
             if (
                 key !== "WitnetDeployer"
                 && !key.endsWith("Lib")
                 && !key.endsWith("Proxy")
+                && key.indexOf("Trustable") < 0
+                && key.indexOf("Upgradable") < 0
+                && constructorArgs[key] !== undefined
                 || includes(artifacts, key)
             ) {
                 found++

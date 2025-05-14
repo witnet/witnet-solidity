@@ -13,7 +13,7 @@ const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modu
 
 const settings = {
   checks: {
-    toolkitRadonIsInitialized: fs.existsSync("./witnet/assets/index.js"),
+    toolkitIsInitialized: fs.existsSync("./witnet/assets/index.js"),
     packageIsInitialized: fs.existsSync("./witnet/addresses.json")
   },
   paths: {
@@ -80,6 +80,10 @@ const settings = {
   },
 }
 
+if (!settings.checks.toolkitIsInitialized || !settings.checks.packageIsInitialized) {
+  install()
+}
+
 const router = {
   console: {
     hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
@@ -136,8 +140,8 @@ const router = {
       'WITNET_SOLIDITY_DEFAULT_NETWORK',
     ],
   },
-  events: {
-    hint: "Trace latest events logged by the WitOracle core contract",
+  "events": {
+    hint: "Trace latest events logged by the WitOracle core contract.",
     params: "[TOPICS ...]",
     flags: [ 
       'await', 
@@ -153,14 +157,14 @@ const router = {
     ],
   },
   networks: {
-    hint: "List EVMs and networks currently bridged to the Wit/Oracle blockchain.",
+    hint: "List EVMs and networks currently bridged to the Witnet blockchain.",
     params: "[ECOSYSTEM]",
     flags: [
       'mainnets', 
       'testnets', 
     ],
   },
-  report: {
+  "report": {
     hint: "Push into some consumer contract the result to a data request transaction in the Wit/Oracle blockchain.",
     params: "DR_TX_HASH",
     flags: [
@@ -210,9 +214,6 @@ async function main() {
   if (flags.version) {
     helpers.showVersion()
   }
-  if (!settings.checks.toolkitRadonIsInitialized || !settings.checks.packageIsInitialized) {
-    install()
-  }
   var [args, options, ] = helpers.extractOptionsFromArgs(args, Object.keys(settings.options))
   if (args[0] && router.commands[args[0]]) {
     const cmd = args[0]
@@ -240,11 +241,8 @@ function install() {
   if (!fs.existsSync("./witnet/assets/requests.js")) {
     fs.cpSync("node_modules/witnet-solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js")
   }
-  if (!fs.existsSync("./witnet/assets/retrievals.js")) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_retrievals.js", "./witnet/assets/retrievals.js")
-  }
-  if (!fs.existsSync("./witnet/assets/templates.js")) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
+  if (!fs.existsSync("./witnet/assets/sources.js")) {
+    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_sources.js", "./witnet/assets/sources.js")
   }
   if (!fs.existsSync("./witnet/assets/templates.js")) {
     fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
