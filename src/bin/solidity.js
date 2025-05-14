@@ -85,6 +85,11 @@ if (!settings.checks.toolkitIsInitialized || !settings.checks.packageIsInitializ
 }
 
 const router = {
+  "assets": {
+    hint: "List Radon assets currently verified into the specified EVM chain.",
+    params: "[ASSETS_NAMES ...]",
+    flags: [ "legacy" ],
+  },
   console: {
     hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
     params: "[ASSET_NAMES ...]",
@@ -140,8 +145,8 @@ const router = {
       'WITNET_SDK_SOLIDITY_NETWORK',
     ],
   },
-  "events": {
-    hint: "Trace latest events logged by the WitOracle core contract.",
+  "logs": {
+    hint: "Trace latest events emitted by the Wit/Oracle core contract.",
     params: "[TOPICS ...]",
     flags: [ 
       'await', 
@@ -193,13 +198,14 @@ const router = {
     ],
   },
   commands: {
+    // assets: require("./cli/assets"),
     console: require("./cli/console"),
     contracts: require("./cli/contracts"),
-    deploy: require("./cli/deploy"),
+    // deploy: require("./cli/deploy"),
     ethrpc: require("./cli/ethrpc"),
-    events: require("./cli/events"),
+    // logs: require("./cli/events"),
     networks: require("./cli/networks"),
-    report: require("./cli/report"),
+    // report: require("./cli/report"),
     wizard: require("./cli/wizard"),
   }
 }
