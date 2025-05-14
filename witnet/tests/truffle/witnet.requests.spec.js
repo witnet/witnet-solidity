@@ -7,10 +7,10 @@ contract("witnet-solidity/requests", async () => {
   const selection = utils.getWitnetArtifactsFromArgs()
   const requests = (process.argv.includes("--legacy")
     ? require(
-      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SOLIDITY_ASSETS_PATH || "../../../../../witnet/assets"}`
+      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../../witnet/assets"}`
     ).legacy.requests
     : require(
-      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SOLIDITY_ASSETS_PATH || "../../../../../witnet/assets"}/requests`
+      `${process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../../witnet/assets"}/requests`
     )
   )
   describe("Radon Requests", async () => {
