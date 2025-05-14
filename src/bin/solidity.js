@@ -76,7 +76,7 @@ const settings = {
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
     WITNET_SOLIDITY_DEFAULT_CONSUMER: "=> Default EVM consuming contract, if no otherwise specified.",
-    WITNET_SOLIDITY_DEFAULT_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
+    WITNET_SDK_SOLIDITY_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
   },
 }
 
@@ -92,7 +92,7 @@ const router = {
     options: [ 'network', ],
     envars: [ 
       'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+      'WITNET_SDK_SOLIDITY_NETWORK',
     ],
   },
   contracts: {
@@ -108,7 +108,7 @@ const router = {
       'network', 
     ],
     envars: [ 
-      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+      'WITNET_SDK_SOLIDITY_NETWORK', 
     ],
   },
   deploy: {
@@ -126,7 +126,7 @@ const router = {
     ],
     envars: [ 
       'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+      'WITNET_SDK_SOLIDITY_NETWORK',
     ],
   },
   ethrpc: {
@@ -137,7 +137,7 @@ const router = {
     ],
     envars: [ 
       'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SOLIDITY_DEFAULT_NETWORK',
+      'WITNET_SDK_SOLIDITY_NETWORK',
     ],
   },
   "events": {
@@ -153,7 +153,7 @@ const router = {
       'radHash', 
     ],
     envars: [
-      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+      'WITNET_SDK_SOLIDITY_NETWORK', 
     ],
   },
   networks: {
@@ -179,7 +179,7 @@ const router = {
     envars: [
       'ETHRPC_PRIVATE_KEYS', 
       'WITNET_SOLIDITY_DEFAULT_CONSUMER', 
-      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+      'WITNET_SDK_SOLIDITY_NETWORK', 
     ],
   },
   wizard: {
@@ -189,7 +189,7 @@ const router = {
       'network', 
     ],
     envars: [
-      'WITNET_SOLIDITY_DEFAULT_NETWORK', 
+      'WITNET_SDK_SOLIDITY_NETWORK', 
     ],
   },
   commands: {

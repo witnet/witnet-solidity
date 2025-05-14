@@ -15,7 +15,7 @@ const camelizeDashedString = (str) => str.split("-").map(part => capitalizeFirst
 const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 
 module.exports = async function (flags = {}) {
-    const network = flags?.network || process.env.WITNET_SOLIDITY_DEFAULT_NETWORK
+    const network = flags?.network || process.env.WITNET_SDK_SOLIDITY_NETWORK
     if (network && !supportsNetwork(network)) {
         throw `Unsupported network "${network}"`
     }

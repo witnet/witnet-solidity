@@ -9,7 +9,7 @@ const helpers = require("../helpers")
 
 module.exports = async function (flags = {}, args = []) {
     [args] = helpers.deleteExtraFlags(args)
-    const network = flags?.network || process.env.WITNET_SOLIDITY_DEFAULT_NETWORK
+    const network = flags?.network || process.env.WITNET_SDK_SOLIDITY_NETWORK
     if (!network || !supportsNetwork(network)) {
         if (network) throw `Unsupported network "${network}"`
         else throw "No EVM network was specified!";
