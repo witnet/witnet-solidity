@@ -23,17 +23,20 @@ const settings = {
     truffleTestsPath: `${MODULE_WITNET_PATH}/tests/truffle`,
   },
   flags: {
-    apps: "Includes Wit/Oracle appliances",
-    await: "Holds on until next event is triggered",
-    "dry-run": "Dry-runs deployment workfow into a mocked environment",
-    force: "Forces operation without user intervention", 
-    help: "Describes command's usage",
-    legacy: "Includes artifacts from Witnet legacy packages",
-    mainnets: "Lists supported EVM mainnets",
-    requests: "Includes WitOracleRequest artifacts",
-    templates: "Includes WitOracleRequestTemplate artifacts",
-    testnets: "Lists supported EVM testnets",
-    version: "Prints tool name and version as headline",
+    all: "List all available Radon assets, even if not yet verified.",
+    apps: "Show addresses of Wit/Oracle appliances.",
+    await: "Hold down until next event is triggered.",
+    decode: "Decode selected Radon assets as currently on the specified network.",
+    "dry-run": "Dry-run deployment workfow into a mocked environment",
+    force: "Force operations without user intervention.", 
+    help: "Describe command's usage",
+    legacy: "Filter to those declared in witnet/assets folder.",
+    mainnets: "List supported EVM mainnets.",
+    requests: "Includes WitOracleRequest artifacts.",
+    templates: "Show addresses of WitOracleRequestTemplate.",
+    testnets: "List supported EVM testnets.",
+    verify: "Formally verify selected Radon assets.",
+    version: "Print binary name and version as headline.",
   },
   options: {
     consumer: {
@@ -45,38 +48,45 @@ const settings = {
       param: "path/to/output"
     },
     from: {
-      hint: "Reporter's address other than default (must be known by the ETH/RPC gateway)",
+      hint: "EVM signer address, other than gateway's default.",
       param: "EVM_ADDRESS"
     },
     fromBlock: {
-      hint: "Process events since given EVM block number",
+      hint: "Process events since given EVM block number.",
       param: "EVM_BLOCK"
     },
     gasLimit: {
-      hint: "Maximum gas to spend in the EVM transaction",
+      hint: "Maximum gas to spend in the EVM transaction.",
       param: "GAS_LIMIT"
     }, 
+    module: {
+      hint: "Package where to fetch Radon assets from (supersedes --legacy).",
+      param: "NPM_PACKAGE",
+    },
     network: {
-      hint: "EVM network to connect instead of the one settled as default",
+      hint: "Bind mockup contract to immutable Wit/Oracle addresses on this EVM network.",
       param: "NETWORK",
     },
+    port: {
+      hint: "Local port where some ETH/RPC signing gateway is expected to be running (default: 8545).",
+      param: "HTTP_PORT",
+    },
     provider: {
-      hint: "Forces the local gateway to rely on this remote ETH/RPC provider",
-      param: "ETHRPC_PROVIDER_URL"
+      hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
+      param: "HTTP_REMOTE_URL"
     },
     radHash: {
-      hint: "Filters events referring given RAD hash",
+      hint: "Filter events referring given RAD hash.",
       param: "RAD_HASH",
     },
     requester: {
-      hint: "Filters events triggered by given requester",
+      hint: "Filter events triggered by given requester.",
       param: "EVM_ADDRESS",
     },
   },
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
-    WITNET_SOLIDITY_DEFAULT_CONSUMER: "=> Default EVM consuming contract, if no otherwise specified.",
-    WITNET_SDK_SOLIDITY_NETWORK: "=> Default EVM network to interact with, if no otherwise specified.",
+    ETHRPC_PROVIDER_URL: "=> Remote ETH/RPC provider to rely on, if no otherwise specified.",
   },
 }
 
@@ -85,64 +95,63 @@ if (!settings.checks.toolkitIsInitialized || !settings.checks.packageIsInitializ
 }
 
 const router = {
-  "assets": {
-    hint: "List Radon assets currently verified into the specified EVM chain.",
-    params: "[ASSETS_NAMES ...]",
-    flags: [ "legacy" ],
+  assets: {
+    hint: "Show Witnet Radon assets formally verified into some locally connected network.",
+    params: "[RADON_ASSETS ...]",
+    flags:   [ "all", "force", "legacy", "verify" ],
+    options: [ "from", "module", "port" ],
   },
-  console: {
-    hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
-    params: "[ASSET_NAMES ...]",
-    flags: [ 'apps', 'legacy', 'requests', 'templates', ],
-    options: [ 'network', ],
-    envars: [ 
-      'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SDK_SOLIDITY_NETWORK',
-    ],
-  },
+  // console: {
+  //   hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
+  //   params: "[ASSET_NAMES ...]",
+  //   flags: [ 'apps', 'legacy', 'requests', 'templates', ],
+  //   options: [ 'network', ],
+  //   envars: [ 
+  //     'ETHRPC_PRIVATE_KEYS',
+  //     'WITNET_SDK_SOLIDITY_NETWORK',
+  //   ],
+  // },
   contracts: {
-    hint: "List available Witnet-related EVM addresses on the specified EVM chain.",
-    params: "[ASSET_NAMES ...]",
+    hint: "Show available Wit/Oracle contract addresses in some locally connected network.",
+    params: "[WIT_ORACLE_ARTIFACTS ...]",
     flags: [ 
       'apps', 
-      'legacy', 
-      'requests', 
-      'templates', 
+      // 'legacy', 
+      // 'requests',
+      'templates',
     ],
     options: [ 
-      'network', 
-    ],
-    envars: [ 
-      'WITNET_SDK_SOLIDITY_NETWORK', 
+      'port', 
     ],
   },
-  deploy: {
-    hint: "Deploy specified Radon artifacts into some EVM chain.",
-    params: [
-      "[ARTIFACT_NAMES ...]",
-    ],
-    flags: [ 
-      'all', 
-      'dry-run', 
-      'legacy', 
-    ],
-    options: [ 
-      'network', 
-    ],
-    envars: [ 
-      'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SDK_SOLIDITY_NETWORK',
-    ],
-  },
+  // deploy: {
+  //   hint: "Deploy specified Radon artifacts into some EVM chain.",
+  //   params: [
+  //     "[ARTIFACT_NAMES ...]",
+  //   ],
+  //   flags: [ 
+  //     'all', 
+  //     'dry-run', 
+  //     'legacy', 
+  //   ],
+  //   options: [ 
+  //     'network', 
+  //   ],
+  //   envars: [ 
+  //     'ETHRPC_PRIVATE_KEYS',
+  //     'WITNET_SDK_SOLIDITY_NETWORK',
+  //   ],
+  // },
   ethrpc: {
-    hint: "Run a local ETH/RPC gateway connecting to the specified network.",
+    hint: "Launch a local ETH/RPC signing gateway connected to the specified EVM network.",
+    params: ["EVM_NETWORK"],
     options: [ 
-      'network', 
+      'port', 
       'provider', 
     ],
     envars: [ 
       'ETHRPC_PRIVATE_KEYS',
-      'WITNET_SDK_SOLIDITY_NETWORK',
+      'ETHRPC_PROVIDER_URL',
     ],
   },
   "logs": {
@@ -162,8 +171,8 @@ const router = {
     ],
   },
   networks: {
-    hint: "List EVMs and networks currently bridged to the Witnet blockchain.",
-    params: "[ECOSYSTEM]",
+    hint: "List EVM networks currently bridged to the Witnet blockchain.",
+    params: "[EVM_ECOSYSTEM]",
     flags: [
       'mainnets', 
       'testnets', 
@@ -193,18 +202,15 @@ const router = {
       'contract', 
       'network', 
     ],
-    envars: [
-      'WITNET_SDK_SOLIDITY_NETWORK', 
-    ],
   },
   commands: {
-    // assets: require("./cli/assets"),
-    console: require("./cli/console"),
+    assets: require("./cli/assets"),
     contracts: require("./cli/contracts"),
-    // deploy: require("./cli/deploy"),
     ethrpc: require("./cli/ethrpc"),
-    // logs: require("./cli/events"),
+    // console: require("./cli/console"),
     networks: require("./cli/networks"),
+    // deploy: require("./cli/deploy"),
+    // logs: require("./cli/events"),
     // report: require("./cli/report"),
     wizard: require("./cli/wizard"),
   }
@@ -298,7 +304,7 @@ function showUsageEnvars(envars) {
 function showUsageError(cmd, specs, error) {
   showCommandUsage(cmd, specs)
   if (error) {
-    console.info(`\nERROR:`)
+    console.info()
     console.error(error?.stack?.split('\n')[0] || error)
   }
 }
