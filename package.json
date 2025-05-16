@@ -54,7 +54,6 @@
     "dotenv": "^16.4.1",
     "inquirer": "^8.0.0",
     "lodash.merge": "^4.6.2",
-    "truffle": "^5.11.5",
     "web3-jsonrpc-gateway": "../web3-jsonrpc-gateway",
     "witnet-solidity-bridge": "link:..\\witnet-solidity-bridge",
     "witnet-toolkit": "link:..\\witnet-toolkit"
@@ -68,8 +67,6 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^17.15.0",
     "eslint-plugin-promise": "^7.2.1",
-    "ethers": "^5.2.0",
-    "hardhat": "^2.19.5",
     "solhint": "^5.0.3",
     "typescript": "^5.7.2"
   }
