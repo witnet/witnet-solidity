@@ -256,6 +256,9 @@ function install() {
   if (!fs.existsSync("./witnet/addresses.json")) {
     fs.writeFileSync("./witnet/addresses.json", "{}")
   }
+  if (!fs.existsSync("./witnet/requests.json")) {
+    fs.writeFileSync("./witnet/requests.json", "{}")
+  }
   if (!fs.existsSync("./witnet/assets/index.js") || settings.flags.force) {
     fs.cpSync("node_modules/witnet-solidity/witnet/assets/_index.js", "./witnet/assets/index.js")
   }
