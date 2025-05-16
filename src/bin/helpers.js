@@ -123,7 +123,7 @@ function orderKeys(obj) {
 }
 
 function showVersion() {
-    console.info(`${mcyan(`Wit/Oracle Solidity CLI v${require("../../package.json").version}`)}`)
+    console.info(`${mcyan(`Wit/Oracle Solidity SDK v${require("../../package.json").version}`)}`)
 }
 
 function traceHeader(header, color = white, indent = "") {
