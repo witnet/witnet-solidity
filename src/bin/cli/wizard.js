@@ -2,20 +2,17 @@ const fs = require("fs")
 const inquirer = require("inquirer")
 const path = require("path")
 
-const { supportsNetwork, supportedEcosystems } = require("witnet-solidity-bridge")
+const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("witnet-solidity-bridge")
 
 const helpers = require("../helpers")
 
-const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../witnet/assets"
 const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
-
-const assets = require(`${WITNET_ASSETS_PATH}`)
 
 const camelizeDashedString = (str) => str.split("-").map(part => capitalizeFirstLetter(part)).join("")
 const capitalizeFirstLetter = (str) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
 
 module.exports = async function (flags = {}) {
-    const network = flags?.network || process.env.WITNET_SDK_SOLIDITY_NETWORK
+    const network = flags?.network
     if (network && !supportsNetwork(network)) {
         throw `Unsupported network "${network}"`
     }
@@ -178,7 +175,7 @@ module.exports = async function (flags = {}) {
                 }
                 answers?.ecosystems.forEach(ecosystem => {
                     Object.keys(supportedNetworks(ecosystem)).forEach(network => {
-                        const addrs = helpers.flattenObject(assets.getNetworkAddresses(network))
+                        const addrs = helpers.flattenObject(helpers.getNetworkAddresses(network))
                         const artifactAddr = addrs[artifact]
                         if (artifactAddr && !findings.includes(artifactAddr)) {
                             findings.push(artifactAddr)
@@ -186,7 +183,7 @@ module.exports = async function (flags = {}) {
                     })
                 })
             } else {
-                const addrs = helpers.flattenObject(assets.getNetworkAddresses(network))
+                const addrs = helpers.flattenObject(helpers.getNetworkAddresses(network))
                 if (addrs[artifact]) {
                     findings.push(addrs[artifact])
                 }

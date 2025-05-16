@@ -4,8 +4,7 @@ const { supportsNetwork } = require("witnet-solidity-bridge")
 
 const helpers = require("../helpers")
 
-// const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../witnet/assets"
-// const assets = require(`${WITNET_ASSETS_PATH}`)
+const networks = require("./networks")
 
 module.exports = async function (flags = {}, args = []) {
     [args] = helpers.deleteExtraFlags(args)

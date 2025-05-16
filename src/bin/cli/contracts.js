@@ -3,8 +3,7 @@ const { supportsNetwork } = require("witnet-solidity-bridge")
 const { utils, Witnet } = require("witnet-toolkit")
 
 const helpers = require("../helpers")
-
-const WITNET_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../../witnet/assets"
+const solidity = require("../../../dist/src/lib/solidity")
 
 module.exports = async function (flags = {}, args = []) {
     [args, extraFlags] = helpers.deleteExtraFlags(args)

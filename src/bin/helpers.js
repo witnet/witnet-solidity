@@ -6,7 +6,8 @@ const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
 
-const framework = require("witnet-solidity-bridge")
+const WITNET_SDK_RADON_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../witnet/assets"
+const isModuleInitialized = fs.existsSync("./witnet/assets/index.js")
 
 module.exports = {
     colors: {
