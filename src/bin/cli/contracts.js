@@ -1,4 +1,4 @@
-const merge = require("lodash.merge")
+const { JsonRpcProvider } = require("ethers")
 const { supportsNetwork } = require("witnet-solidity-bridge")
 const { utils, Witnet } = require("witnet-toolkit")
 
@@ -7,15 +7,23 @@ const solidity = require("../../../dist/src/lib/solidity")
 
 module.exports = async function (flags = {}, args = []) {
     [args, extraFlags] = helpers.deleteExtraFlags(args)
-    const network = flags?.network
-    if (!network || !supportsNetwork(network)) {
-        if (network) throw new Error(`Unsupported network "${network}"`)
-        else throw new Error("No EVM network was specified!")
+
+    let provider
+    try {
+        provider = new JsonRpcProvider(`http://127.0.0.1:${flags?.port || 8545}`)
+    } catch (err) {
+        throw new Error(`Unable to connect to local ETH/RPC gateway: ${err.message}`)
     }
+    const chainId = (await provider.getNetwork()).chainId
+    const network = solidity.getNetworkName(chainId)
+    if (!network) {
+        throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
+    }
+    
     const allAddrs = helpers.getNetworkAddresses(network)
     const constructorArgs = helpers.getNetworkConstructorArgs(network)
     const addresses = {}
-    const assets = loadAssets(flags)
+    const assets = helpers.loadAssets(flags)
     addresses.core = allAddrs?.core
     if (flags?.apps) {
         addresses.apps = allAddrs?.apps
@@ -55,9 +63,4 @@ module.exports = async function (flags = {}, args = []) {
         throw new Error(`No artifacts named after: ${JSON.stringify(args)}`)
     }
     return [network, addresses]
-}
-
-function loadAssets (options) {
-    const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("witnet-toolkit"))
-    return merge(assets, require(`${WITNET_ASSETS_PATH}`))
 }
