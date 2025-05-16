@@ -1,25 +1,36 @@
+const fs = require("fs")
+const merge = require("lodash.merge")
+const framework = require("witnet-solidity-bridge")
+
 const cyan = (str) => `\x1b[36m${str}\x1b[0m`
+const gray = (str) => `\x1b[90m${str}\x1b[0m`
 const green = (str) => `\x1b[32m${str}\x1b[0m`
+const red = (str) => `\x1b[31m${str}\x1b[0m`
 const yellow = (str) => `\x1b[33m${str}\x1b[0m`
 const white = (str) => `\x1b[98m${str}\x1b[0m`
 const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
+const mred = (str) => `\x1b[91m${str}\x1b[0m`
+const myellow = (str) => `\x1b[93m${str}\x1b[0m`
 
 const WITNET_SDK_RADON_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../witnet/assets"
 const isModuleInitialized = fs.existsSync("./witnet/assets/index.js")
 
 module.exports = {
     colors: {
-        cyan, green, yellow, white,
+        cyan, gray, green, red, yellow, white,
         lcyan, lwhite,
-        mcyan, 
+        mcyan, mred, myellow,
     },
     deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
     flattenObject, orderKeys,
     showVersion, traceHeader, traceWitnetAddresses,
     getNetworkAddresses, 
     getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
+    loadAssets,
+    readJsonFromFile: framework.utils.readJsonFromFile,
+    overwirteJsonFile: framework.utils.overwriteJsonFile,
 }
 
 function deleteExtraFlags(args) {
@@ -152,3 +163,9 @@ function traceWitnetAddresses(addresses, constructorArgs, artifacts, indent = ""
     }
     return found
 }
+
+function loadAssets (options) {
+    const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("witnet-toolkit"))
+    return isModuleInitialized ? merge(assets, require(`${WITNET_SDK_RADON_ASSETS_PATH}`)) : assets
+}
+
