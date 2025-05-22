@@ -1,6 +1,6 @@
 const cbor = require("cbor")
 const framework = require("witnet-solidity-bridge/utils")
-const { utils, Witnet } = require("witnet-toolkit")
+const { utils, Witnet } = require("@witnet/sdk")
 
 module.exports = {
   deployWitOracleRequest,

@@ -77,7 +77,7 @@ These config file templates illustrate how to address Witnet assets and supporte
 
 ### `$ npx witnet check`
 
-This script will perform a syntax check on the Witnet-based assets declared within the `witnet/assets` folder. Declaration of Witnet-based assets like data sources, aggregation filters or reducers, off-chain computation scripts (i.e. Witnet Radon scripts) and/or data requests (either static or parametrized) relies on the *Witnet Radon Typescript library* exported by the [`witnet-toolkit`](https://github.com/witnet/witnet-toolkit) package that gets installed together with `witnet-solidity`.
+This script will perform a syntax check on the Witnet-based assets declared within the `witnet/assets` folder. Declaration of Witnet-based assets like data sources, aggregation filters or reducers, off-chain computation scripts (i.e. Witnet Radon scripts) and/or data requests (either static or parametrized) relies on the *Witnet Radon Typescript library* exported by the [`@witnet/sdk`](https://github.com/witnet/@witnet/sdk) package that gets installed together with `witnet-solidity`.
 
 Right after initialization you should see:
 ```console

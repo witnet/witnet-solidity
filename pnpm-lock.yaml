@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@witnet/sdk':
+        specifier: link:..\witnet-toolkit
+        version: link:../witnet-toolkit
       cbor:
         specifier: ^10.0.3
         version: 10.0.3
@@ -32,9 +35,6 @@ importers:
       witnet-solidity-bridge:
         specifier: link:..\witnet-solidity-bridge
         version: link:../witnet-solidity-bridge
-      witnet-toolkit:
-        specifier: link:..\witnet-toolkit
-        version: link:../witnet-toolkit
     devDependencies:
       '@types/lodash.merge':
         specifier: ^4.6.9

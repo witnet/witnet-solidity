@@ -1,7 +1,7 @@
 {
-  "name": "witnet-solidity",
+  "name": "@witnet/solidity",
   "version": "2.1.2-beta.0",
-  "description": "Wit/Oracle SDK package for Solidity projects",
+  "description": "Wit/Oracle SDK Framework package for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
   "repository": {
@@ -58,7 +58,7 @@
     "lodash.merge": "^4.6.2",
     "web3-jsonrpc-gateway": "../web3-jsonrpc-gateway",
     "witnet-solidity-bridge": "link:..\\witnet-solidity-bridge",
-    "witnet-toolkit": "link:..\\witnet-toolkit"
+    "@witnet/sdk": "link:..\\witnet-toolkit"
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.9",
