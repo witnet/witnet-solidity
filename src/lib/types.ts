@@ -1,0 +1,98 @@
+import { Witnet } from "@witnet/sdk"
+
+export type QuerySLA = {
+    /**
+     * Number of witnessing nodes required to participate in committee required for solving the oracle query. 
+     */
+    witCommitteeSize: number,
+    /**
+     * Mininum amount of $WIT coins to pay for getting the underlying Data Request Transaction included in the Witnet blockchain. 
+     */
+    witInclusionFees: Witnet.Coins,
+    /**
+     * Maximum size allowed for the query result, once encoded as a CBOR buffer. 
+     */
+    witResultMaxSize: number,
+}
+
+export type PriceFeed = {
+    id: string,
+    exponent: number,
+    symbol: string,
+    mapper?: PriceFeedMapper,
+    oracle?: PriceFeedOracle,
+    updateConditions?: PriceFeedUpdateConditions,
+    lastUpdate?: PriceFeedUpdate,
+}
+
+export type PriceFeedMapper = {
+    algorithm: string,
+    description: string,
+    dependencies: Array<string>,
+}
+
+export type PriceFeedOracle = {
+    address: string,
+    name: string,
+    dataSources: Witnet.Hash,
+    interfaceId: Witnet.HexString,
+}
+
+export type PriceFeedUpdate = {
+    delta1000?: BigInt,
+    exponent?: number,
+    timestamp: BigInt,
+    trackHash: Witnet.Hash,
+    value: number,
+}
+
+export type PriceFeedUpdateConditions = {
+    computeEMA: boolean,
+    cooldownSecs: number,
+    heartbeatSecs: number,
+    maxDeviation1000: number,
+}
+
+/**
+ * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
+ */
+export type PushDataReport = {
+    /**
+     * Witnet epoch at which the Data Request Transaction got mined into the Witnet blockchain.
+     */
+    drTxBlockEpoch: number,
+    /**
+     * Hash of the block that included the Data Request Transaction into the Witnet blockchain.
+     */
+    drTxBlockHash: Witnet.Hash,
+    /**
+     * Unique hash of the Data Request Transaction that produced the outcoming result. 
+     */
+    drTxHash: Witnet.Hash,
+    /**
+     * SLA parameters required to be fulfilled by the Witnet blockchain. 
+     */
+    drTxQueryParams: QuerySLA,
+    /**
+     * RAD hash of the Radon Request being solved.
+     */
+    drTxRadHash: Witnet.Hash,
+    /**
+     * Timestamp when the data sources where queried and the contained result produced.
+     */
+    drTxTimestamp: number,
+    /**
+     * CBOR-encoded buffer containing the actual result data to some query as solved by the Witnet blockchain. 
+     */
+    resultCborBytes: Witnet.HexString,
+    /**
+     * Cryptographic proof of existance, resolution and actual result of the Data Request Transaction in the Witnet blockchain.
+     */
+    resultProofBytes: Witnet.HexString,
+}
+
+export type QueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";
+export type ResultDataTypes = "any" | "array" | "boolean" | "bytes" | "float" | "integer" | "map" | "string";
+export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
+
+export { TransactionReceipt } from "ethers"
