@@ -2,35 +2,50 @@ const fs = require("fs")
 const merge = require("lodash.merge")
 const framework = require("witnet-solidity-bridge")
 
+const commas = (number) => {
+  const parts = number.toString().split(".")
+  const result = parts.length <= 1
+    ? `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+    : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`
+  return result
+}
+
+const blue = (str) => `\x1b[34m${str}\x1b[0m`
 const cyan = (str) => `\x1b[36m${str}\x1b[0m`
 const gray = (str) => `\x1b[90m${str}\x1b[0m`
 const green = (str) => `\x1b[32m${str}\x1b[0m`
 const red = (str) => `\x1b[31m${str}\x1b[0m`
 const yellow = (str) => `\x1b[33m${str}\x1b[0m`
 const white = (str) => `\x1b[98m${str}\x1b[0m`
+const lblue = (str) => `\x1b[1;94m${str}\x1b[0m`
 const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
+const lgreen = (str) => `\x1b[1;92m${str}\x1b[0m`
 const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
+const mblue = (str) => `\x1b[94m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
+const mgreen = (str) => `\x1b[92m${str}\x1b[0m`
 const mred = (str) => `\x1b[91m${str}\x1b[0m`
 const myellow = (str) => `\x1b[93m${str}\x1b[0m`
 
 const WITNET_SDK_RADON_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../witnet/assets"
 const isModuleInitialized = fs.existsSync("./witnet/assets/index.js")
 
-module.exports = {
-    colors: {
-        cyan, gray, green, red, yellow, white,
-        lcyan, lwhite,
-        mcyan, mred, myellow,
-    },
-    deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
-    flattenObject, orderKeys,
-    showVersion, traceHeader, traceWitnetAddresses,
-    getNetworkAddresses, 
-    getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
-    loadAssets,
-    readJsonFromFile: framework.utils.readJsonFromFile,
-    overwirteJsonFile: framework.utils.overwriteJsonFile,
+function readWitnetJsonFiles(...filenames) {
+    return Object.fromEntries(filenames.map(filename => [
+        filename,
+        fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}/../${filename}.json`) 
+            ? require(`${WITNET_SDK_RADON_ASSETS_PATH}/../${filename}.json`)
+            : {}
+    ]))
+}
+
+function saveWitnetJsonFiles(data) {
+    Object.entries(data).forEach(([key, obj]) => {
+        const filepath = `./witnet/${key}.json`
+        if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, "{}");
+        const json = merge(JSON.parse(fs.readFileSync(filepath)), obj)
+        fs.writeFileSync(filepath, JSON.stringify(json, null, 4), { flag: "w+" })
+    })
 }
 
 function deleteExtraFlags(args) {
@@ -101,7 +116,9 @@ function flattenObject(ob) {
 function getNetworkAddresses(network) {
     return require("lodash.merge")(
         framework.getNetworkAddresses(network.toLowerCase()),
-        require("../../witnet/addresses.json")[network.toLowerCase()],
+        fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}/../addresses.json`) 
+            ? require(`${WITNET_SDK_RADON_ASSETS_PATH}/../addresses.json`)[network.toLowerCase()] 
+            : {},
     )
 }
 
@@ -154,9 +171,9 @@ function traceWitnetAddresses(addresses, constructorArgs, artifacts, indent = ""
             ) {
                 found++
                 if (includes(artifacts, key)) {
-                    console.info(`${indent}${mcyan(addresses[key])}`, "<=", `${lwhite(key)}`)
+                    console.info(`${indent}${mblue(addresses[key])}`, "<=", `${lwhite(key)}`)
                 } else {
-                    console.info(`${indent}${cyan(addresses[key])}`, "<=", `${white(key)}`)
+                    console.info(`${indent}${blue(addresses[key])}`, "<=", `${white(key)}`)
                 }
             }
         }
@@ -164,8 +181,101 @@ function traceWitnetAddresses(addresses, constructorArgs, artifacts, indent = ""
     return found
 }
 
-function loadAssets (options) {
-    const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("witnet-toolkit"))
-    return isModuleInitialized ? merge(assets, require(`${WITNET_SDK_RADON_ASSETS_PATH}`)) : assets
+function importRadonAssets (options) {
+    const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("@witnet/sdk"))
+    return !options?.module && isModuleInitialized && fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}`) 
+        ? merge(assets, require(`${WITNET_SDK_RADON_ASSETS_PATH}`)) 
+        : assets
 }
 
+function traceTable (records, options) {
+  const stringify = (data, humanizers, index) => humanizers && humanizers[index] ? humanizers[index](data).toString() : data?.toString() ?? ""
+  const max = (a, b) => a > b ? a : b
+  const reduceMax = (numbers) => numbers.reduce((curr, prev) => prev > curr ? prev : curr, 0)
+  if (!options) options = {}
+  const indent = options?.indent || ""
+  const numColumns = reduceMax(records.map(record => record?.length || 1))
+  const maxColumnWidth = options?.maxColumnWidth || 80
+  const table = transpose(records, numColumns)
+  options.widths = options?.widths || table.map((column, index) => {
+    let maxWidth = reduceMax(column.map(field => colorstrip(stringify(field, options?.humanizers, index)).length))
+    if (options?.headlines && options.headlines[index]) {
+      maxWidth = max(maxWidth, colorstrip(options.headlines[index].replaceAll(":", "")).length)
+    }
+    return Math.min(maxWidth, maxColumnWidth)
+  })
+  let headline = options.widths.map(maxWidth => "─".repeat(maxWidth))
+  console.info(`${indent}┌─${headline.join("─┬─")}─┐`)
+  if (options?.headlines) {
+    headline = options.widths.map((maxWidth, index) => {
+      const caption = options.headlines[index].replaceAll(":", "")
+      const captionLength = colorstrip(caption).length
+      return `${white(caption)}${" ".repeat(maxWidth - captionLength)}`
+    })
+    console.info(`${indent}│ ${headline.join(" │ ")} │`)
+    headline = options.widths.map(maxWidth => "─".repeat(maxWidth))
+    console.info(`${indent}├─${headline.join("─┼─")}─┤`)
+  }
+  for (let i = 0; i < records.length; i++) {
+    let line = ""
+    for (let j = 0; j < numColumns; j++) {
+      let data = table[j][i]
+      let color
+      if (options?.colors && options.colors[j]) {
+        color = options.colors[j]
+      } else {
+        color = typeof data === "string"
+          ? green
+          : (Number(data) === data && data % 1 !== 0 // is float number?
+            ? yellow
+            : (x) => x
+          )
+      }
+      data = stringify(data, options?.humanizers, j)
+      if (colorstrip(data).length > maxColumnWidth) {
+        while (colorstrip(data).length > maxColumnWidth - 3) {
+          data = data.slice(0, -1)
+        }
+        data += "..."
+      }
+      const dataLength = colorstrip(data).length
+      if (options?.headlines && options.headlines[j][0] === ":") {
+        data = `${color(data)}${" ".repeat(options.widths[j] - dataLength)}`
+      } else {
+        data = `${" ".repeat(options.widths[j] - dataLength)}${color(data)}`
+      }
+      line += `│ ${data} `
+    }
+    console.info(`${indent}${line}│`)
+  }
+  headline = options.widths.map(maxWidth => "─".repeat(maxWidth))
+  console.info(`${indent}└─${headline.join("─┴─")}─┘`)
+}
+
+function transpose (records, numColumns) {
+  const columns = []
+  for (let index = 0; index < numColumns; index++) {
+    columns.push(records.map(row => row[index]))
+  }
+  return columns
+}
+
+const colorstrip = (str) => str.replace(
+  /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ""
+)
+
+module.exports = {
+    colors: {
+        blue, cyan, gray, green, red, yellow, white,
+        lblue, lcyan, lgreen, lwhite,
+        mblue, mcyan, mgreen, mred, myellow,
+    },
+    deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
+    flattenObject, orderKeys,
+    showVersion, traceHeader, traceWitnetAddresses,
+    getNetworkAddresses, 
+    getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
+    importRadonAssets,
+    readWitnetJsonFiles, saveWitnetJsonFiles,
+    traceTable, commas, colorstrip,
+}

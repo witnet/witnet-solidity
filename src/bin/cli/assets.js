@@ -1,92 +1,191 @@
-const { JsonRpcProvider } = require("ethers")
-const fs = require("fs")
-const merge = require("lodash.merge")
+const { execSync } = require("node:child_process")
 const prompt = require("inquirer").createPromptModule()
-const { supportsNetwork } = require("witnet-solidity-bridge")
-const { utils, Witnet } = require("witnet-toolkit")
+const { Witnet } = require("@witnet/sdk")
 
 const helpers = require("../helpers")
-const solidity = require("../../../dist/src/lib/solidity")
+const { WitOracle } = require("../../../dist/src/lib")
 
-const WITNET_SDK_RADON_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH || "../../../../../witnet/assets"
-
-const requests = fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}/../requests.json`) 
-        ? require(`${WITNET_SDK_RADON_ASSETS_PATH}/../requests.json`)
-        : {}
+const deployables = helpers.readWitnetJsonFiles("requests", "templates")
 
 module.exports = async function (flags = {}, args = []) {
+    
     [args, extraFlags] = helpers.deleteExtraFlags(args)
+    
+    const witOracle = await WitOracle.fromJsonRpcUrl(
+        `http://127.0.0.1:${flags?.port || 8545}`,
+        flags?.signer,
+    );
 
-    let provider
-    try {
-        provider = new JsonRpcProvider(`http://127.0.0.1:${flags?.port || 8545}`)
-    } catch (err) {
-        throw new Error(`Unable to connect to local ETH/RPC gateway: ${err.message}`)
-    }
-    const chainId = (await provider.getNetwork()).chainId
-    const network = solidity.getNetworkName(chainId)
-    if (!network) {
-        throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
-    } else if (!requests[network]) {
-        requests[network] = {}
-    }
+    const { address, network } = witOracle
 
-    const WitOracleRadonRegistry = solidity.core.WitOracleRadonRegistry.from(network, await provider.getSigner(flags?.from))
+    if (!deployables.requests[network]) deployables.requests[network] = {};
+    if (!deployables.templates[network]) deployables.templates[network] = {};
+
+    const registry = await witOracle.getWitOracleRadonRegistry()
+    const deployer = await witOracle.getWitOracleRadonTemplateDeployer()
+       
+    // console.log(address, registry.address, deployer.address, network)
 
     helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
-    let assets = helpers.loadAssets(flags)
+    let assets = helpers.importRadonAssets(flags)
     if (!assets || Object.keys(assets).length === 0)  {
         throw new Error(`No Radon assets declared just yet in witnet/assets.`)
     } else {
-        assets = clearEmptyBranches(WitOracleRadonRegistry, assets, args, !flags?.all)
+        assets = clearEmptyBranches(network, assets, args, !flags?.all)
     }
     const selection = (
-        await selectWitnetArtifacts(WitOracleRadonRegistry, assets, args, "  ", !flags?.all)
+        await selectWitnetArtifacts(registry, assets, args, "  ", !flags?.all)
     ).sort(([a,], [b,]) => { if (a < b) return -1; else if (a > b) return 1; else return 0; });
-    if (flags?.verify && selection.length > 0) {
-        const maxWidth = Math.max(...selection.map(([key,]) => key.length))
+    
+    if (selection.length > 0) {
         for (const index in selection) {
             const [ key, color, asset ] = selection[index]
-            if (asset instanceof Witnet.Radon.RadonRequest) {
-                if (!flags?.force) {
+            
+            if (asset instanceof Witnet.Radon.RadonTemplate || asset instanceof Witnet.Radon.RadonModal) {
+                // todo: `lookupRadonTemplate(templates[network][key])` and compare with `asset`)
+                if (flags?.deploy /*&& deployables.templates[network][key] !== target*/) {
+                    console.info()
                     const user = await prompt([{
-                        message: `Formally verify RadonRequest::${color(key)} into ${network} ?`,
+                        message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
                         name: "continue",
                         type: "confirm",
                         default: true,
                     }])
-                    if (!user.continue) continue;
-                }
-                if (flags?.force) process.stdout.write(`${key}${" ".repeat(maxWidth - key.length)} => `);
-                try {
-                    const radHash = await WitOracleRadonRegistry.verifyRadonRequest(asset)
-                    if (flags?.force) {
-                        process.stdout.write(`${helpers.colors.mcyan(radHash.slice(2))}\n`)
-                    } else {
-                        process.stdout.write(`  RAD hash: ${helpers.colors.mcyan(radHash.slice(2))}\n\n`)
-                    }
-                    requests[network][key] = radHash
-                    saveRequests()
+                    if (user.continue) {
+                        let target
+                        let gasUsed = BigInt(0)
+                        const template = await deployer.deployRadonTemplate(asset, {
+                            confirmations: 1,
+                            onVerifyRadonRetrieval: (hash) => {
+                                process.stdout.write(`  > Verifying parameterized data source => ${helpers.colors.gray(hash)} ... `)
+                            },
+                            onVerifyRadonRetrievalReceipt: (_hash, receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+                            },
+                            onDeployRadonTemplate: (address) => {
+                                target = address
+                                process.stdout.write(`  > Replacing WitOracleRequestTemplate => ${helpers.colors.mblue(address)} ... `)
+                            },
+                            onDeployRadonTemplateReceipt: (receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+                            }
+                        }).catch(err => { 
+                            process.stdout.write(`${helpers.colors.mred("FAIL")}`); 
+                            console.error(err)
+                            throw err
+                        })
+                        // process.stdout.write(`  > WitOracleRequestTemplate address: ${helpers.colors.mcyan(target)}\n`)
+                        deployables.templates[network][key] = template.address
+                        helpers.saveWitnetJsonFiles({ templates: deployables.templates })
 
-                } catch (err) {
-                    process.stdout.write(`${helpers.colors.mred(err)}\n`)
+                        const artifact = await witOracle.getWitOracleRequestTemplateAt(target)
+                        for ([ sample, args ] of Object.entries(asset?.samples)) {
+                            await artifact.verifyRadonRequest(args, {
+                                onVerifyRadonRequest: (radHash) => {
+                                    process.stdout.write(`  > Verifying RAD hash for ${helpers.colors.lwhite(`${sample}`)} => `)
+                                    process.stdout.write(`${helpers.colors.green(radHash)} ... `)
+                                },
+                                onVerifyRadonRequestReceipt: async (receipt) => {
+                                    gasUsed += receipt?.gasUsed || BigInt(0)
+                                    process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+                                }
+                            })
+                            .catch(err => { process.stdout.write(`${helpers.colors.mred("FAIL")}\n`); console.error(err) })
+                            .then(radHash => {
+                                deployables.requests[network][`${key}$${sample}`] = radHash
+                                helpers.saveWitnetJsonFiles({ requests: deployables.requests })
+                            })
+                        }
+                        if (gasUsed > 0) {
+                            process.stdout.write(`  > EVM cost: ${gasUsed} gas units.\n`)
+                        }
+                    }
+                }
+                if (flags?.decode || flags['dry-run']) {
+                    if (deployables.templates[network] && deployables.templates[network][key]) {
+                        console.info()
+                        // if deployed, decode deployed bytecode
+                        execSync(
+                            `npx witnet radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    } else {
+                        // if not deployed, decode locally compiled bytecode
+                        execSync(
+                            `npx witnet radon decode ${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    }
+                }
+
+            } else if (asset instanceof Witnet.Radon.RadonRequest) {
+                if (flags?.deploy) { // && (!deployables.requests[network] || deployables.requests[network][key] !== asset.radHash)) {
+                    console.info()
+                    const user = await prompt([{
+                        message: `Formally verify RadonRequest::${color(key)} ?`,
+                        name: "continue",
+                        type: "confirm",
+                        default: true,
+                    }])
+                    if (user.continue) {
+                        let radHash
+                        let gasUsed = BigInt(0)
+                        radHash = await registry.verifyRadonRequest(asset, {
+                            confirmations: 1,
+                            onVerifyRadonRetrieval: (hash) => {
+                                process.stdout.write(`  > Verifying new data source => ${helpers.colors.gray(hash)} ... `)
+                            },
+                            onVerifyRadonRetrievalReceipt: (_hash, receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(helpers.colors.lwhite(`OK\n`))
+                            },
+                            onVerifyRadonRequest: (hash) => {
+                                process.stdout.write(`  > Verifying new RAD hash => ${helpers.colors.mgreen(hash)} ... `)
+                            },
+                            onVerifyRadonRequestReceipt: (receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(helpers.colors.lwhite(`OK\n`))
+                            }
+                        }).catch(err => {
+                            process.stdout.write(helpers.colors.mred("FAIL"))
+                            console.error(err)
+                            throw err
+                        })
+                        if (gasUsed > 0) {
+                            process.stdout.write(`  > EVM cost: ${gasUsed} gas units.\n`)
+                        } else {
+                            process.stdout.write(`  > RAD hash: ${helpers.colors.green(radHash)}\n`)
+                        }
+                        if (radHash) {
+                            deployables.requests[network][key] = radHash
+                            helpers.saveWitnetJsonFiles({ requests: deployables.requests })
+                        }
+                    }
+                }
+                if (flags['dry-run'] || flags?.decode) {
+                    console.info()
+                    if (deployables.requests[network][key] !== undefined) {
+                        const bytecode = await registry.lookupRadonRequestBytecode(deployables.requests[network][key])
+                        execSync(
+                            `npx witnet radon ${flags['dry-run'] ? "dry-run --verbose": "decode"} ${bytecode} --headline ${network.toUpperCase()}::${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    } else {
+                        execSync(
+                            `npx witnet radon ${flags['dry-run'] ? "dry-run --verbose": "decode"} ${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-function saveRequests() {
-    const filename = `${WITNET_SDK_RADON_ASSETS_PATH}/../requests.json`
-    if (!fs.existsSync(filename)) {
-        fs.writeFileSync(filename, "{}")
-    }
-    const json = merge(JSON.parse(fs.readFileSync(filename)), requests)
-    fs.writeFileSync(filename, JSON.stringify(json, null, 4), { flag: "w+" })
-}
-
-function clearEmptyBranches(registry, node, args, filter) {
+function clearEmptyBranches(network, node, args, filter) {
     if (node) {
         const assets = Object.fromEntries(
             Object.entries(node).map(([key, value]) => {
@@ -94,19 +193,20 @@ function clearEmptyBranches(registry, node, args, filter) {
                     (
                         !filter 
                             || args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0)
-                            || (requests[registry.network] && requests[registry.network][key] !== undefined)
+                            || (deployables.requests[network] && deployables.requests[network][key] !== undefined)
+                            || (deployables.templates[network] && deployables.templates[network][key] !== undefined)
                     ) && (
                         // value instanceof Witnet.Radon.RadonRetrieval ||
-                        // value instanceof Witnet.Radon.RadonModal ||
-                        // value instanceof Witnet.Radon.RadonTemplate ||
+                        value instanceof Witnet.Radon.RadonModal ||
+                        value instanceof Witnet.Radon.RadonTemplate ||
                         value instanceof Witnet.Radon.RadonRequest
                     )
                 ) {
                     return [key, value]
 
                 } else if (typeof value === "object") {
-                    if (countWitnetArtifacts(registry, value, args, filter) > 0) {
-                        return [key, clearEmptyBranches(registry, value, args, filter)]
+                    if (countWitnetArtifacts(network, value, args, filter) > 0) {
+                        return [key, clearEmptyBranches(network, value, args, filter)]
                     } else {
                         return [key, undefined]
                     }
@@ -124,8 +224,7 @@ function clearEmptyBranches(registry, node, args, filter) {
     }
 }
 
-function countWitnetArtifacts(registry, assets, args, filter = false) {
-    // console.log("countWitnetArtifacts")
+function countWitnetArtifacts(network, assets, args, filter = false) {
     let counter = 0
     Object.entries(assets).forEach(([key, value]) => {
         if ((
@@ -138,18 +237,17 @@ function countWitnetArtifacts(registry, assets, args, filter = false) {
                 !args ||
                 args.length === 0 ||
                 args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0) ||
-                (requests[registry.network] && requests[registry.network][key] !== undefined)
+                (deployables.requests[network] && deployables.requests[network][key] !== undefined)
             )) {
             counter++
         } else if (typeof value === "object") {
-            counter += countWitnetArtifacts(registry, value, args)
+            counter += countWitnetArtifacts(network, value, args)
         }
     })
     return counter
 }
 
 async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", filter = false) {
-    // console.log("selectWitnetArtifacts:", registry.network)
     const network = registry.network
     const selection = []
     const prefix = `${indent}`
@@ -158,31 +256,29 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
         const asset = assets[key]
         const isLast = parseInt(index) === (Object.keys(assets).length - 1)
         let found = args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0)
-        let color = (
-            found 
-                ? (requests[network] && requests[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
-                : (requests[network] && requests[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
-        );
+        let color = helpers.colors.white
         if (asset instanceof Witnet.Radon.RadonRequest) {
+            color = (
+                found 
+                    ? (deployables.requests[network] && deployables.requests[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
+                    : (deployables.requests[network] && deployables.requests[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
+            );
             if (
-                requests[network] 
-                && requests[network][key] !== undefined
+                deployables.requests[network] 
+                && deployables.requests[network][key] !== undefined
             ) {
                 const radHash = asset.radHash
                 try {
                     await registry.lookupRadonRequest(radHash)
-                    if (requests[network][key] !== radHash) {
+                    if (deployables.requests[network][key] !== radHash) {
                         // already verified but with a different RAD hash
                         color = found ? helpers.colors.mred : helpers.colors.red
-                    } else {
-                        // already verified into target network with same RAD hash
-                        found = false
                     }
                 } catch {
                     color = found ? helpers.colors.white : helpers.colors.gray
                 }
             }
-            if (!filter || found || (requests[network] && requests[network][key] !== undefined)) {
+            if (!filter || found || (deployables.requests[network] && deployables.requests[network][key] !== undefined)) {
                 console.info(`${prefix}${color(key)}`)
                 if (isLast) {
                     console.info(`${prefix}`)
@@ -193,22 +289,27 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
             asset instanceof Witnet.Radon.RadonTemplate ||
             asset instanceof Witnet.Radon.RadonModal
         ) {
-            const argsCount = assets[key].argsCount
-            if (!filter || found) {
-                console.info(`${prefix}${color(key)} ${argsCount > 0 ? helpers.colors.green(`(${argsCount} args)`) : ""}`)
+            color = (
+                found 
+                    ? (deployables.templates[network] && deployables.templates[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
+                    : (deployables.templates[network] && deployables.templates[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
+            );
+            // todo: lookup whether radon template was already deployed on a different address ?
+            if (!filter || found || (deployables.templates[network] && deployables.templates[network][key] !== undefined)) {
+                console.info(`${prefix}${color(key)}`)
                 if (isLast) {
                     console.info(`${prefix}`)
                 }
             }
 
-        } else if (asset instanceof Witnet.Radon.RadonRetrieval) {
-            const argsCount = asset.argsCount
-            if (!filter || found) {
-                console.info(`${prefix}${color(key)} ${argsCount > 0 ? helpers.colors.green(`(${argsCount} args)`) : ""}`)
-                if (isLast) {
-                    console.info(`${prefix}`)
-                }
-            }
+        // } else if (asset instanceof Witnet.Radon.RadonRetrieval) {
+        //     const argsCount = asset.argsCount
+        //     if (!filter || found) {
+        //         console.info(`${prefix}${color(key)} ${argsCount > 0 ? helpers.colors.green(`(${argsCount} args)`) : ""}`)
+        //         if (isLast) {
+        //             console.info(`${prefix}`)
+        //         }
+        //     }
 
         } else if (typeof asset === "object" && countWitnetArtifacts(registry, asset, args, filter) > 0) {
             console.info(`${indent}${isLast ? "└─ " : "├─ "}${key}`)
