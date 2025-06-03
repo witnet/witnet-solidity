@@ -2,63 +2,74 @@
 
 require('dotenv').config()
 const fs = require("fs")
+const { JsonRpcProvider } = require("ethers")
 
 const helpers = require("./helpers")
 const { green, yellow, lwhite } = helpers.colors
 
+const solidity = require("../../dist/src/lib")
 
 /// CONSTANTS AND GLOBALS =============================================================================================
-
-const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 
 const settings = {
   checks: {
     toolkitIsInitialized: fs.existsSync("./witnet/assets/index.js"),
-    packageIsInitialized: fs.existsSync("./witnet/addresses.json")
-  },
-  paths: {
-    truffleConfigFile: `${MODULE_WITNET_PATH}/scripts/truffle.config.js`,
-    truffleContractsPath: `${MODULE_WITNET_PATH}/contracts`,
-    truffleMigrationsPath: `${MODULE_WITNET_PATH}/scripts/truffle`,
-    truffleTestsPath: `${MODULE_WITNET_PATH}/tests/truffle`,
+    packageIsInitialized: fs.existsSync("./witnet/requests.json") || fs.existsSync("./witnet/templates.json"),
   },
   flags: {
-    all: "List all available Radon assets, even if not yet verified.",
+    all: "List all available Radon assets, even if not yet deployed.",
     apps: "Show addresses of Wit/Oracle appliances.",
     await: "Hold down until next event is triggered.",
-    decode: "Decode selected Radon assets as currently on the specified network.",
-    "dry-run": "Dry-run deployment workfow into a mocked environment",
+    'check-result-status': "Check result status for each oracle query.",
+    decode: "Decode selected Radon assets, as currently deployed.",
+    deploy: "Deploy selected Radon assets, if not yet deployed.",
+    "dry-run": "Dry-run selected Radon asset, as currently deployed (supersedes --decode).",
     force: "Force operations without user intervention.", 
-    help: "Describe command's usage",
+    help: "Describe how to use some command.",
     legacy: "Filter to those declared in witnet/assets folder.",
     mainnets: "List supported EVM mainnets.",
+    randomize: "Pay for a new randomize request.",
     requests: "Includes WitOracleRequest artifacts.",
-    templates: "Show addresses of WitOracleRequestTemplate.",
+    templates: "List deployed WitOracleRequestTemplate contracts.",
     testnets: "List supported EVM testnets.",
-    verify: "Formally verify selected Radon assets.",
     version: "Print binary name and version as headline.",
   },
   options: {
-    consumer: {
-      hint: "Consuming contract address where to push data results from the Wit/Oracle",
-      param: "EVM_ADDRESS"
+    confirmations: {
+      hint: "Number of block confirmations to wait for after an EVM transaction gets mined.",
+      param: "NUMBER",
     },
     contract: {
       hint: "Path or name of the new mockup contract to be created",
       param: "path/to/output"
     },
-    from: {
-      hint: "EVM signer address, other than gateway's default.",
-      param: "EVM_ADDRESS"
+    depth: {
+      hint: "Maximum number of randomize transactions to list, before the latest one (default: 16).",
+    },
+    "filter-requester": {
+      hint: "Filter events triggered by given requester.",
+      param: "EVM_ADDRESS",
+    },
+    "filter-radHash": {
+      hint: "Filter events referring given RAD hash.",
+      param: "RAD_HASH_FRAGMENT",
     },
     fromBlock: {
       hint: "Process events since given EVM block number.",
       param: "EVM_BLOCK"
     },
+    gasPrice: {
+      hint: "EVM gas price to pay for.",
+      param: "GAS_PRICE",
+    },
     gasLimit: {
-      hint: "Maximum gas to spend in the EVM transaction.",
+      hint: "Maximum EVM gas to spend per transaction.",
       param: "GAS_LIMIT"
     }, 
+    into: {
+      hint: "Address of some WitOracleConsumer contract where to report into.",
+      param: "EVM_ADDRESS",
+    },
     module: {
       hint: "Package where to fetch Radon assets from (supersedes --legacy).",
       param: "NPM_PACKAGE",
@@ -68,21 +79,33 @@ const settings = {
       param: "NETWORK",
     },
     port: {
-      hint: "Local port where some ETH/RPC signing gateway is expected to be running (default: 8545).",
+      hint: "Port on which the local ETH/RPC signing gateway is expected to be listening (default: 8545).",
       param: "HTTP_PORT",
     },
     provider: {
       hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
-      param: "HTTP_REMOTE_URL"
+      param: "PROVIDER_URL"
     },
-    radHash: {
-      hint: "Filter events referring given RAD hash.",
-      param: "RAD_HASH",
+    report: {
+      hint: "Report the given Wit/Oracle query into some consumer contract (requires: --into).",
+      param: "WIT_DR_TX_HASH",
     },
-    requester: {
-      hint: "Filter events triggered by given requester.",
-      param: "EVM_ADDRESS",
+    signer: {
+      hint: "EVM signer address, other than gateway's default.",
+      param: "EVM_ADDRESS"
     },
+    target: {
+      hint: "Address of the contract to interact with.",
+      param: "EVM_ADDRESS"
+    },
+    toBlock: {
+      hint: "Process events emitted before this EVM block number.",
+      param: "EVM_BLOCK"
+    },
+    // witnesses: {
+    //   hint: "Number of witnessing nodes required to solve the randomness request in the Witnet blockchain.",
+    //   param: "NUMBER",
+    // },
   },
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
@@ -94,127 +117,6 @@ if (!settings.checks.toolkitIsInitialized || !settings.checks.packageIsInitializ
   install()
 }
 
-const router = {
-  assets: {
-    hint: "Show Witnet Radon assets formally verified into some locally connected network.",
-    params: "[RADON_ASSETS ...]",
-    flags:   [ "all", "force", "legacy", "verify" ],
-    options: [ "from", "module", "port" ],
-  },
-  // console: {
-  //   hint: "Launch an EVM console as to interact with Witnet-related artifacts.",
-  //   params: "[ASSET_NAMES ...]",
-  //   flags: [ 'apps', 'legacy', 'requests', 'templates', ],
-  //   options: [ 'network', ],
-  //   envars: [ 
-  //     'ETHRPC_PRIVATE_KEYS',
-  //     'WITNET_SDK_SOLIDITY_NETWORK',
-  //   ],
-  // },
-  contracts: {
-    hint: "Show available Wit/Oracle contract addresses in some locally connected network.",
-    params: "[WIT_ORACLE_ARTIFACTS ...]",
-    flags: [ 
-      'apps', 
-      // 'legacy', 
-      // 'requests',
-      'templates',
-    ],
-    options: [ 
-      'port', 
-    ],
-  },
-  // deploy: {
-  //   hint: "Deploy specified Radon artifacts into some EVM chain.",
-  //   params: [
-  //     "[ARTIFACT_NAMES ...]",
-  //   ],
-  //   flags: [ 
-  //     'all', 
-  //     'dry-run', 
-  //     'legacy', 
-  //   ],
-  //   options: [ 
-  //     'network', 
-  //   ],
-  //   envars: [ 
-  //     'ETHRPC_PRIVATE_KEYS',
-  //     'WITNET_SDK_SOLIDITY_NETWORK',
-  //   ],
-  // },
-  ethrpc: {
-    hint: "Launch a local ETH/RPC signing gateway connected to the specified EVM network.",
-    params: ["EVM_NETWORK"],
-    options: [ 
-      'port', 
-      'provider', 
-    ],
-    envars: [ 
-      'ETHRPC_PRIVATE_KEYS',
-      'ETHRPC_PROVIDER_URL',
-    ],
-  },
-  "logs": {
-    hint: "Trace latest events emitted by the Wit/Oracle core contract.",
-    params: "[TOPICS ...]",
-    flags: [ 
-      'await', 
-    ],
-    options: [ 
-      'fromBlock', 
-      'network', 
-      'requester', 
-      'radHash', 
-    ],
-    envars: [
-      'WITNET_SDK_SOLIDITY_NETWORK', 
-    ],
-  },
-  networks: {
-    hint: "List EVM networks currently bridged to the Witnet blockchain.",
-    params: "[EVM_ECOSYSTEM]",
-    flags: [
-      'mainnets', 
-      'testnets', 
-    ],
-  },
-  "report": {
-    hint: "Push into some consumer contract the result to a data request transaction in the Wit/Oracle blockchain.",
-    params: "DR_TX_HASH",
-    flags: [
-      'force', 
-    ],
-    options: [
-      'consumer',
-      'from', 
-      'gasLimit', 
-      'network', 
-    ],
-    envars: [
-      'ETHRPC_PRIVATE_KEYS', 
-      'WITNET_SOLIDITY_DEFAULT_CONSUMER', 
-      'WITNET_SDK_SOLIDITY_NETWORK', 
-    ],
-  },
-  wizard: {
-    hint: "Generate Solidity mockup contracts adapted to your use case.",
-    options: [
-      'contract', 
-      'network', 
-    ],
-  },
-  commands: {
-    assets: require("./cli/assets"),
-    contracts: require("./cli/contracts"),
-    ethrpc: require("./cli/ethrpc"),
-    // console: require("./cli/console"),
-    networks: require("./cli/networks"),
-    // deploy: require("./cli/deploy"),
-    // logs: require("./cli/events"),
-    // report: require("./cli/report"),
-    wizard: require("./cli/wizard"),
-  }
-}
 
 
 /// MAIN WORKFLOW =====================================================================================================
@@ -222,24 +124,152 @@ const router = {
 main()
 
 async function main() {
-  var [args, flags, ] = helpers.extractFlagsFromArgs(process.argv.slice(2), Object.keys(settings.flags))
+
+  let ethRpcPort = 8545
+  if (process.argv.indexOf('--port') >= 0) {
+    ethRpcPort = parseInt(process.argv[process.argv.indexOf('--port') + 1])
+  }
+  let ethRpcProvider, ethRpcNetwork
+  try {
+    ethRpcProvider = new JsonRpcProvider(`http://127.0.0.1:${ethRpcPort}`)
+    ethRpcNetwork = solidity.getNetworkByChainId((await ethRpcProvider.getNetwork()).chainId)
+  } catch (err) {}
+
+  const router = {
+    ...(ethRpcNetwork ?  {
+      assets: {
+        hint: `Formally verify deployable Radon assets into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        params: "[RADON_ASSETS ...]",
+        flags:   [ "all", "decode", "deploy", "dry-run", "legacy" ],
+        options: [ 
+          "module", 
+          "port", 
+          "signer", 
+        ],
+      },
+      contracts: {
+        hint: `List available Wit/Oracle Framework addresses in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        params: "[ARTIFACT_NAMES ...]",
+        flags: [ 
+          // 'apps', 
+          'templates',
+        ],
+        options: [ 
+          'port', 
+        ],
+      },
+      priceFeeds: {
+        hint: `Show latest Wit/Price Feeds updates on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        params: "[EVM_ADDRESS]",
+      },
+      queries: {
+        hint: `Show latest Wit/Oracle queries pulled from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        // params: "[TOPICS ...]",
+        flags: [ 
+          'check-result-status',
+        ],
+        options: [ 
+          'filter-radHash', 
+          'filter-requester', 
+          'fromBlock', 
+          'signer',
+          'toBlock',
+        ],
+        envars: [],
+      },
+      randomness: {
+        hint: `Show latest Wit/Randomness seeds randomized from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        params: "[EVM_ADDRESS]",
+        flags: [
+          'randomize',
+        ],
+        options: [
+          'confirmations',
+          'depth',
+          'gasPrice',
+          'signer',
+        ],
+        envars: [],
+      },
+      reports: {
+        hint: `Show latest Wit/Oracle data reports pushed into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        // params: "[DR_TX_HASH]",
+        flags: [
+          // 'check-result-status', 
+        ],
+        options: [
+          'confirmations',
+          'filter-radHash',
+          'filter-requester',
+          'fromBlock', 
+          'gasPrice',
+          'gasLimit', 
+          'into',
+          'report',
+          'signer',
+          'toBlock',
+        ],
+        envars: [],
+      },
+    } : {}),    
+    gateway: {
+      hint: "Launch a local ETH/RPC signing gateway connected to some specific EVM network.",
+      params: ["EVM_NETWORK"],
+      options: [ 
+        'port', 
+        'provider', 
+      ],
+      envars: [ 
+        'ETHRPC_PRIVATE_KEYS',
+        'ETHRPC_PROVIDER_URL',
+      ],
+    },
+    networks: {
+      hint: "List EVM networks currently bridged to the Witnet blockchain.",
+      params: "[EVM_ECOSYSTEM]",
+      flags: [
+        'mainnets', 
+        'testnets', 
+      ],
+    },
+    wizard: {
+      hint: "Generate Solidity mockup contracts adapted to your use case.",
+      options: [
+        'contract', 
+        'network', 
+      ],
+    },
+    commands: {
+      assets: require("./cli/assets"),
+      contracts: require("./cli/contracts"),
+      gateway: require("./cli/gateway"),
+      networks: require("./cli/networks"),
+      priceFeeds: require("./cli/priceFeeds"),
+      queries: require("./cli/queries"),
+      randomness: require("./cli/randomness"),
+      reports: require("./cli/reports"),
+      wizard: require("./cli/wizard"),
+    }
+  }
+
+  var [ args, flags ] = helpers.extractFlagsFromArgs(process.argv.slice(2), Object.keys(settings.flags))
   if (flags.version) {
     helpers.showVersion()
   }
-  var [args, options, ] = helpers.extractOptionsFromArgs(args, Object.keys(settings.options))
-  if (args[0] && router.commands[args[0]]) {
+  var [ args, options ] = helpers.extractOptionsFromArgs(args, Object.keys(settings.options))
+  if (args[0] && router.commands[args[0]] && router[args[0]]) {
     const cmd = args[0]
     if (flags.help) {
-      showCommandUsage(cmd, router[cmd])
+      showCommandUsage(router, cmd, router[cmd])
     } else {
       try {
         await router.commands[cmd]({...settings, ...flags, ...options}, args.slice(1))
       } catch (e) {
-        showUsageError(cmd, router[cmd], e)
+        showUsageError(router, cmd, router[cmd], e)
       }
     }
   } else {
-    showMainUsage()
+    showMainUsage(router)
   }
 }
 
@@ -259,8 +289,8 @@ function install() {
   if (!fs.existsSync("./witnet/assets/templates.js")) {
     fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
   }
-  if (!fs.existsSync("./witnet/addresses.json")) {
-    fs.writeFileSync("./witnet/addresses.json", "{}")
+  if (!fs.existsSync("./witnet/templates.json")) {
+    fs.writeFileSync("./witnet/templates.json", "{}")
   }
   if (!fs.existsSync("./witnet/requests.json")) {
     fs.writeFileSync("./witnet/requests.json", "{}")
@@ -270,18 +300,19 @@ function install() {
   }
 }
 
-function showMainUsage() {
-  showUsageHeadline()
+function showMainUsage(router) {
+  showUsageHeadline(router)
   showUsageFlags([ 'help', 'version', ])
+  showUsageOptions([ 'port', ])
   console.info(`\nCOMMANDS:`)
   var maxLength = Object.keys(router.commands).map(key => key.length).reduce((prev, curr) => curr > prev ? curr : prev)
   Object.keys(router.commands).forEach(cmd => {
-    console.info("  ", `${cmd}${" ".repeat(maxLength - cmd.length)}`, " ", router[cmd]?.hint)
+    if (router[cmd]) console.info("  ", `${cmd}${" ".repeat(maxLength - cmd.length)}`, " ", router[cmd]?.hint);
   })
 }
 
-function showCommandUsage(cmd, specs) {
-  showUsageHeadline(cmd, specs)
+function showCommandUsage(router, cmd, specs) {
+  showUsageHeadline(router, cmd, specs)
   showUsageFlags(specs?.flags || [])
   showUsageOptions(specs?.options || [])
   showUsageEnvars(specs?.envars || [])
@@ -301,11 +332,12 @@ function showUsageEnvars(envars) {
   }
 }
 
-function showUsageError(cmd, specs, error) {
-  showCommandUsage(cmd, specs)
+function showUsageError(router, cmd, specs, error) {
+  showCommandUsage(router, cmd, specs)
   if (error) {
     console.info()
-    console.error(error?.stack?.split('\n')[0] || error)
+    console.error(error)
+    // console.error(error?.stack?.split('\n')[0] || error)
   }
 }
 
@@ -321,7 +353,7 @@ function showUsageFlags(flags) {
   }
 }
 
-function showUsageHeadline(cmd, specs) {
+function showUsageHeadline(router, cmd, specs) {
   console.info("USAGE:")
   const flags = cmd && (!specs?.flags || specs.flags.length === 0) ? "" : "[FLAGS] "
   const options = specs?.options && specs.options.length > 0 ? "[OPTIONS] " : ""
@@ -357,8 +389,8 @@ function showUsageOptions(options) {
       .reduce((prev, curr) => curr > prev ? curr : prev);
     options.forEach(option => {
       if (settings.options[option].hint) {
-        var str = `${option}${settings.options[option].param ? ` <${settings.options[option].param}>` : ""}`
-        console.info("  ", `--${str}${" ".repeat(maxLength - str.length)}`, "  ", settings.options[option].hint)
+        var str = `${option}${settings.options[option].param ? helpers.colors.gray(` <${settings.options[option].param}>`) : ""}`
+        console.info("  ", `--${str}${" ".repeat(maxLength - helpers.colorstrip(str).length)}`, "  ", settings.options[option].hint)
       }
     })
   }
