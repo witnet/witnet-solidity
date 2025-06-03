@@ -1,9 +1,11 @@
 const { JsonRpcProvider } = require("ethers")
 const { supportsNetwork } = require("witnet-solidity-bridge")
-const { utils, Witnet } = require("witnet-toolkit")
+const { utils, Witnet } = require("@witnet/sdk")
 
 const helpers = require("../helpers")
-const solidity = require("../../../dist/src/lib/solidity")
+const solidity = require("../../../dist/src/lib")
+
+const deployables = helpers.readWitnetJsonFiles("templates")
 
 module.exports = async function (flags = {}, args = []) {
     [args, extraFlags] = helpers.deleteExtraFlags(args)
@@ -15,43 +17,32 @@ module.exports = async function (flags = {}, args = []) {
         throw new Error(`Unable to connect to local ETH/RPC gateway: ${err.message}`)
     }
     const chainId = (await provider.getNetwork()).chainId
-    const network = solidity.getNetworkName(chainId)
+    const network = solidity.getNetworkByChainId(chainId)
     if (!network) {
         throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
     }
-    
-    const allAddrs = helpers.getNetworkAddresses(network)
+    const framework = helpers.getNetworkAddresses(network)
     const constructorArgs = helpers.getNetworkConstructorArgs(network)
     const addresses = {}
-    const assets = helpers.loadAssets(flags)
-    addresses.core = allAddrs?.core
-    if (flags?.apps) {
-        addresses.apps = allAddrs?.apps
-    }
-    if (flags?.requests) {
-        const dict = utils.flattenRadonRequests(assets)
-        if (dict && allAddrs?.requests) {
-            addresses.requests = Object.fromEntries(Object.entries(allAddrs?.requests).filter(([key,]) => dict[key]))
-        }
-    }
+    const assets = helpers.importRadonAssets(flags)
+    addresses.core = framework?.core
+    addresses.apps = framework?.apps
+    addresses.libs = framework?.libs
     if (flags?.templates) {
         const dict = utils.flattenRadonTemplates(assets)
-        if (dict && allAddrs?.templates) {
-            addresses.templates = Object.fromEntries(Object.entries(allAddrs?.templates).filter(([key,]) => dict[key]))
+        if (Object.keys(dict).length > 0 && deployables.templates[network]) {
+            addresses.templates = Object.fromEntries(
+                Object
+                    .entries(deployables.templates[network])
+                    .filter(([key,]) => { 
+                        if (dict[key] !== undefined) {
+                            constructorArgs[key] = {}
+                            return true
+                        }
+                    })
+            )
         }
     }
-    extraFlags.forEach(flag => {
-        if (allAddrs[flag]) {
-            addresses[flag] = allAddrs[flag]
-        }
-    })
-    // include core artifacts, if not flags were specified:
-    if (Object.keys(addresses).length === 0) {
-        addresses.core = allAddrs?.core
-    }
-    // always include libs, although they will only shown if searched for
-    addresses.libs = allAddrs?.libs
-
     helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
     const addrs = helpers.orderKeys(Object.fromEntries(
         Object.entries(helpers.flattenObject(addresses)).map(([key, addr]) => [
