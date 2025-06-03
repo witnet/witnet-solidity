@@ -891,6 +891,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
                 oracle: {
                     address: result.oracle.addr,
                     name: result.oracle.name,
+                    dataBytecode: result.oracle.dataBytecode,
                     dataSources: result.oracle.dataSources,
                     interfaceId: result.oracle.interfaceId,
                 },
@@ -945,6 +946,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
                 oracle: {
                     address: result.oracle.addr,
                     name: result.oracle.name,
+                    dataBytecode: result.oracle.dataBytecode,
                     dataSources: result.oracle.dataSources,
                     interfaceId: result.oracle.interfaceId,
                 },

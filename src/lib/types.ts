@@ -34,6 +34,7 @@ export type PriceFeedMapper = {
 export type PriceFeedOracle = {
     address: string,
     name: string,
+    dataBytecode?: Witnet.HexString,
     dataSources: Witnet.Hash,
     interfaceId: Witnet.HexString,
 }
