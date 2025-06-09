@@ -56,8 +56,8 @@
     "ethers": "^6.14.0",
     "ethrpc-gateway": "../web3-jsonrpc-gateway",
     "lodash.merge": "^4.6.2",
-    "witnet-solidity-bridge": "link:..\\witnet-solidity-bridge",
-    "@witnet/sdk": "link:..\\witnet-toolkit"
+    "witnet-solidity-bridge": "latest",
+    "@witnet/sdk": "^1.0.0"
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.9",

@@ -4,8 +4,6 @@ const { supportsNetwork } = require("witnet-solidity-bridge")
 
 const helpers = require("../helpers")
 
-const networks = require("./networks")
-
 module.exports = async function (flags = {}, args = []) {
     [args] = helpers.deleteExtraFlags(args)
     const network = args[0]

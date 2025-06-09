@@ -1,4 +1,3 @@
-const ethers = require("ethers")
 const helpers = require("../helpers")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()

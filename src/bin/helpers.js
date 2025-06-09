@@ -49,7 +49,7 @@ function saveWitnetJsonFiles(data) {
 }
 
 function deleteExtraFlags(args) {
-    deleted = []
+    const deleted = []
     return [
         args?.filter(arg => { 
             if (arg.startsWith('--')) {
@@ -114,7 +114,7 @@ function flattenObject(ob) {
 }
 
 function getNetworkAddresses(network) {
-    return require("lodash.merge")(
+    return merge(
         framework.getNetworkAddresses(network.toLowerCase()),
         fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}/../addresses.json`) 
             ? require(`${WITNET_SDK_RADON_ASSETS_PATH}/../addresses.json`)[network.toLowerCase()] 
@@ -190,8 +190,7 @@ function importRadonAssets (options) {
 
 function traceTable (records, options) {
   const stringify = (data, humanizers, index) => humanizers && humanizers[index] ? humanizers[index](data).toString() : data?.toString() ?? ""
-  const max = (a, b) => a > b ? a : b
-  const reduceMax = (numbers) => numbers.reduce((curr, prev) => prev > curr ? prev : curr, 0)
+  const reduceMax = (numbers) => numbers.reduce((curr, prev) => Math.max(curr, prev), 0)
   if (!options) options = {}
   const indent = options?.indent || ""
   const numColumns = reduceMax(records.map(record => record?.length || 1))
@@ -200,7 +199,7 @@ function traceTable (records, options) {
   options.widths = options?.widths || table.map((column, index) => {
     let maxWidth = reduceMax(column.map(field => colorstrip(stringify(field, options?.humanizers, index)).length))
     if (options?.headlines && options.headlines[index]) {
-      maxWidth = max(maxWidth, colorstrip(options.headlines[index].replaceAll(":", "")).length)
+      maxWidth = Math.max(maxWidth, colorstrip(options.headlines[index].replaceAll(":", "")).length)
     }
     return Math.min(maxWidth, maxColumnWidth)
   })

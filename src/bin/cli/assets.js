@@ -36,7 +36,7 @@ module.exports = async function (flags = {}, args = []) {
     }
     const selection = (
         await selectWitnetArtifacts(registry, assets, args, "  ", !flags?.all)
-    ).sort(([a,], [b,]) => { if (a < b) return -1; else if (a > b) return 1; else return 0; });
+    ).sort(([a], [b]) => (a > b) - (a < b));
     
     if (selection.length > 0) {
         for (const index in selection) {
@@ -82,7 +82,7 @@ module.exports = async function (flags = {}, args = []) {
                         helpers.saveWitnetJsonFiles({ templates: deployables.templates })
 
                         const artifact = await witOracle.getWitOracleRequestTemplateAt(target)
-                        for ([ sample, args ] of Object.entries(asset?.samples)) {
+                        for (const [ sample, args ] of Object.entries(asset?.samples)) {
                             await artifact.verifyRadonRequest(args, {
                                 onVerifyRadonRequest: (radHash) => {
                                     process.stdout.write(`  > Verifying RAD hash for ${helpers.colors.lwhite(`${sample}`)} => `)
@@ -131,9 +131,8 @@ module.exports = async function (flags = {}, args = []) {
                         default: true,
                     }])
                     if (user.continue) {
-                        let radHash
                         let gasUsed = BigInt(0)
-                        radHash = await registry.verifyRadonRequest(asset, {
+                        const radHash = await registry.verifyRadonRequest(asset, {
                             confirmations: 1,
                             onVerifyRadonRetrieval: (hash) => {
                                 process.stdout.write(`  > Verifying new data source => ${helpers.colors.gray(hash)} ... `)
