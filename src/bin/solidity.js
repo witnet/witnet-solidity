@@ -278,16 +278,16 @@ function install() {
     fs.mkdirSync("./witnet/assets", { recursive: true })
   }
   if (!fs.existsSync(".env_witnet")) {
-    fs.cpSync("node_modules/witnet-solidity/.env_witnet", ".env_witnet")
+    fs.cpSync("node_modules/@witnet/solidity.env_witnet", ".env_witnet")
   }
   if (!fs.existsSync("./witnet/assets/requests.js")) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js")
+    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js")
   }
   if (!fs.existsSync("./witnet/assets/sources.js")) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_sources.js", "./witnet/assets/sources.js")
+    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_sources.js", "./witnet/assets/sources.js")
   }
   if (!fs.existsSync("./witnet/assets/templates.js")) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
+    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
   }
   if (!fs.existsSync("./witnet/templates.json")) {
     fs.writeFileSync("./witnet/templates.json", "{}")
@@ -296,7 +296,7 @@ function install() {
     fs.writeFileSync("./witnet/requests.json", "{}")
   }
   if (!fs.existsSync("./witnet/assets/index.js") || settings.flags.force) {
-    fs.cpSync("node_modules/witnet-solidity/witnet/assets/_index.js", "./witnet/assets/index.js")
+    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_index.js", "./witnet/assets/index.js")
   }
 }
 
