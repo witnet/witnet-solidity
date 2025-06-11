@@ -31,12 +31,14 @@ const WITNET_SDK_RADON_ASSETS_PATH = process.env.WITNET_SDK_RADON_ASSETS_PATH ||
 const isModuleInitialized = fs.existsSync("./witnet/assets/index.js")
 
 function readWitnetJsonFiles(...filenames) {
-    return Object.fromEntries(filenames.map(filename => [
-        filename,
-        fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}/../${filename}.json`) 
-            ? require(`${WITNET_SDK_RADON_ASSETS_PATH}/../${filename}.json`)
-            : {}
-    ]))
+    return Object.fromEntries(filenames.map(key => {
+        const filepath = `./witnet/${key}.json`
+        if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, "{}");
+        return [
+            key,
+            JSON.parse(fs.readFileSync(filepath))
+        ]
+    }))
 }
 
 function saveWitnetJsonFiles(data) {
