@@ -5,7 +5,7 @@ const { Witnet } = require("@witnet/sdk")
 const helpers = require("../helpers")
 const { WitOracle } = require("../../../dist/src/lib")
 
-const deployables = helpers.readWitnetJsonFiles("requests", "templates")
+const deployables = helpers.readWitnetJsonFiles("modals", "requests", "templates")
 
 module.exports = async function (flags = {}, args = []) {
     
@@ -16,13 +16,14 @@ module.exports = async function (flags = {}, args = []) {
         flags?.signer,
     );
 
-    const { address, network } = witOracle
+    const { network } = witOracle
 
+    if (!deployables.modals[network]) deployables.modals[network] = {};
     if (!deployables.requests[network]) deployables.requests[network] = {};
     if (!deployables.templates[network]) deployables.templates[network] = {};
 
     const registry = await witOracle.getWitOracleRadonRegistry()
-    const deployer = await witOracle.getWitOracleRadonTemplateDeployer()
+    const deployer = await witOracle.getWitOracleRadonRequestFactory()
        
     // console.log(address, registry.address, deployer.address, network)
 
@@ -42,9 +43,8 @@ module.exports = async function (flags = {}, args = []) {
         for (const index in selection) {
             const [ key, color, asset ] = selection[index]
             
-            if (asset instanceof Witnet.Radon.RadonTemplate || asset instanceof Witnet.Radon.RadonModal) {
-                // todo: `lookupRadonTemplate(templates[network][key])` and compare with `asset`)
-                if (flags?.deploy /*&& deployables.templates[network][key] !== target*/) {
+            if (asset instanceof Witnet.Radon.RadonModal) {
+                if (flags?.deploy) {
                     console.info()
                     const user = await prompt([{
                         message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
@@ -55,20 +55,20 @@ module.exports = async function (flags = {}, args = []) {
                     if (user.continue) {
                         let target
                         let gasUsed = BigInt(0)
-                        const template = await deployer.deployRadonTemplate(asset, {
+                        const modal = await deployer.deployRadonRequestModal(asset, {
                             confirmations: 1,
                             onVerifyRadonRetrieval: (hash) => {
-                                process.stdout.write(`  > Verifying parameterized data source => ${helpers.colors.gray(hash)} ... `)
+                                process.stdout.write(`  > Verifying common data source => ${helpers.colors.gray(hash)} ... `)
                             },
                             onVerifyRadonRetrievalReceipt: (_hash, receipt) => {
                                 gasUsed += receipt?.gasUsed || BigInt(0)
                                 process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
                             },
-                            onDeployRadonTemplate: (address) => {
+                            onDeployRadonRequestModal: (address) => {
                                 target = address
-                                process.stdout.write(`  > Replacing WitOracleRequestTemplate => ${helpers.colors.mblue(address)} ... `)
+                                process.stdout.write(`  > Replacing WitOracleRadonRequestModal => ${helpers.colors.mblue(address)} ... `)
                             },
-                            onDeployRadonTemplateReceipt: (receipt) => {
+                            onDeployRadonRequestModalReceipt: (receipt) => {
                                 gasUsed += receipt?.gasUsed || BigInt(0)
                                 process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
                             }
@@ -77,11 +77,71 @@ module.exports = async function (flags = {}, args = []) {
                             console.error(err)
                             throw err
                         })
-                        // process.stdout.write(`  > WitOracleRequestTemplate address: ${helpers.colors.mcyan(target)}\n`)
+                        if (gasUsed > 0) {
+                            process.stdout.write(`  > EVM cost: ${gasUsed} gas units.\n`)
+                        }
+                        // process.stdout.write(`  > WitOracleRadonRequestTemplate address: ${helpers.colors.mcyan(target)}\n`)
+                        deployables.modals[network][key] = modal.address
+                        helpers.saveWitnetJsonFiles({ modals: deployables.modals })
+                    }
+                }
+                if (flags?.decode || flags['dry-run']) {
+                    // todo: parse radon modal from evm contract
+                    if (deployables.modals[network] && deployables.modals[network][key]) {
+                        console.info()
+                        // if deployed, decode deployed bytecode
+                        execSync(
+                            `npx witnet radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    } else {
+                        // if not deployed, decode locally compiled bytecode
+                        execSync(
+                            `npx witnet radon decode ${key}`,
+                            { stdio: "inherit", stdout: "inherit" },
+                        )
+                    }
+                }
+                
+            } else if (asset instanceof Witnet.Radon.RadonTemplate) {
+                if (flags?.deploy) {
+                    console.info()
+                    const user = await prompt([{
+                        message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
+                        name: "continue",
+                        type: "confirm",
+                        default: true,
+                    }])
+                    if (user.continue) {
+                        let target
+                        let gasUsed = BigInt(0)
+                        const template = await deployer.deployRadonRequestTemplate(asset, {
+                            confirmations: 1,
+                            onVerifyRadonRetrieval: (hash) => {
+                                process.stdout.write(`  > Verifying parameterized data source => ${helpers.colors.gray(hash)} ... `)
+                            },
+                            onVerifyRadonRetrievalReceipt: (_hash, receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+                            },
+                            onDeployRadonRequestTemplate: (address) => {
+                                target = address
+                                process.stdout.write(`  > Replacing WitOracleRadonRequestTemplate => ${helpers.colors.mblue(address)} ... `)
+                            },
+                            onDeployRadonRequestTemplateReceipt: (receipt) => {
+                                gasUsed += receipt?.gasUsed || BigInt(0)
+                                process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+                            }
+                        }).catch(err => { 
+                            process.stdout.write(`${helpers.colors.mred("FAIL")}`); 
+                            console.error(err)
+                            throw err
+                        })
+                        // process.stdout.write(`  > WitOracleRadonRequestTemplate address: ${helpers.colors.mcyan(target)}\n`)
                         deployables.templates[network][key] = template.address
                         helpers.saveWitnetJsonFiles({ templates: deployables.templates })
 
-                        const artifact = await witOracle.getWitOracleRequestTemplateAt(target)
+                        const artifact = await witOracle.getWitOracleRadonRequestTemplateAt(target)
                         for (const [ sample, args ] of Object.entries(asset?.samples)) {
                             await artifact.verifyRadonRequest(args, {
                                 onVerifyRadonRequest: (radHash) => {
@@ -106,6 +166,7 @@ module.exports = async function (flags = {}, args = []) {
                 }
                 if (flags?.decode || flags['dry-run']) {
                     if (deployables.templates[network] && deployables.templates[network][key]) {
+                        // todo: parse radon template from evm contract
                         console.info()
                         // if deployed, decode deployed bytecode
                         execSync(
@@ -192,10 +253,10 @@ function clearEmptyBranches(network, node, args, filter) {
                     (
                         !filter 
                             || args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0)
-                            || (deployables.requests[network] && deployables.requests[network][key] !== undefined)
-                            || (deployables.templates[network] && deployables.templates[network][key] !== undefined)
+                            || deployables.modals[network][key] !== undefined
+                            || deployables.requests[network][key] !== undefined
+                            || deployables.templates[network][key] !== undefined
                     ) && (
-                        // value instanceof Witnet.Radon.RadonRetrieval ||
                         value instanceof Witnet.Radon.RadonModal ||
                         value instanceof Witnet.Radon.RadonTemplate ||
                         value instanceof Witnet.Radon.RadonRequest
@@ -236,7 +297,9 @@ function countWitnetArtifacts(network, assets, args, filter = false) {
                 !args ||
                 args.length === 0 ||
                 args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0) ||
-                (deployables.requests[network] && deployables.requests[network][key] !== undefined)
+                deployables.modals[network][key] !== undefined ||
+                deployables.requests[network][key] !== undefined ||
+                deployables.templates[network][key] !== undefined 
             )) {
             counter++
         } else if (typeof value === "object") {
@@ -259,13 +322,10 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
         if (asset instanceof Witnet.Radon.RadonRequest) {
             color = (
                 found 
-                    ? (deployables.requests[network] && deployables.requests[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
-                    : (deployables.requests[network] && deployables.requests[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
+                    ? (deployables.requests[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
+                    : (deployables.requests[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
             );
-            if (
-                deployables.requests[network] 
-                && deployables.requests[network][key] !== undefined
-            ) {
+            if (deployables.requests[network][key] !== undefined) {
                 const radHash = asset.radHash
                 try {
                     await registry.lookupRadonRequest(radHash)
@@ -277,7 +337,7 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
                     color = found ? helpers.colors.white : helpers.colors.gray
                 }
             }
-            if (!filter || found || (deployables.requests[network] && deployables.requests[network][key] !== undefined)) {
+            if (!filter || found || deployables.requests[network][key] !== undefined) {
                 console.info(`${prefix}${color(key)}`)
                 if (isLast) {
                     console.info(`${prefix}`)
@@ -290,11 +350,11 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
         ) {
             color = (
                 found 
-                    ? (deployables.templates[network] && deployables.templates[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
-                    : (deployables.templates[network] && deployables.templates[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
+                    ? (deployables.modals[network][key] !== undefined || deployables.templates[network][key] !== undefined ? helpers.colors.lcyan : helpers.colors.myellow)
+                    : (deployables.modals[network][key] !== undefined || deployables.templates[network][key] !== undefined ? helpers.colors.cyan : helpers.colors.gray)
             );
             // todo: lookup whether radon template was already deployed on a different address ?
-            if (!filter || found || (deployables.templates[network] && deployables.templates[network][key] !== undefined)) {
+            if (!filter || found || deployables.modals[network][key] !== undefined || deployables.templates[network][key] !== undefined) {
                 console.info(`${prefix}${color(key)}`)
                 if (isLast) {
                     console.info(`${prefix}`)
@@ -310,7 +370,7 @@ async function selectWitnetArtifacts(registry, assets = {}, args, indent = "", f
         //         }
         //     }
 
-        } else if (typeof asset === "object" && countWitnetArtifacts(registry, asset, args, filter) > 0) {
+        } else if (typeof asset === "object" && countWitnetArtifacts(network, asset, args, filter) > 0) {
             console.info(`${indent}${isLast ? "└─ " : "├─ "}${key}`)
             selection.push(...await selectWitnetArtifacts(registry, asset, args, !isLast ? `${indent}│  ` : `${indent}   `, filter))
         }

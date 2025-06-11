@@ -259,7 +259,7 @@ module.exports = async function (flags = {}) {
         case "Public": {
             if (answers?.dynamic.split(" ")[0] === "Yes") {
                 if (answers.parameterized.split(" ")[0] === "Yes") {
-                    constructorParams = "WitOracleRequestTemplate _witOracleRequestTemplate"
+                    constructorParams = "WitOracleRadonRequestTemplate _witOracleRequestTemplate"
                     witnetAddress = "_witOracleRequestTemplate"
                     templateFile += (answers?.callbacks.split(" ")[0] === "Synchronously"
                         ? "_RequestTemplateConsumer.tsol"
