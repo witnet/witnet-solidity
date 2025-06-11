@@ -12,10 +12,6 @@ const solidity = require("../../dist/src/lib")
 /// CONSTANTS AND GLOBALS =============================================================================================
 
 const settings = {
-  checks: {
-    toolkitIsInitialized: fs.existsSync("./witnet/assets/index.js"),
-    packageIsInitialized: fs.existsSync("./witnet/requests.json") || fs.existsSync("./witnet/templates.json"),
-  },
   flags: {
     all: "List all available Radon assets, even if not yet deployed.",
     apps: "Show addresses of Wit/Oracle appliances.",
@@ -30,7 +26,7 @@ const settings = {
     mainnets: "List supported EVM mainnets.",
     randomize: "Pay for a new randomize request.",
     requests: "Includes WitOracleRequest artifacts.",
-    templates: "List deployed WitOracleRequestTemplate contracts.",
+    templates: "List deployed WitOracleRadonRequestTemplate contracts.",
     testnets: "List supported EVM testnets.",
     version: "Print binary name and version as headline.",
   },
@@ -112,11 +108,6 @@ const settings = {
     ETHRPC_PROVIDER_URL: "=> Remote ETH/RPC provider to rely on, if no otherwise specified.",
   },
 }
-
-if (!settings.checks.toolkitIsInitialized || !settings.checks.packageIsInitialized) {
-  install()
-}
-
 
 
 /// MAIN WORKFLOW =====================================================================================================
@@ -273,32 +264,6 @@ async function main() {
   }
 }
 
-function install() {
-  if (!fs.existsSync("./witnet/assets")) {
-    fs.mkdirSync("./witnet/assets", { recursive: true })
-  }
-  if (!fs.existsSync(".env_witnet")) {
-    fs.cpSync("node_modules/@witnet/solidity.env_witnet", ".env_witnet")
-  }
-  if (!fs.existsSync("./witnet/assets/requests.js")) {
-    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_requests.js", "./witnet/assets/requests.js")
-  }
-  if (!fs.existsSync("./witnet/assets/sources.js")) {
-    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_sources.js", "./witnet/assets/sources.js")
-  }
-  if (!fs.existsSync("./witnet/assets/templates.js")) {
-    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_templates.js", "./witnet/assets/templates.js")
-  }
-  if (!fs.existsSync("./witnet/templates.json")) {
-    fs.writeFileSync("./witnet/templates.json", "{}")
-  }
-  if (!fs.existsSync("./witnet/requests.json")) {
-    fs.writeFileSync("./witnet/requests.json", "{}")
-  }
-  if (!fs.existsSync("./witnet/assets/index.js") || settings.flags.force) {
-    fs.cpSync("node_modules/@witnet/solidity/witnet/assets/_index.js", "./witnet/assets/index.js")
-  }
-}
 
 function showMainUsage(router) {
   showUsageHeadline(router)
