@@ -146,7 +146,7 @@ abstract class WitApplianceWrapper extends ContractWrapper {
 /**
  * Wrapper class for the Wit/Oracle contract as deployed in some specified EVM network.
  * It provides wrappers to other main artifacts of the Wit/Oracle Framework, as well
- * as factory methods for wrapping existing `WitOracleRequestTemplate` and `WitOracleConsumer`
+ * as factory methods for wrapping existing `WitOracleRadonRequestTemplate` and `WitOracleConsumer`
  * compliant contracts, provably bound to the Wit/Oracle core contract. 
  * 
  */
@@ -332,21 +332,31 @@ export class WitOracle extends WitArtifactWrapper {
 
     /**
      * Wrapper class for the Wit/Oracle Request Factory core contract as deployed in some supported EVM network.
-     * It allows construction of `WitOracleRequestTemplate` minimal-proxy contracts out of one ore more
+     * It allows construction of `WitOracleRadonRequestTemplate` minimal-proxy contracts out of one ore more
      * parameterized Radon Retievals (Witnet-compliant data sources). Template addresses are counter-factual to
      * the set of data sources they are built on. 
      */
-    public async getWitOracleRadonTemplateDeployer(): Promise<WitOracleRadonTemplateDeployer> {
-        return WitOracleRadonTemplateDeployer.deployed(this, await this.getWitOracleRadonRegistry())
+    public async getWitOracleRadonRequestFactory(): Promise<WitOracleRadonRequestFactory> {
+        return WitOracleRadonRequestFactory.deployed(this, await this.getWitOracleRadonRegistry())
     }
 
     /**
-     * Wrapper class for Wit/Oracle Request Template artifacts as deployed in some supported EVM network.
-     * `WitOracleRequestTemplate` contracts enable smart contracts to formally verify Radon Requests 
+     * Wrapper class for Wit/Oracle Radon Template artifacts as deployed in some supported EVM network.
+     * `IWitOracleRadonRequestTemplate` contracts enable smart contracts to formally verify Radon Requests 
      * built out out of a set of parameterized Witnet-compliant data sources, on the fly. 
      */
-    public async getWitOracleRequestTemplateAt(target: string): Promise<WitOracleRequestTemplate> {
-        return WitOracleRequestTemplate.at(this, target)
+    public async getWitOracleRadonRequestTemplateAt(target: string): Promise<WitOracleRadonRequestTemplate> {
+        return WitOracleRadonRequestTemplate.at(this, target)
+    }
+
+    /**
+     * Wrapper class for Wit/Oracle Radon Modal artifacts as deployed in some supported EVM network.
+     * `IWitOracleRadonRequestModal` contracts enable smart contracts to formally verify Radon Requests 
+     * built out out of a single Radon Retrieval and multiple data providers, all of them expected to 
+     * provided exactly the same data.
+     */
+    public async getWitOracleRadonRequestModalAt(target: string): Promise<WitOracleRadonRequestModal> {
+        return WitOracleRadonRequestModal.arguments(this, target)
     }
 
     public async getWitPriceFeedsAt(target: string): Promise<WitPriceFeeds> {
@@ -434,7 +444,7 @@ class WitOracleRadonRegistry extends WitArtifactWrapper {
      */
     public async lookupRadonRequest(radHash: string): Promise<Witnet.Radon.RadonRequest> {
         return this.contract
-            .getFunction("bytecodeOf(bytes32)")
+            .getFunction("lookupRadonRequestBytecode(bytes32)")
             .staticCall(`0x${radHash}`)
             .then(bytecode => Witnet.Radon.RadonRequest.fromBytecode(bytecode))
     }
@@ -445,7 +455,7 @@ class WitOracleRadonRegistry extends WitArtifactWrapper {
      */
     public async lookupRadonRequestBytecode(radHash: string): Promise<Witnet.HexString> {
         return this.contract
-            .getFunction("bytecodeOf(bytes32)")
+            .getFunction("lookupRadonRequestBytecode(bytes32)")
             .staticCall(`0x${radHash}`)
     }
 
@@ -584,17 +594,17 @@ class WitOracleRadonRegistry extends WitArtifactWrapper {
     }
 }
 
-class WitOracleRadonTemplateDeployer extends WitApplianceWrapper {  
+class WitOracleRadonRequestFactory extends WitApplianceWrapper {  
 
     public readonly registry: WitOracleRadonRegistry
     
     protected constructor (witOracle: WitOracle, registry: WitOracleRadonRegistry, at?: string) {
-        super(witOracle, "WitOracleRequestFactory", at)
+        super(witOracle, "WitOracleRadonRequestFactory", at)
         this.registry = registry
     }
 
-    static async deployed(witOracle: WitOracle, registry: WitOracleRadonRegistry): Promise<WitOracleRadonTemplateDeployer> {
-        const deployer = new WitOracleRadonTemplateDeployer(witOracle, registry)
+    static async deployed(witOracle: WitOracle, registry: WitOracleRadonRegistry): Promise<WitOracleRadonRequestFactory> {
+        const deployer = new WitOracleRadonRequestFactory(witOracle, registry)
         const witOracleRegistryAddress = await witOracle.contract.registry.staticCall()
         if (registry.address !== witOracleRegistryAddress) {
             throw new Error(`${this.constructor.name} at ${deployer.address}: uncompliant WitOracleRadonRegistry at ${registry.address})`)
@@ -602,14 +612,14 @@ class WitOracleRadonTemplateDeployer extends WitApplianceWrapper {
         return deployer
     }
 
-    public async deployRadonTemplate(
+    public async deployRadonRequestTemplate(
         template: Witnet.Radon.RadonTemplate,
         options?: {
             confirmations?: number,
-            onDeployRadonTemplate?: (address: string) => any,
-            onDeployRadonTemplateReceipt?: (receipt: ContractTransactionReceipt | null) => any,
+            onDeployRadonRequestTemplate?: (address: string) => any,
+            onDeployRadonRequestTemplateReceipt?: (receipt: ContractTransactionReceipt | null) => any,
             /**
-             * Callback handler called just in case a `verifyRadonRequest` transaction is ultimately required.
+             * Callback handler called just in case a `verifyRadonRetrieval` transaction is ultimately required.
              */
             onVerifyRadonRetrieval?: (hash: string) => any,
             /**
@@ -619,7 +629,7 @@ class WitOracleRadonTemplateDeployer extends WitApplianceWrapper {
              */
             onVerifyRadonRetrievalReceipt?: (receipt: ContractTransactionReceipt | null) => any,
         },
-    ): Promise<WitOracleRequestTemplate> {
+    ): Promise<WitOracleRadonRequestTemplate> {
         
         const hashes: Array<string> = []
         for (const index in template.sources) {
@@ -632,50 +642,106 @@ class WitOracleRadonTemplateDeployer extends WitApplianceWrapper {
         const aggregator = abiEncodeRadonAsset(template.sourcesReducer)
         const tally = abiEncodeRadonAsset(template.witnessReducer)
         const target = await this.contract
-            .getFunction("buildWitOracleRequestTemplate(bytes32[],(uint8,(uint8,bytes)[]),(uint8,(uint8,bytes)[]))")
+            .getFunction("buildRadonRequestTemplate(bytes32[],(uint8,(uint8,bytes)[]),(uint8,(uint8,bytes)[]))")
             .staticCall(hashes, aggregator, tally)
         
-        if (options?.onDeployRadonTemplate) options.onDeployRadonTemplate(target);
+        if (options?.onDeployRadonRequestTemplate) options.onDeployRadonRequestTemplate(target);
         await this.contract
-            .getFunction("buildWitOracleRequestTemplate(bytes32[],(uint8,(uint8,bytes)[]),(uint8,(uint8,bytes)[]))")
+            .getFunction("buildRadonRequestTemplate(bytes32[],(uint8,(uint8,bytes)[]),(uint8,(uint8,bytes)[]))")
             .send(hashes, aggregator, tally)
             .then(async (tx) => {
                 const receipt = await tx.wait(options?.confirmations || 1)
-                if (options?.onDeployRadonTemplateReceipt) options.onDeployRadonTemplateReceipt(receipt);
+                if (options?.onDeployRadonRequestTemplateReceipt) {
+                    options.onDeployRadonRequestTemplateReceipt(receipt);
+                }
             });
         
-        return await WitOracleRequestTemplate.at(
+        return await WitOracleRadonRequestTemplate.at(
             this.witOracle, 
             target
         )
     }
 
-    // public async determineWitOracleRequestTemplateAddress(template: Witnet.Radon.RadonTemplate): Promise<string> {
-    //     const hashes: Array<string> = []
-    //     for (const index in template.sources) {
-    //         const retrieval = template.sources[index]
-    //         const hash = await this.registry.determineRadonRetrievalHash(retrieval)
-    //         hashes.push(`0x${hash}`)
-    //     }
-    //     return this.contract.getFunction("buildWitOracleRequestTemplate(bytes32[],(uint8,(uint8,bytes)[]),(uint8,(uint8,bytes)[]))").staticCall(
-    //         hashes, 
-    //         abiEncodeRadonAsset(template.sourcesReducer),
-    //         abiEncodeRadonAsset(template.witnessReducer)
-    //     )
-    // }
+    public async deployRadonRequestModal(
+        modal: Witnet.Radon.RadonModal,
+        options?: {
+            confirmations?: number,
+            onDeployRadonRequestModal?: (address: string) => any,
+            onDeployRadonRequestModalReceipt?: (receipt: ContractTransactionReceipt | null) => any,
+            /**
+             * Callback handler called just in case a `verifyRadonRetrieval` transaction is ultimately required.
+             */
+            onVerifyRadonRetrieval?: (hash: string) => any,
+            /**
+             * Callback handler called once the `verifyRadonRetrieval` transaction gets confirmed.
+             * @param receipt The `verifyRadonRetrieval` transaction receipt.
+             * @param hash The unique hash of the Radon Retrieval, as verified on the connected network.
+             */
+            onVerifyRadonRetrievalReceipt?: (receipt: ContractTransactionReceipt | null) => any,
+        },
+    ): Promise<WitOracleRadonRequestModal> {
 
-    // public async lookupRadonTemplate(_target: string): Promise<any> {
-    // }
-}
-
-class WitOracleRequestTemplate extends WitApplianceWrapper {
-
-    protected constructor (witOracle: WitOracle, at: string) {
-        super(witOracle, "WitOracleRequestTemplate", at)
+        const retrieval = [
+            modal.sources[0].method,
+                modal.sources[0].body || "",
+                modal.sources[0]?.headers ? Object.entries(modal.sources[0].headers) : [],
+                modal.sources[0].script?.toBytecode() || "0x",
+        ];
+        const tally = abiEncodeRadonAsset(modal.witnessReducer)
+        const target = await this.contract
+            .buildRadonRequestModal //getFunction("buildRadonRequestModal((uint8,string,string[2][],bytes),(uint8,(uint8,bytes)[]))")
+            .staticCall(retrieval, tally)
+        
+        if (options?.onDeployRadonRequestModal) options.onDeployRadonRequestModal(target);
+        await this.contract
+            .buildRadonRequestModal
+            // .getFunction("buildRadonRequestModal((uint8,string,string[2][],bytes),(uint8,(uint8,bytes)[]))")
+            .send(retrieval, tally)
+            .then(async (tx) => {
+                const receipt = await tx.wait(options?.confirmations || 1)
+                if (options?.onDeployRadonRequestModalReceipt) {
+                    options.onDeployRadonRequestModalReceipt(receipt);
+                }
+            });
+        
+        return await WitOracleRadonRequestModal.at(
+            this.witOracle, 
+            target
+        )
     }
 
-    static async at(witOracle: WitOracle, target: string): Promise<WitOracleRequestTemplate> {
-        const template = new WitOracleRequestTemplate(witOracle, target)
+    public async verifyRadonRequest(
+        request: Witnet.Radon.RadonRequest,
+        _options?: {
+            confirmations?: number,
+            onVerifyRadonRequest?: (address: string) => any,
+            onVerifyRadonRequestReceipt?: (receipt: ContractTransactionReceipt | null) => any,
+            /**
+             * Callback handler called just in case a `verifyRadonRetrieval` transaction is ultimately required.
+             */
+            onVerifyRadonRetrieval?: (hash: string) => any,
+            /**
+             * Callback handler called once the `verifyRadonRetrieval` transaction gets confirmed.
+             * @param receipt The `verifyRadonRetrieval` transaction receipt.
+             * @param hash The unique hash of the Radon Retrieval, as verified on the connected network.
+             */
+            onVerifyRadonRetrievalReceipt?: (receipt: ContractTransactionReceipt | null) => any,
+        }
+    ): Promise<Witnet.Hash> {
+        // TODO:
+        //
+        return request.radHash
+    }
+}
+
+class WitOracleRadonRequestModal extends WitApplianceWrapper {
+
+    protected constructor (witOracle: WitOracle, at: string) {
+        super(witOracle, "IWitOracleRadonRequestModal", at)
+    }
+
+    static async at(witOracle: WitOracle, target: string): Promise<WitOracleRadonRequestModal> {
+        const template = new WitOracleRadonRequestModal(witOracle, target)
         const templateWitOracleAddr = await template.contract.witOracle.staticCall()
         if (templateWitOracleAddr !== witOracle.address) {
             throw new Error(`${this.constructor.name} at ${target}: mismatching Wit/Oracle address (${templateWitOracleAddr})`)
@@ -683,24 +749,9 @@ class WitOracleRequestTemplate extends WitApplianceWrapper {
         return template
     }
 
-    public async getRadonRetrievals(): Promise<Array<Witnet.Radon.RadonRetrieval>> {
+    public async getDataResultType(): Promise<ResultDataTypes> {
         return this.contract
-            .getFunction("getRadonRetrievals()")
-            .staticCall()
-            .then((results: Array<Result>) => {
-                return results.map(result => new Witnet.Radon.RadonRetrieval({
-                    method: result[1],
-                    url: result[3],
-                    body: result[4],
-                    headers: Object.fromEntries(result[5]),
-                    script: utils.parseRadonScript(result[6]),
-                }))
-            })
-    }
-
-    public async getResultDataType(): Promise<ResultDataTypes> {
-        return this.contract
-            .getFunction("getResultDataType()")
+            .getFunction("getDataResultType()")
             .staticCall()
             .then((result: number) => {
                 switch (Number(result)) {
@@ -717,9 +768,114 @@ class WitOracleRequestTemplate extends WitApplianceWrapper {
             })
     }
 
-    public async getSourcesArgsCount(): Promise<Array<number>> {
+    public async getDataSourcesArgsCount(): Promise<number> {
         return this.contract
-            .getFunction("getArgsCount()")
+            .getFunction("getDataSourcesArgsCount()")
+            .staticCall()
+            .then((argsCount: bigint) => Number(argsCount))
+    }
+
+    public async getRadonModalRetrieval(): Promise<Witnet.Radon.RadonRetrieval> {
+        return this.contract
+            .getFunction("getRadonModalRetrieval()")
+            .staticCall()
+            .then((result: Result) => {
+                return new Witnet.Radon.RadonRetrieval({
+                    method: result[1],
+                    url: result[3],
+                    body: result[4],
+                    headers: Object.fromEntries(result[5]),
+                    script: utils.parseRadonScript(result[6]),
+                })
+            })
+    }
+
+    public async verifyRadonRequest(
+        dataProviders: string[],
+        commonRetrievalArgs?: string[],
+        options?: {
+            confirmations?: number, 
+            onVerifyRadonRequest: (radHash: string) => any,
+            onVerifyRadonRequestReceipt: (receipt: ContractTransactionReceipt | null) => any,
+        },
+    ): Promise<Witnet.Hash> {
+        const argsCount = await this.getDataSourcesArgsCount()
+        if (argsCount != 1 + (commonRetrievalArgs?.length || 0)) {
+            throw TypeError(`${this.constructor.name}@${this.address}: unmatching args count != ${argsCount -1 }.`)
+        }
+        const method = this.contract.getFunction("verifyRadonRequest(string[],string[])")
+        const radHash = (await method.staticCall(commonRetrievalArgs || [], dataProviders)).slice(2)
+        try {
+            await (await this.witOracle.getWitOracleRadonRegistry()).lookupRadonRequestBytecode(radHash)
+        } catch {
+            if (options?.onVerifyRadonRequest) options.onVerifyRadonRequest(radHash);
+            await method
+                .send(commonRetrievalArgs || [], dataProviders)
+                .then(tx => tx.wait(options?.confirmations || 1))
+                .then(receipt => {
+                    if (options?.onVerifyRadonRequestReceipt) {
+                        options.onVerifyRadonRequestReceipt(receipt)
+                    }
+                    return radHash
+                })
+        }
+        return radHash
+    }
+
+}
+
+class WitOracleRadonRequestTemplate extends WitApplianceWrapper {
+
+    protected constructor (witOracle: WitOracle, at: string) {
+        super(witOracle, "IWitOracleRadonRequestTemplate", at)
+    }
+
+    static async at(witOracle: WitOracle, target: string): Promise<WitOracleRadonRequestTemplate> {
+        const template = new WitOracleRadonRequestTemplate(witOracle, target)
+        const templateWitOracleAddr = await template.contract.witOracle.staticCall()
+        if (templateWitOracleAddr !== witOracle.address) {
+            throw new Error(`${this.constructor.name} at ${target}: mismatching Wit/Oracle address (${templateWitOracleAddr})`)
+        }
+        return template
+    }
+
+    public async getDataResultType(): Promise<ResultDataTypes> {
+        return this.contract
+            .getFunction("getDataResultType()")
+            .staticCall()
+            .then((result: number) => {
+                switch (Number(result)) {
+                    case 1: return "array";
+                    case 2: return "boolean";
+                    case 3: return "bytes";
+                    case 4: return "integer";
+                    case 5: return "float";
+                    case 6: return "map";
+                    case 7: return "string";
+                    default: 
+                        return "any";
+                }
+            })
+    }
+
+    public async getDataSources(): Promise<Array<Witnet.Radon.RadonRetrieval>> {
+        return this.contract
+            .getFunction("getDataSources()")
+            .staticCall()
+            .then((results: Array<Result>) => {
+                return results.map(result => new Witnet.Radon.RadonRetrieval({
+                    method: result[1],
+                    url: result[3],
+                    body: result[4],
+                    headers: Object.fromEntries(result[5]),
+                    script: utils.parseRadonScript(result[6]),
+                }))
+            })
+    }
+
+    public async getDataSourcesArgsCount(): Promise<Array<number>> {
+        return this.contract
+            .getFunction("getDataSourcesArgsCount()")
             .staticCall()
             .then((dims: Array<bigint>) => dims.map(dim => Number(dim)))
     }
@@ -731,8 +887,8 @@ class WitOracleRequestTemplate extends WitApplianceWrapper {
             onVerifyRadonRequest: (radHash: string) => any,
             onVerifyRadonRequestReceipt: (receipt: ContractTransactionReceipt | null) => any,
         },
-    ): Promise<Witnet.Radon.RadonRequest> {
-        const argsCount = await this.getSourcesArgsCount()
+    ): Promise<Witnet.HexString> {
+        const argsCount = await this.getDataSourcesArgsCount()
         let encodedArgs: Array<string[]> = []
         if (typeof args === 'string') {
             if (argsCount.length === 1 && argsCount[0] === 1) {
