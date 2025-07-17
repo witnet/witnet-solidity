@@ -238,46 +238,46 @@ export class WitOracle extends WitArtifactWrapper {
         toBlock?: BlockTag,
         where?: {
             evmOrigin?: string,
-            evmRequester?: string,
-            witDrTxRadHash?: Witnet.Hash
+            evmConsumer?: string,
+            queryRadHash?: Witnet.Hash
         }
     }): Promise<Array<{
         evmBlockNumber: bigint,
         evmOrigin: string,
+        evmConsumer: string,
         evmReporter: string,
-        evmRequester: string,
         evmTransactionHash: string,
         witDrTxHash: Witnet.Hash,
-        witDrTxRadHash: Witnet.Hash,
-        witDrTxParams: QuerySLA,
-        witResultCborBytes: Witnet.HexString,
-        witResultStatus: Witnet.HexString,
+        queryRadHash: Witnet.Hash,
+        queryParams: QuerySLA,
+        resultCborBytes: Witnet.HexString,
+        resultTimestamp: number,
     }>> {
         const witOracleReportEvent = this.contract.filters.WitOracleReport(
             options?.where?.evmOrigin, 
-            options?.where?.evmRequester,
+            options?.where?.evmConsumer,
         );
         return this.contract
             .queryFilter(witOracleReportEvent, options.fromBlock, options?.toBlock)
             .then(logs => logs.filter(log => 
                 !log.removed
-                && (!options?.where?.witDrTxRadHash || (log as EventLog).args?.witDrTxRadHash.indexOf(options.where.witDrTxRadHash) >= 0)
+                && (!options?.where?.queryRadHash || (log as EventLog).args?.queryRadHash.indexOf(options.where.queryRadHash) >= 0)
             ))
             .then(logs => logs.map(log => ({
                 evmBlockNumber: BigInt(log.blockNumber),
                 evmOrigin: (log as EventLog).args.evmOrigin,
+                evmConsumer: (log as EventLog).args.evmConsumer,
                 evmReporter: (log as EventLog).args.evmReporter,
-                evmRequester: (log as EventLog).args.evmRequester,
                 evmTransactionHash: log.transactionHash,
                 witDrTxHash: (log as EventLog).args.witDrTxHash,
-                witDrTxRadHash: (log as EventLog).args.witDrTxRadHash,
-                witDrTxParams: {
-                    witCommitteeSize: (log as EventLog).args.witDrTxParams[1] as number,
-                    witInclusionFees: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.witDrTxParams[2])),
-                    witResultMaxSize: (log as EventLog).args.witDrTxParams[0] as number,
+                queryRadHash: (log as EventLog).args.queryRadHash,
+                queryParams: {
+                    witCommitteeSize: (log as EventLog).args.queryParams[1] as number,
+                    witInclusionFees: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.queryParams[2])),
+                    witResultMaxSize: (log as EventLog).args.queryParams[0] as number,
                 },
-                witResultCborBytes: (log as EventLog).args.witResultCborBytes,
-                witResultStatus: `0x${Number((log as EventLog).args.witResultStatus).toString(16)}`                
+                resultCborBytes: (log as EventLog).args.resultCborBytes,
+                resultTimestamp: Number((log as EventLog).args.resultTimestamp),
             })))
     }
 

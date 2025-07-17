@@ -92,7 +92,7 @@ const settings = {
       param: "PROVIDER_URL"
     },
     report: {
-      hint: "Report the given Wit/Oracle query into some consumer contract (requires: --into).",
+      hint: "Retrieve the finalized result to the given Wit/Oracle query, and push it into some consumer contract (requires: --into).",
       param: "WIT_DR_TX_HASH",
     },
     signer: {

@@ -33,10 +33,9 @@ const isModuleInitialized = fs.existsSync("./witnet/assets/index.js")
 function readWitnetJsonFiles(...filenames) {
     return Object.fromEntries(filenames.map(key => {
         const filepath = `./witnet/${key}.json`
-        if (!fs.existsSync(filepath)) fs.writeFileSync(filepath, "{}");
         return [
             key,
-            JSON.parse(fs.readFileSync(filepath))
+            fs.existsSync(filepath) ? JSON.parse(fs.readFileSync(filepath)) : {},
         ]
     }))
 }
