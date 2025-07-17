@@ -57,39 +57,27 @@ export type PriceFeedUpdateConditions = {
 /**
  * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
  */
-export type PushDataReport = {
-    /**
-     * Witnet epoch at which the Data Request Transaction got mined into the Witnet blockchain.
-     */
-    drTxBlockEpoch: number,
-    /**
-     * Hash of the block that included the Data Request Transaction into the Witnet blockchain.
-     */
-    drTxBlockHash: Witnet.Hash,
+export type DataPushReport = {
     /**
      * Unique hash of the Data Request Transaction that produced the outcoming result. 
      */
     drTxHash: Witnet.Hash,
     /**
-     * SLA parameters required to be fulfilled by the Witnet blockchain. 
-     */
-    drTxQueryParams: QuerySLA,
-    /**
      * RAD hash of the Radon Request being solved.
      */
-    drTxRadHash: Witnet.Hash,
+    queryRadHash: Witnet.Hash,
+    /**
+     * SLA parameters required to be fulfilled by the Witnet blockchain. 
+     */
+    queryParams: QuerySLA,
     /**
      * Timestamp when the data sources where queried and the contained result produced.
      */
-    drTxTimestamp: number,
+    resultTimestamp: number,
     /**
      * CBOR-encoded buffer containing the actual result data to some query as solved by the Witnet blockchain. 
      */
     resultCborBytes: Witnet.HexString,
-    /**
-     * Cryptographic proof of existance, resolution and actual result of the Data Request Transaction in the Witnet blockchain.
-     */
-    resultProofBytes: Witnet.HexString,
 }
 
 export type QueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";

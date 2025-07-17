@@ -12,7 +12,7 @@ import {
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
 } from "../bin/helpers"
 
-import { PushDataReport, QuerySLA, QueryStatus } from "./types"
+import { DataPushReport, QuerySLA, QueryStatus } from "./types"
 
 export const ABIs = _ABIs;
 
@@ -47,9 +47,12 @@ export function abiDecodePriceFeedMappingAlgorithm(algorithm: bigint): string {
     }
 }
 
-export function abiEncodeDataPushReport(report: PushDataReport): any {
+export function abiEncodeDataPushReport(report: DataPushReport): any {
     return [
-        // todo: ...
+        report.drTxHash,
+        report.queryRadHash,
+        abiEncodeQuerySLA(report.queryParams),
+        report.resultTimestamp,
         report.resultCborBytes,
     ]
 }

@@ -94,7 +94,7 @@ module.exports = async function (options = {}, args = []) {
                     confirmations: 1,
                     gasLimit: options?.gasLimit,
                     gasPrice: options?.gasPrice,
-                    onPushDataReportTransaction: (txHash) => {
+                    onDataPushReportTransaction: (txHash) => {
                         process.stdout.write(`  > Pushing report  => ${helpers.colors.gray(txHash)} ... `)
                     }
                 }).catch(err => {

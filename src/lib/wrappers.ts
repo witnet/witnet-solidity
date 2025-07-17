@@ -31,7 +31,7 @@ import {
 import { 
     PriceFeed,
     PriceFeedUpdate,
-    PushDataReport, 
+    DataPushReport, 
     QuerySLA, 
     QueryStatus, 
     RandomizeStatus, 
@@ -387,23 +387,23 @@ class WitOracleConsumer extends WitApplianceWrapper {
         return consumer
     }
 
-    public async pushDataReport(report: PushDataReport, options?: { 
+    public async pushDataReport(report: DataPushReport, signature: string, options?: { 
         confirmations?: number, 
         gasPrice?: bigint,
         gasLimit?: bigint,
-        onPushDataReportTransaction?: (txHash: string) => any,
+        onDataPushReportTransaction?: (txHash: string) => any,
         timeout?: number,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         return this.contract
-            .getFunction("pushDataReport((bytes32,(uint16,uint16,uin64),uint64,bytes32,bytes),bytes)")
-            .populateTransaction(abiEncodeDataPushReport(report))
+            .pushDataReport
+            .populateTransaction(abiEncodeDataPushReport(report), signature)
             .then(tx => {
                 tx.gasPrice = options?.gasPrice || tx?.gasPrice 
                 tx.gasLimit = options?.gasLimit || tx?.gasLimit
                 return this.signer.sendTransaction(tx)
             })  
             .then(response => {
-                if (options?.onPushDataReportTransaction) options.onPushDataReportTransaction(response.hash);
+                if (options?.onDataPushReportTransaction) options.onDataPushReportTransaction(response.hash);
                 return response.wait(options?.confirmations || 1, options?.timeout)
             })
     }
