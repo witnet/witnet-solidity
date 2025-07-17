@@ -62,6 +62,10 @@ const settings = {
       hint: "Maximum EVM gas to spend per transaction.",
       param: "GAS_LIMIT"
     }, 
+    limit: {
+      hint: "Limit number of output records (default: 64).",
+      param: "LIMIT",
+    },
     into: {
       hint: "Address of some WitOracleConsumer contract where to report into.",
       param: "EVM_ADDRESS",
@@ -162,7 +166,8 @@ async function main() {
         options: [ 
           'filter-radHash', 
           'filter-requester', 
-          'fromBlock', 
+          'fromBlock',
+          'limit', 
           'signer',
           'toBlock',
         ],

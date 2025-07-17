@@ -20,14 +20,14 @@ module.exports = async function (options = {}, args = []) {
     const toBlock = BigInt(options?.toBlock || await witOracle.provider.getBlockNumber())
     const fromBlock = BigInt(options?.fromBlock || toBlock - 1024n)
 
-    const logs = await witOracle.filterWitOracleQueryEvents({
+    const logs = (await witOracle.filterWitOracleQueryEvents({
         fromBlock,
         toBlock,
         where: {
             evmRequester: options['filter-requester'],
             queryRadHash: options['filter-radHash'],
         },
-    })
+    })).reverse().slice(0, options?.limit || 64)
 
     const queryIds = logs.map(log => log.queryId)
     const queryStatuses = await witOracle.getQueryStatuses(queryIds)
@@ -56,9 +56,9 @@ module.exports = async function (options = {}, args = []) {
                 colors: [ 
                     helpers.colors.lwhite, 
                     helpers.colors.white,
-                        helpers.colors.gray,,, 
-                        helpers.colors.yellow,
-                        helpers.colors.myellow,
+                    helpers.colors.gray,,, 
+                    helpers.colors.yellow,
+                    helpers.colors.myellow,
                     ...(checkResultStatus ? [helpers.colors.cyan] : []),
                 ],
                 headlines: [ 
