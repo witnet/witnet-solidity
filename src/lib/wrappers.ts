@@ -32,10 +32,10 @@ import {
     PriceFeed,
     PriceFeedUpdate,
     DataPushReport, 
+    RandomizeStatus,
     WitOracleQueryParams, 
     WitOracleQueryStatus, 
-    RandomizeStatus, 
-    ResultDataTypes 
+    WitOracleResultDataTypes 
 } from "./types"
 
 abstract class ContractWrapper {
@@ -749,7 +749,7 @@ class WitOracleRadonRequestModal extends WitApplianceWrapper {
         return template
     }
 
-    public async getDataResultType(): Promise<ResultDataTypes> {
+    public async getDataResultType(): Promise<WitOracleResultDataTypes> {
         return this.contract
             .getFunction("getDataResultType()")
             .staticCall()
@@ -839,7 +839,7 @@ class WitOracleRadonRequestTemplate extends WitApplianceWrapper {
         return template
     }
 
-    public async getDataResultType(): Promise<ResultDataTypes> {
+    public async getDataResultType(): Promise<WitOracleResultDataTypes> {
         return this.contract
             .getFunction("getDataResultType()")
             .staticCall()

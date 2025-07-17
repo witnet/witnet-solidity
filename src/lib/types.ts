@@ -65,13 +65,16 @@ export type PriceFeedUpdateConditions = {
     maxDeviation1000: number,
 }
 
+export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
+export { TransactionReceipt } from "ethers"
+
 export type WitOracleQueryParams = {
     /**
-     * Maximum expected size of the CBOR-encoded query result, once solved .
+     * Maximum expected size of the CBOR-encoded query result, once solved by the Witnet blockchain.
      */
     resultMaxSize?: number,
     /**
-     * Mininum reward in $WIT coins to pay to every validator that positively contributed to get the Wit/Oracle
+     * Mininum reward in $WIT coins for very validator that positively contributes to get the Wit/Oracle
      * query attended, solved and stored into the Witnet blockchain. 
      */
     unitaryReward: Witnet.Coins,
@@ -82,8 +85,4 @@ export type WitOracleQueryParams = {
 }
 
 export type WitOracleQueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";
-
-export type ResultDataTypes = "any" | "array" | "boolean" | "bytes" | "float" | "integer" | "map" | "string";
-export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
-
-export { TransactionReceipt } from "ethers"
+export type WitOracleResultDataTypes = "any" | "array" | "boolean" | "bytes" | "float" | "integer" | "map" | "string";
