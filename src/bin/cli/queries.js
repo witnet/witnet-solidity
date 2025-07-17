@@ -47,7 +47,7 @@ module.exports = async function (options = {}, args = []) {
                 log.evmTransactionHash,
                 `${log.evmRequester?.slice(0, 7)}..${log.evmRequester?.slice(-5)}`,
                 helpers.colors.mgreen(`${log.queryRadHash?.slice(2).slice(0, 6)}..${log.queryRadHash.slice(-6)}`),
-                helpers.colors.green(`[ ${Object.values(log.querySLA).join(", ")} ]`),
+                helpers.colors.green(`[ ${Object.values(log.queryParams).join(", ")} ]`),
                 log.queryId,
                 queryStatuses[index],
                 ...(checkResultStatus ? [queryResultDescriptions[index]] : []),

@@ -42,7 +42,7 @@ module.exports = async function (options = {}, args = []) {
             evmConfirmations: options?.confirmations || 1,
             evmGasPrice: options?.gasPrice,
             evmTimeout: options?.timeout,
-            witCommitteeSize: options?.witnesses,
+            witnesses: options?.witnesses,
             onRandomizeTransaction: (txHash) => {
                 console.info(`> EVM signer:${" ".repeat(maxWidth - 10)}${helpers.colors.gray(randomizer.signer.address)}`)
                 process.stdout.write(`> EVM transaction:${" ".repeat(maxWidth - 15)}${helpers.colors.gray(txHash)} ... `)        

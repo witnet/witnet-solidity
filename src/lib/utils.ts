@@ -12,7 +12,7 @@ import {
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
 } from "../bin/helpers"
 
-import { DataPushReport, QuerySLA, QueryStatus } from "./types"
+import { DataPushReport, WitOracleQueryParams, QueryStatus } from "./types"
 
 export const ABIs = _ABIs;
 
@@ -51,20 +51,19 @@ export function abiEncodeDataPushReport(report: DataPushReport): any {
     return [
         report.drTxHash,
         report.queryRadHash,
-        abiEncodeQuerySLA(report.queryParams),
+        abiEncodeWitOracleQueryParams(report.queryParams),
         report.resultTimestamp,
         report.resultCborBytes,
     ]
 }
 
-export function abiEncodeQuerySLA(witQuerySLA: QuerySLA): any {
+export function abiEncodeWitOracleQueryParams(queryParams: WitOracleQueryParams): any {
     return [
-        witQuerySLA.witResultMaxSize,
-        witQuerySLA.witCommitteeSize,
-        witQuerySLA.witInclusionFees,
+        queryParams?.resultMaxSize || 0,
+        queryParams?.witnesses || 0,
+        queryParams?.unitaryReward || 0,
     ]
 }
-
 export function abiEncodeRadonAsset(asset: any): any {    
     if (asset instanceof Witnet.Radon.RadonRetrieval) {
         return [

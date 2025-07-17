@@ -1,18 +1,19 @@
 import { Witnet } from "@witnet/sdk"
 
-export type QuerySLA = {
+export type WitOracleQueryParams = {
     /**
-     * Number of witnessing nodes required to participate in committee required for solving the oracle query. 
+     * Maximum expected size of the CBOR-encoded query result, once solved .
      */
-    witCommitteeSize: number,
+    resultMaxSize?: number,
     /**
-     * Mininum amount of $WIT coins to pay for getting the underlying Data Request Transaction included in the Witnet blockchain. 
+     * Mininum reward in $WIT coins to pay to every validator that positively contributed to get the Wit/Oracle
+     * query attended, solved and stored into the Witnet blockchain. 
      */
-    witInclusionFees: Witnet.Coins,
+    unitaryReward: Witnet.Coins,
     /**
-     * Maximum size allowed for the query result, once encoded as a CBOR buffer. 
+     * Maximum number of witnessing nodes required to participate in solving the oracle query. 
      */
-    witResultMaxSize: number,
+    witnesses: number,
 }
 
 export type PriceFeed = {
@@ -69,7 +70,7 @@ export type DataPushReport = {
     /**
      * SLA parameters required to be fulfilled by the Witnet blockchain. 
      */
-    queryParams: QuerySLA,
+    queryParams: WitOracleQueryParams,
     /**
      * Timestamp when the data sources where queried and the contained result produced.
      */

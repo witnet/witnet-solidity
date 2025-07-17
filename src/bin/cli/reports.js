@@ -49,9 +49,9 @@ module.exports = async function (options = {}, args = []) {
                 report = {
                     drTxHash: `0x${drTxHash}`,
                     queryParams: {
-                        witCommitteeSize: drTx.query.witnesses,
-                        witInclusionFees: Math.floor(Number(drTx.query.collateral) / 125),
-                        witResultMaxSize: 0,
+                        witnesses: drTx.query.witnesses,
+                        unitaryReward: Math.floor(Number(drTx.query.collateral) / 125),
+                        resultMaxSize: 0,
                     },
                     queryRadHash: `0x${drTx.query.rad_hash}`,
                     resultCborBytes: `0x${drTx.result.cbor_bytes}`,

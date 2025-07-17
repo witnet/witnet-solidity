@@ -22,7 +22,7 @@ import {
     abiDecodePriceFeedMappingAlgorithm,
     abiDecodeQueryStatus,
     abiEncodeDataPushReport,
-    abiEncodeQuerySLA,
+    abiEncodeWitOracleQueryParams,
     abiEncodeRadonAsset,
     getNetworkAddresses,
     getNetworkByChainId,
@@ -32,7 +32,7 @@ import {
     PriceFeed,
     PriceFeedUpdate,
     DataPushReport, 
-    QuerySLA, 
+    WitOracleQueryParams, 
     QueryStatus, 
     RandomizeStatus, 
     ResultDataTypes 
@@ -186,13 +186,13 @@ export class WitOracle extends WitArtifactWrapper {
             .staticCall(evmGasPrice, evmCallbackGas)
     }
 
-    public async estimateExtraFee(evmGasPrice: bigint, evmWitPrice: bigint, witQuerySLA: QuerySLA): Promise<bigint> {
+    public async estimateExtraFee(evmGasPrice: bigint, evmWitPrice: bigint, queryParams: WitOracleQueryParams): Promise<bigint> {
         return this.contract
             .getFunction("estimateExtraFee(uint256,uint256,(uint16,uint16,uint64)")
             .staticCall(
                 evmGasPrice,
                 evmWitPrice,
-                abiEncodeQuerySLA(witQuerySLA),
+                abiEncodeWitOracleQueryParams(queryParams),
             )
     }
 
@@ -209,7 +209,7 @@ export class WitOracle extends WitArtifactWrapper {
         evmTransactionHash: string,
         queryId: bigint,
         queryRadHash: Witnet.Hash,
-        querySLA: QuerySLA
+        queryParams: WitOracleQueryParams
     }>> {
         const witOracleQueryEvent = this.contract.filters["WitOracleQuery(address indexed,uint256,uint256,uint64,bytes32,(uint16,uint16,uint64))"](options?.where?.evmRequester)
         return this.contract
@@ -225,11 +225,11 @@ export class WitOracle extends WitArtifactWrapper {
                 evmTransactionHash: log.transactionHash,
                 queryId: BigInt((log as EventLog).args.queryId),
                 queryRadHash: (log as EventLog).args.radonHash as Witnet.Hash,
-                querySLA: {
-                    witCommitteeSize: (log as EventLog).args.radonParams[1] as number,
-                    witInclusionFees: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.radonParams[2])),
-                    witResultMaxSize: (log as EventLog).args.radonParams[0] as number,
-                } as QuerySLA,
+                queryParams: {
+                    witnesses: (log as EventLog).args.radonParams[1] as number,
+                    unitaryReward: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.radonParams[2])),
+                    resultMaxSize: (log as EventLog).args.radonParams[0] as number,
+                } as WitOracleQueryParams,
             })))
     }
 
@@ -249,7 +249,7 @@ export class WitOracle extends WitArtifactWrapper {
         evmTransactionHash: string,
         witDrTxHash: Witnet.Hash,
         queryRadHash: Witnet.Hash,
-        queryParams: QuerySLA,
+        queryParams: WitOracleQueryParams,
         resultCborBytes: Witnet.HexString,
         resultTimestamp: number,
     }>> {
@@ -272,9 +272,9 @@ export class WitOracle extends WitArtifactWrapper {
                 witDrTxHash: (log as EventLog).args.witDrTxHash,
                 queryRadHash: (log as EventLog).args.queryRadHash,
                 queryParams: {
-                    witCommitteeSize: (log as EventLog).args.queryParams[1] as number,
-                    witInclusionFees: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.queryParams[2])),
-                    witResultMaxSize: (log as EventLog).args.queryParams[0] as number,
+                    witnesses: (log as EventLog).args.queryParams[1] as number,
+                    unitaryReward: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.queryParams[2])),
+                    resultMaxSize: (log as EventLog).args.queryParams[0] as number,
                 },
                 resultCborBytes: (log as EventLog).args.resultCborBytes,
                 resultTimestamp: Number((log as EventLog).args.resultTimestamp),
