@@ -28,6 +28,7 @@ const settings = {
     requests: "Includes WitOracleRequest artifacts.",
     templates: "List deployed WitOracleRadonRequestTemplate contracts.",
     testnets: "List supported EVM testnets.",
+    verbose: "Outputs detailed information.",
     version: "Print binary name and version as headline.",
   },
   options: {
@@ -41,6 +42,10 @@ const settings = {
     },
     depth: {
       hint: "Maximum number of randomize transactions to list, before the latest one (default: 16).",
+    },
+    "filter-consumer": {
+      hint: "Filter events triggered by given consumer.",
+      param: "EVM_ADDRESS",
     },
     "filter-requester": {
       hint: "Filter events triggered by given requester.",
@@ -102,6 +107,10 @@ const settings = {
       hint: "Process events emitted before this EVM block number.",
       param: "EVM_BLOCK"
     },
+    witnet: {
+      hint: "Wit/Oracle RPC provider to connect to, other than default.",
+      param: "URL",
+    }
     // witnesses: {
     //   hint: "Number of witnessing nodes required to solve the randomness request in the Witnet blockchain.",
     //   param: "NUMBER",
@@ -110,6 +119,7 @@ const settings = {
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
     ETHRPC_PROVIDER_URL: "=> Remote ETH/RPC provider to rely on, if no otherwise specified.",
+    WITNET_SDK_PROVIDER_URL: "=> Wit/Oracle RPC provider(s) to connect to, if no otherwise specified.",
   },
 }
 
@@ -189,23 +199,26 @@ async function main() {
       },
       reports: {
         hint: `Show latest Wit/Oracle data reports pushed into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
-        // params: "[DR_TX_HASH]",
         flags: [
-          // 'check-result-status', 
+          'verbose', 
         ],
         options: [
           'confirmations',
+          'filter-consumer',
           'filter-radHash',
-          'filter-requester',
-          'fromBlock', 
+          'fromBlock',
           'gasPrice',
-          'gasLimit', 
+          'gasLimit',
           'into',
+          'limit',
           'report',
           'signer',
           'toBlock',
+          'witnet',
         ],
-        envars: [],
+        envars: [
+          'WITNET_SDK_PROVIDER_URL',
+        ],
       },
     } : {}),    
     gateway: {
