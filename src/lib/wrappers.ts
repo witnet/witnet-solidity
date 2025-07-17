@@ -33,7 +33,7 @@ import {
     PriceFeedUpdate,
     DataPushReport, 
     WitOracleQueryParams, 
-    QueryStatus, 
+    WitOracleQueryStatus, 
     RandomizeStatus, 
     ResultDataTypes 
 } from "./types"
@@ -309,7 +309,7 @@ export class WitOracle extends WitArtifactWrapper {
         return reason
     }
 
-    public async getQueryStatuses(queryIds: bigint[]): Promise<Array<QueryStatus>> {
+    public async getQueryStatuses(queryIds: bigint[]): Promise<Array<WitOracleQueryStatus>> {
         return this.contract
             .getQueryStatusBatch
             .staticCall(queryIds)

@@ -1,19 +1,29 @@
 import { Witnet } from "@witnet/sdk"
 
-export type WitOracleQueryParams = {
+/**
+ * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
+ */
+export type DataPushReport = {
     /**
-     * Maximum expected size of the CBOR-encoded query result, once solved .
+     * Unique hash of the Data Request Transaction that produced the outcoming result. 
      */
-    resultMaxSize?: number,
+    drTxHash: Witnet.Hash,
     /**
-     * Mininum reward in $WIT coins to pay to every validator that positively contributed to get the Wit/Oracle
-     * query attended, solved and stored into the Witnet blockchain. 
+     * RAD hash of the Radon Request being solved.
      */
-    unitaryReward: Witnet.Coins,
+    queryRadHash: Witnet.Hash,
     /**
-     * Maximum number of witnessing nodes required to participate in solving the oracle query. 
+     * SLA parameters required to be fulfilled by the Witnet blockchain. 
      */
-    witnesses: number,
+    queryParams: WitOracleQueryParams,
+    /**
+     * Timestamp when the data sources where queried and the contained result produced.
+     */
+    resultTimestamp: number,
+    /**
+     * CBOR-encoded buffer containing the actual result data to some query as solved by the Witnet blockchain. 
+     */
+    resultCborBytes: Witnet.HexString,
 }
 
 export type PriceFeed = {
@@ -55,33 +65,24 @@ export type PriceFeedUpdateConditions = {
     maxDeviation1000: number,
 }
 
-/**
- * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
- */
-export type DataPushReport = {
+export type WitOracleQueryParams = {
     /**
-     * Unique hash of the Data Request Transaction that produced the outcoming result. 
+     * Maximum expected size of the CBOR-encoded query result, once solved .
      */
-    drTxHash: Witnet.Hash,
+    resultMaxSize?: number,
     /**
-     * RAD hash of the Radon Request being solved.
+     * Mininum reward in $WIT coins to pay to every validator that positively contributed to get the Wit/Oracle
+     * query attended, solved and stored into the Witnet blockchain. 
      */
-    queryRadHash: Witnet.Hash,
+    unitaryReward: Witnet.Coins,
     /**
-     * SLA parameters required to be fulfilled by the Witnet blockchain. 
+     * Maximum number of witnessing nodes required to participate in solving the oracle query. 
      */
-    queryParams: WitOracleQueryParams,
-    /**
-     * Timestamp when the data sources where queried and the contained result produced.
-     */
-    resultTimestamp: number,
-    /**
-     * CBOR-encoded buffer containing the actual result data to some query as solved by the Witnet blockchain. 
-     */
-    resultCborBytes: Witnet.HexString,
+    witnesses: number,
 }
 
-export type QueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";
+export type WitOracleQueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";
+
 export type ResultDataTypes = "any" | "array" | "boolean" | "bytes" | "float" | "integer" | "map" | "string";
 export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
 

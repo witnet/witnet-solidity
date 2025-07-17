@@ -12,7 +12,7 @@ import {
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
 } from "../bin/helpers"
 
-import { DataPushReport, WitOracleQueryParams, QueryStatus } from "./types"
+import { DataPushReport, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
 
 export const ABIs = _ABIs;
 
@@ -26,7 +26,7 @@ export function getNetworkByChainId(chainId: number): string | undefined {
     else return undefined;
 }
 
-export function abiDecodeQueryStatus(status: bigint): QueryStatus {
+export function abiDecodeQueryStatus(status: bigint): WitOracleQueryStatus {
     switch (status) {
         case 1n: return "Posted";
         case 2n: return "Reported";
