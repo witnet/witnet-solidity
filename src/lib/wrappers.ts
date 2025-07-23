@@ -25,7 +25,7 @@ import {
     abiEncodeWitOracleQueryParams,
     abiEncodeRadonAsset,
     getEvmNetworkAddresses,
-    getEvmNetworkById,
+    getEvmNetworkByChainId,
 } from "./utils"
 
 import { 
@@ -167,7 +167,7 @@ export class WitOracle extends WitArtifactWrapper {
         const provider = new JsonRpcProvider(url)
         const signer = await provider.getSigner(signerId)
         const chainId = Number((await provider.getNetwork()).chainId)
-        const network = getEvmNetworkById(chainId)
+        const network = getEvmNetworkByChainId(chainId)
         if (!network) {
             throw new Error(`WitOracle: unsupported chain id: ${chainId}`)
         }

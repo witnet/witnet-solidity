@@ -6,10 +6,7 @@ import { DataPushReport } from "./types"
 const stringify = (query: any) => Object.entries(query).map(([key, value]) => `&${key}=${value}`).join("").slice(1)
 
 interface IKermitClient {
-    getDataPushReport(query: {
-        witDrTxHash: Witnet.Hash, 
-        evmNetwork?: number | string,
-    }): Promise<DataPushReport>;
+    getDataPushReport(witDrTxHash: Witnet.Hash, evmNetwork?: number | string): Promise<DataPushReport>;
     // searchDataRequests(hash: Hash, {}): Promise<any>;
 }
 
@@ -72,13 +69,13 @@ export class KermitClient implements IKermitClient {
             })
     }
 
-    public async getDataPushReport(query: {
-        witDrTxHash: Witnet.Hash, 
-        evmNetwork?: number | string,
-    }): Promise<DataPushReport> {
+    public async getDataPushReport(witDrTxHash: Witnet.Hash, evmNetwork?: number | string): Promise<DataPushReport> {
         return this.callApiGetMethod<DataPushReport>(
             "get_data_push_report",
-            query
+            {
+                witDrTxHash,
+                evmNetwork
+            }
         )
     }
 }

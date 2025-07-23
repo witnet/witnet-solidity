@@ -7,7 +7,7 @@ const { JsonRpcProvider } = require("ethers")
 const helpers = require("./helpers")
 const { green, yellow, lwhite } = helpers.colors
 
-const solidity = require("../../dist/src/lib")
+const { utils } = require("../../dist/src/lib")
 
 /// CONSTANTS AND GLOBALS =============================================================================================
 
@@ -91,7 +91,7 @@ const settings = {
       hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
       param: "PROVIDER_URL"
     },
-    report: {
+    "dr-tx-hash": {
       hint: "Retrieve the finalized result to the given Wit/Oracle query, and push it into some consumer contract (requires: --into).",
       param: "WIT_DR_TX_HASH",
     },
@@ -119,7 +119,7 @@ const settings = {
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
     ETHRPC_PROVIDER_URL: "=> Remote ETH/RPC provider to rely on, if no otherwise specified.",
-    WITNET_SDK_PROVIDER_URL: "=> Wit/Oracle RPC provider(s) to connect to, if no otherwise specified.",
+    WITNET_KERMIT_PROVIDER_URL: "=> Wit/Kermit API-REST provider to connect to, if no otherwise specified.",
   },
 }
 
@@ -137,7 +137,7 @@ async function main() {
   let ethRpcProvider, ethRpcNetwork
   try {
     ethRpcProvider = new JsonRpcProvider(`http://127.0.0.1:${ethRpcPort}`)
-    ethRpcNetwork = solidity.getNetworkByChainId((await ethRpcProvider.getNetwork()).chainId)
+    ethRpcNetwork = utils.getEvmNetworkByChainId((await ethRpcProvider.getNetwork()).chainId)
   } catch (err) {}
 
   const router = {
@@ -204,6 +204,7 @@ async function main() {
         ],
         options: [
           'confirmations',
+          'dr-tx-hash',
           'filter-consumer',
           'filter-radHash',
           'fromBlock',
@@ -211,13 +212,12 @@ async function main() {
           'gasLimit',
           'into',
           'limit',
-          'report',
           'signer',
           'toBlock',
           'witnet',
         ],
         envars: [
-          'WITNET_SDK_PROVIDER_URL',
+          'WITNET_KERMIT_PROVIDER_URL'
         ],
       },
     } : {}),    
@@ -350,14 +350,14 @@ function showUsageHeadline(router, cmd, specs) {
       } else {
         params = optionalize(specs?.params) + " "
       }
-      console.info(`   ${lwhite(`npx witnet-solidity ${cmd}`)} ${params ? green(params) : ""}${flags}${options}`)
+      console.info(`   ${lwhite(`npx witnet-ethers ${cmd}`)} ${params ? green(params) : ""}${flags}${options}`)
     } else {
-      console.info(`   ${lwhite(`npx witnet-solidity ${cmd}`)} ${flags}${options}`)
+      console.info(`   ${lwhite(`npx witnet-ethers ${cmd}`)} ${flags}${options}`)
     }
     console.info(`\nDESCRIPTION:`)
     console.info(`   ${router[cmd].hint}`)
   } else {
-    console.info(`   ${lwhite("npx witnet-solidity")} <COMMAND> ${flags}${options}`)
+    console.info(`   ${lwhite("npx witnet-ethers")} <COMMAND> ${flags}${options}`)
   }
 }
 

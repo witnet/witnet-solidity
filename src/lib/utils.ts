@@ -6,6 +6,7 @@ import {
     ABIs as _ABIs,
     supportedEcosystems as _supportedEcosystems,
     supportedNetworks as _supportedNetworks,
+    supportsNetwork as _supportsNetwork,
 } from "witnet-solidity-bridge"
 
 import {
@@ -24,7 +25,7 @@ export function getEvmNetworkAddresses(network: string): any {
     return _getNetworkAddresses(network)
 }
 
-export function getEvmNetworkById(chainId: number): string | undefined {
+export function getEvmNetworkByChainId(chainId: number): string | undefined {
     const found = Object.entries(_supportedNetworks()).find(([, config]) => config.network_id.toString() === chainId.toString())
     if (found) return found[0];
     else return undefined;
@@ -33,6 +34,10 @@ export function getEvmNetworkById(chainId: number): string | undefined {
 export function isEvmNetworkMainnet(network: string): boolean {
     const found = Object.entries(_supportedNetworks()).find(([key,]) => key === network.toLowerCase())
     return found?.[1].mainnet
+}
+
+export function isEvmNetworkSupported(network: string): boolean {
+    return _supportsNetwork(network)
 }
 
 export function abiDecodeQueryStatus(status: bigint): WitOracleQueryStatus {
