@@ -24,8 +24,8 @@ import {
     abiEncodeDataPushReport,
     abiEncodeWitOracleQueryParams,
     abiEncodeRadonAsset,
-    getNetworkAddresses,
-    getNetworkByChainId,
+    getEvmNetworkAddresses,
+    getEvmNetworkById,
 } from "./utils"
 
 import { 
@@ -118,7 +118,7 @@ abstract class WitArtifactWrapper extends ContractWrapper {
 
     constructor (signer: JsonRpcSigner, network: string, artifact: string, at?: string) {
         const abis: Record<string, Interface | InterfaceAbi> = ABIs
-        const target = at || getNetworkAddresses(network)?.core[artifact]
+        const target = at || getEvmNetworkAddresses(network)?.core[artifact]
         if (!abis[artifact] || !target) {
             throw new Error(`EVM network ${network} => artifact is not available: ${artifact}`)
         } else {
@@ -133,7 +133,7 @@ abstract class WitApplianceWrapper extends ContractWrapper {
 
     constructor (witOracle: WitOracle, artifact: string, at?: string) {
         const abis: Record<string, Interface | InterfaceAbi> = ABIs
-        const addresses = getNetworkAddresses(witOracle.network)
+        const addresses = getEvmNetworkAddresses(witOracle.network)
         const target = at || addresses?.core[artifact] || addresses?.apps[artifact]
         if (!abis[artifact] || !target) {
             throw new Error(`EVM network ${witOracle.network} => artifact not available: ${artifact}`)
@@ -167,7 +167,7 @@ export class WitOracle extends WitArtifactWrapper {
         const provider = new JsonRpcProvider(url)
         const signer = await provider.getSigner(signerId)
         const chainId = Number((await provider.getNetwork()).chainId)
-        const network = getNetworkByChainId(chainId)
+        const network = getEvmNetworkById(chainId)
         if (!network) {
             throw new Error(`WitOracle: unsupported chain id: ${chainId}`)
         }
@@ -227,7 +227,7 @@ export class WitOracle extends WitArtifactWrapper {
                 queryRadHash: (log as EventLog).args.radonHash as Witnet.Hash,
                 queryParams: {
                     witnesses: (log as EventLog).args.radonParams[1] as number,
-                    unitaryReward: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.radonParams[2])),
+                    unitaryReward: BigInt((log as EventLog).args.radonParams[2]),
                     resultMaxSize: (log as EventLog).args.radonParams[0] as number,
                 } as WitOracleQueryParams,
             })))
@@ -273,12 +273,16 @@ export class WitOracle extends WitArtifactWrapper {
                 queryRadHash: (log as EventLog).args.queryRadHash,
                 queryParams: {
                     witnesses: (log as EventLog).args.queryParams[1] as number,
-                    unitaryReward: Witnet.Coins.fromPedros(BigInt((log as EventLog).args.queryParams[2])),
+                    unitaryReward: BigInt((log as EventLog).args.queryParams[2]),
                     resultMaxSize: (log as EventLog).args.queryParams[0] as number,
                 },
                 resultCborBytes: (log as EventLog).args.resultCborBytes,
                 resultTimestamp: Number((log as EventLog).args.resultTimestamp),
             })))
+    }
+
+    public async getEvmChainId(): Promise<number> {
+        return this.provider.getNetwork().then(network => Number(network.chainId))
     }
 
     public async getEvmChannel(): Promise<Witnet.HexString> {
@@ -387,7 +391,7 @@ class WitOracleConsumer extends WitApplianceWrapper {
         return consumer
     }
 
-    public async pushDataReport(report: DataPushReport, signature: string, options?: { 
+    public async pushDataReport(report: DataPushReport, options?: { 
         confirmations?: number, 
         gasPrice?: bigint,
         gasLimit?: bigint,
@@ -396,12 +400,12 @@ class WitOracleConsumer extends WitApplianceWrapper {
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         return this.contract
             .pushDataReport
-            .populateTransaction(abiEncodeDataPushReport(report), signature)
+            .populateTransaction(abiEncodeDataPushReport(report), `0x${report?.evm_proof}`)
             .then(tx => {
                 tx.gasPrice = options?.gasPrice || tx?.gasPrice 
                 tx.gasLimit = options?.gasLimit || tx?.gasLimit
                 return this.signer.sendTransaction(tx)
-            })  
+            })
             .then(response => {
                 if (options?.onDataPushReportTransaction) options.onDataPushReportTransaction(response.hash);
                 return response.wait(options?.confirmations || 1, options?.timeout)

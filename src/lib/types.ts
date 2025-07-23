@@ -1,30 +1,15 @@
 import { Witnet } from "@witnet/sdk"
 
-/**
- * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
- */
-export type DataPushReport = {
-    /**
-     * Unique hash of the Data Request Transaction that produced the outcoming result. 
-     */
-    drTxHash: Witnet.Hash,
-    /**
-     * RAD hash of the Radon Request being solved.
-     */
-    queryRadHash: Witnet.Hash,
-    /**
-     * SLA parameters required to be fulfilled by the Witnet blockchain. 
-     */
-    queryParams: WitOracleQueryParams,
-    /**
-     * Timestamp when the data sources where queried and the contained result produced.
-     */
-    resultTimestamp: number,
-    /**
-     * CBOR-encoded buffer containing the actual result data to some query as solved by the Witnet blockchain. 
-     */
-    resultCborBytes: Witnet.HexString,
+export type DataPushReport = Witnet.GetDataRequestEtherealReport & { evm_proof?: Witnet.HexString }
+
+export interface IKermitClient {
+    getDataPushReport(query: {
+        witDrTxHash: Witnet.Hash, 
+        evmNetwork?: number | string,
+    }): Promise<DataPushReport>;
+    // searchDataRequests(hash: Hash, {}): Promise<any>;
 }
+
 
 export type PriceFeed = {
     id: string,
@@ -74,10 +59,10 @@ export type WitOracleQueryParams = {
      */
     resultMaxSize?: number,
     /**
-     * Mininum reward in $WIT coins for very validator that positively contributes to get the Wit/Oracle
+     * Mininum reward in $nanoWIT for very validator that positively contributes to get the Wit/Oracle
      * query attended, solved and stored into the Witnet blockchain. 
      */
-    unitaryReward: Witnet.Coins,
+    unitaryReward: bigint,
     /**
      * Maximum number of witnessing nodes required to participate in solving the oracle query. 
      */
