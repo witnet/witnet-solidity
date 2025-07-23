@@ -2,15 +2,6 @@ import { Witnet } from "@witnet/sdk"
 
 export type DataPushReport = Witnet.GetDataRequestEtherealReport & { evm_proof?: Witnet.HexString }
 
-export interface IKermitClient {
-    getDataPushReport(query: {
-        witDrTxHash: Witnet.Hash, 
-        evmNetwork?: number | string,
-    }): Promise<DataPushReport>;
-    // searchDataRequests(hash: Hash, {}): Promise<any>;
-}
-
-
 export type PriceFeed = {
     id: string,
     exponent: number,
