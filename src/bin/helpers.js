@@ -141,7 +141,7 @@ function orderKeys(obj) {
 }
 
 function showVersion() {
-    console.info(`${mcyan(`Wit/Oracle Solidity SDK v${require("../../package.json").version}`)}`)
+    console.info(`${mcyan(`Wit/Oracle Ethers SDK v${require("../../package.json").version}`)}`)
 }
 
 function traceHeader(header, color = white, indent = "") {
