@@ -3,9 +3,8 @@ const helpers = require("../helpers")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
 
-const { utils, Witnet } = require("@witnet/sdk")
-const { WitOracle, abiEncodeDataPushReport } = require("../../../dist/src/lib")
-const { fromHexString } = require("@witnet/sdk/utils")
+const { Witnet } = require("@witnet/sdk")
+const { /*KermitClient,*/ WitOracle, utils } = require("../../../dist/src/lib")
 
 module.exports = async function (options = {}, args = []) {
 
@@ -23,75 +22,62 @@ module.exports = async function (options = {}, args = []) {
     const version = await witOracle.getEvmImplVersion()
     console.info(`  ${helpers.colors.lwhite(artifact)}: ${helpers.colors.lblue(address)} (${version})`)
 
-    if (options?.report) {
-        if (!options?.into) {
+    if (options['dr-tx-hash']) {
+        const drTxHash = options['dr-tx-hash']
+        if (!utils.isHexStringOfLength(drTxHash, 32) ) {
+            throw new Error(`invalid <WIT_DR_TX_HASH>: ${drTxHash}`)
+        } else if (!options?.into) {
             throw new Error(`--into <EVM_ADDRESS> must be specified`)
         }
-        const consumer = await witOracle.getWitOracleConsumerAt(options.into)
-        
+
         console.info(helpers.colors.lwhite(`\n  Fetching result to Wit/Oracle query:`))
-        const provider = await Witnet.JsonRpcProvider.fromEnv(options?.witnet)
-        console.info(`  > Witnet provider:   ${provider.endpoints}`)
-        console.info(`  > Witnet network:    ${provider.network.toUpperCase()} (${provider.networkId.toString(16)})`)
         
-        const drTxHash = options.report
-        const drTx = await provider.getDataRequest(drTxHash, "ethereal", true)
-        // console.log(drTx)
-        if (drTx?.query) {
-            console.info(`  > Witnet DRT hash:   ${drTxHash}`)
-            console.info(`  > Witnet RAD hash:   ${drTx.query.rad_hash}`)
-            console.info(`  > Witnet DRO hash:   ${drTx.query.dro_hash}`)
+        const consumer = await witOracle.getWitOracleConsumerAt(options.into)
+        const provider = await Witnet.JsonRpcProvider.fromEnv(options?.witnet)
+        const report = await provider.getDataRequest(drTxHash, "ethereal", true)
+        console.info(`  > Wit/RPC provider:    ${provider.endpoints}`)
+        console.info(`  > Witnet network:      ${provider.network.toUpperCase()} (${provider.networkId.toString(16)})`)
+        
+        // const provider = await KermitClient.fromEnv(options?.kermit)
+        // const network = utils.getEvmNetworkByChainId(await witOracle.getEvmChainId())
+        // const report = await _provider.getDataPushReport(drTxHash, _network)
+        // console.info(`  > Wit/Kermit provider: ${provider.url}`)
+        
+        if (report?.query) {
+            console.info(`  > Witnet DRT hash:     ${report.hash}`)
+            console.info(`  > Witnet RAD hash:     ${report.query.rad_hash}`)
+            console.info(`  > Witnet DRO hash:     ${report.query.dro_hash}`)
             
-            let report, message, digest
-            if (drTx?.result) {
-                console.info(`  > Witnet DRT result: ${utils.cbor.decode(utils.fromHexString(drTx.result.cbor_bytes))}`)
-                console.info(`  > Witnet DRT clock:  ${moment.unix(drTx.result.timestamp).fromNow()}`)
-                report = {
-                    drTxHash: `0x${drTxHash}`,
-                    queryParams: {
-                        witnesses: drTx.query.witnesses,
-                        unitaryReward: Math.floor(Number(drTx.query.collateral) / 125),
-                        resultMaxSize: 0,
-                    },
-                    queryRadHash: `0x${drTx.query.rad_hash}`,
-                    resultCborBytes: `0x${drTx.result.cbor_bytes}`,
-                    resultTimestamp: drTx.result.timestamp,
-                }
-                if (!drTx.confirmed) {
+            if (report?.result) {
+                console.info(`  > Witnet DRT result:   ${JSON.stringify(utils.cbor.decode(utils.fromHexString(report.result.cbor_bytes)))}`)
+                console.info(`  > Witnet DRT clock:    ${moment.unix(report.result.timestamp).fromNow()}`)
+                
+                if (!report.result.finalized) {
                     const user = await prompt([{
                         message: `  > The Wit/Oracle query is not yet finalized. Proceed anyway ?`,
                         name: "continue",
                         type: "confirm",
-                        default: true,
+                        default: false,
                     }])
                     if (!user.continue) {
                         process.exit(0)
                     }
                 } 
-                message = ethers.AbiCoder.defaultAbiCoder().encode(
-                    ["bytes32", "bytes32", "(uint16, uint16, uint64)", "uint64", "bytes"],
-                    abiEncodeDataPushReport(report)
-                )
-                digest = ethers.solidityPackedKeccak256(
-                    ["bytes"],
-                    [message],
-                )
-            } else {
-                console.info(`  Skipped: the Wit/Oracle query exists but has not yet been solved.`)
-            }
-            if (message) {
+
                 console.info(`\n  ${helpers.colors.lwhite("WitOracleConsumer")}:   ${helpers.colors.lblue(options.into)}`)
+
+                const message = utils.abiEncodeDataPushReportMessage(report)
+                const digest = utils.abiEncodeDataPushReportDigest(report)
+                /**/const signingKey = new ethers.SigningKey(process.env.WITNET_REPORTER_PRIVATE_KEY)
+                /**/const signature = signingKey.sign(utils.fromHexString(digest))
+                /**/report.evm_proof = signature.serialized
+
                 traceData(`  > Push data report:  `, message.slice(2), 64, "\x1b[90m")
                 console.info(`  > Push data digest:  ${digest.slice(2)}`)
-
-                const signingKey = new ethers.SigningKey(process.env.WITNET_REPORTER_PRIVATE_KEY)
-                const signature = signingKey.sign(utils.fromHexString(digest))
-                const proof = signature.serialized
-                console.info(`  > Push data proof:   ${proof.slice(2)}`)
-                console.log(fromHexString(message))
-                console.log(ethers.verifyMessage(message, signature.serialized))
-                const receipt = await consumer.pushDataReport(report, proof, {
-                    confirmations: 1,
+                console.info(`  > Push data proof:   ${report.evm_proof.slice(2)}`)
+                
+                await consumer.pushDataReport(report, {
+                    confirmations: options?.confirmations || 1,
                     gasLimit: options?.gasLimit,
                     gasPrice: options?.gasPrice,
                     onDataPushReportTransaction: (txHash) => {
@@ -102,7 +88,9 @@ module.exports = async function (options = {}, args = []) {
                     console.error(err)
                 })
                 process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
-                console.log("  ", receipt)
+            
+            } else {
+                console.info(`  Skipped: the Wit/Oracle query exists but has not yet been solved.`)
             }
         } else {
             console.info(`  Skipped: the Wit/Oracle query does not exist.`)

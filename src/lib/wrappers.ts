@@ -400,7 +400,7 @@ class WitOracleConsumer extends WitApplianceWrapper {
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         return this.contract
             .pushDataReport
-            .populateTransaction(abiEncodeDataPushReport(report), `0x${report?.evm_proof}`)
+            .populateTransaction(abiEncodeDataPushReport(report), report?.evm_proof)
             .then(tx => {
                 tx.gasPrice = options?.gasPrice || tx?.gasPrice 
                 tx.gasLimit = options?.gasLimit || tx?.gasLimit
