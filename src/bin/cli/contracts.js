@@ -1,9 +1,6 @@
 const { JsonRpcProvider } = require("ethers")
-const { supportsNetwork } = require("witnet-solidity-bridge")
-const { utils, Witnet } = require("@witnet/sdk")
-
 const helpers = require("../helpers")
-const solidity = require("../../../dist/src/lib")
+const { utils } = require("../../../dist/src/lib")
 
 const deployables = helpers.readWitnetJsonFiles("templates")
 
@@ -17,7 +14,7 @@ module.exports = async function (flags = {}, args = []) {
         throw new Error(`Unable to connect to local ETH/RPC gateway: ${err.message}`)
     }
     const chainId = (await provider.getNetwork()).chainId
-    const network = solidity.getNetworkByChainId(chainId)
+    const network = utils.getEvmNetworkByChainId(chainId)
     if (!network) {
         throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
     }
