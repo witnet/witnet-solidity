@@ -1,40 +1,25 @@
-/* eslint-disable no-unused-vars */
+const { assets, Witnet } = require("@witnet/sdk")
+const { RadonRequest, RadonScript } = Witnet.Radon
+const { filters, reducers, retrievals, types } = Witnet.Radon
 
-const Witnet = require("witnet-toolkit")
-
-const sources = Witnet.Dictionary(
-  Witnet.Sources.Class,
-  require("./sources")
-)
-const templates = Witnet.Dictionary(
-  Witnet.Artifacts.Template,
-  require("./templates")
-)
+const sources = require("./sources")
+const templates = require("./templates")
 
 module.exports = {
-  /// //// STATIC REQUESTS /////////////////////////////////////////////////////////
+  /// //// REQUESTS FROM RETRIEVALS /////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitnetRequestXXX: Witnet.StaticRequest({
-  //          retrieve: [ Witnet.Sources.., ..., sources['source-name-x'], ... ],
-  //          aggregate?: Witnet.Reducers..,
-  //          tally?: Witnet.Reducers..,
+  //      WitOracleRequestXXX: new RadonRequest({
+  //          sources: [ 
+  //              sources...RadonRetrieval1,
+  //              sources...RadonRetrieval2.foldArgs("value21"),
+  //              sources...RadonRetrieval3.foldArgs("value31", "value32"),
+  //              retrievals..HttpXXX({ ... })
+  //              ... 
+  //          ],
+  //          sourcesReducer?: reducers..,
+  //          witnessReducer?: reducers..,
   //      }),
   /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
-  //      WitnetRequestYYY: Witnet.RequestFromTemplate(
-  //          templates['WitnetRequestTemplateUniqueNameX'],
-  //          [ [ .. ], .. ], // args: string[][]
-  //      ),
-  /// /// REQUESTS FROM RETRIEVALS DICTIONARY //////////////////////////////////////
-  //      WitnetRequestZZZ: Witnet.RequestFromDictionary({
-  //          retrieve: {
-  //              dict: sources,
-  //              tags: {
-  //                  'source-name-1': [ [ .. ], .. ], // args: string[][]
-  //                  ...
-  //              },
-  //          },
-  //          aggregate?: Witnet.Reducers.., // aggregate
-  //          tally?: Witnet.Reducers.., // tally
-  //      }),
+  //      WitOracleRequestYYY: templates...RadonTemplate1.buildRequest([["arg11", "arg12", ..], ..])
   // }, ... },
-}
+};

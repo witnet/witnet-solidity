@@ -1,134 +1,124 @@
 const cbor = require("cbor")
-const toolkit = require("witnet-toolkit/utils")
-const utils = require("witnet-solidity-bridge/utils")
-const Witnet = require("witnet-toolkit")
+const framework = require("witnet-solidity-bridge/utils")
+const { utils, Witnet } = require("@witnet/sdk")
 
 module.exports = {
-  deployWitnetRequest,
-  deployWitnetRequestTemplate,
-  dryRunBytecode: toolkit.dryRunBytecode,
-  dryRunBytecodeVerbose: toolkit.dryRunBytecodeVerbose,
-  flattenWitnetArtifacts,
+  deployWitOracleRequest,
+  deployWitOracleRequestTemplate,
+  encodeWitnetRadon, 
+  flattenRadonAssets: utils.radon.assets.flatten,
   getFromFromArgs,
-  getRealmNetworkFromArgs: utils.getRealmNetworkFromArgs,
-  getWitnetArtifactsFromArgs: utils.getWitnetArtifactsFromArgs,
-  getWitnetRequestMethodString: utils.getWitnetRequestMethodString,
-  isDryRun: utils.isDryRun,
+  getRealmNetworkFromArgs: framework.getRealmNetworkFromArgs,
+  getRealmNetworkFromString: framework.getRealmNetworkFromString,
+  getWitnetArtifactsFromArgs,
+  getWitOracleRequestMethodString: framework.getWitOracleRequestMethodString,
+  isDryRun: framework.isDryRun,
   isNullAddress,
   orderObjectKeys,
   processDryRunJson,
   loadAddresses,
   saveAddresses,
-  readJsonFromFile: utils.readJsonFromFile,
-  overwriteJsonFile: utils.overwriteJsonFile,
-  traceHeader: utils.traceHeader,
+  readJsonFromFile: framework.readJsonFromFile,
+  overwriteJsonFile: framework.overwriteJsonFile,
+  traceHeader: framework.traceHeader,
   traceTx,
-  verifyWitnetRadonReducer,
-  verifyWitnetRadonRetrieval,
+  verifyRadonReducer,
+  verifyRadonRetrieval,
 }
 
-async function buildWitnetRequestFromTemplate (web3, from, templateContract, args) {
+async function buildWitOracleRequestFromTemplate (web3, from, templateContract, args) {
   // convert all args values to string
   args = args.map(subargs => subargs.map(v => v.toString()))
-  const requestAddr = await templateContract.buildRequest.call(args, { from })
+  const requestAddr = await templateContract.methods['buildWitOracleRequest(string[][])'].call(args, { from })
   if ((await web3.eth.getCode(requestAddr)).length <= 3) {
-    const tx = await templateContract.buildRequest(args, { from })
+    const tx = await templateContract.methods['buildWitOracleRequest(string[][])'](args, { from })
     console.info("  ", "> Template settlement hash:", tx.receipt.transactionHash)
     console.info("  ", "> Template settlement gas: ", tx.receipt.gasUsed)
   }
   return requestAddr
 }
 
-async function deployWitnetRequest (web3, from, registry, factory, request, templateArtifact, key) {
-  const templateAddr = await deployWitnetRequestTemplate(web3, from, registry, factory, request)
-  if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
-  console.info("  ", "> Template address: ", templateAddr)
-  const args = []
-  if (request?.args) {
-    console.info("  ", "> Instance parameters:")
-    request?.args?.forEach((subargs, index) => {
-      console.info(
-        "     ",
-        `Source #${index + 1}: \x1b[1;32m${JSON.stringify(subargs)}\x1b[0m => \x1b[32m${request.specs?.retrieve[index].url} ...\x1b[0m`
+async function deployWitOracleRequest (web3, from, registry, factory, request, templateArtifact, key) {
+  if (request instanceof Witnet.RadonRequest) {
+    const sources = await verifyRadonRetrievals(from, registry, request?.retrieve)
+    if (key) framework.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+    let requestAddr = await factory.buildWitOracleRequest.call(
+      sources,
+      encodeWitnetRadon(request.aggregate),
+      encodeWitnetRadon(request.tally),
+      { from }
+    )
+    if (isNullAddress(requestAddr) || (await web3.eth.getCode(requestAddr)).length <= 3) {
+      const tx = await factory.buildWitOracleRequest(
+        sources,
+        encodeWitnetRadon(request.aggregate),
+        encodeWitnetRadon(request.tally),
+        { from }
       )
-      args[index] = subargs
-    })
-  } else {
-    request.specs.retrieve.map(_source => args.push([]))
+      traceTx(tx.receipt)
+      tx.logs = tx.logs.filter(log => log.event === "WitOracleRequestBuilt")
+      requestAddr = tx.logs[0].args.request
+    }
+    return requestAddr
   }
-  return await buildWitnetRequestFromTemplate(web3, from, await templateArtifact.at(templateAddr), args)
 }
 
-async function deployWitnetRequestTemplate (web3, from, registry, factory, template, key) {
-  const aggregate = await verifyWitnetRadonReducer(from, registry, template.specs.aggregate)
-  const tally = await verifyWitnetRadonReducer(from, registry, template.specs.tally)
+async function verifyRadonRetrievals (from, registry, retrievals) {
   const sources = []
-  const args = []
-  for (let j = 0; j < template?.specs.retrieve.length; j++) {
-    sources.push(await verifyWitnetRadonRetrieval(from, registry, template.specs.retrieve[j]))
-    args.push([])
+  for (let j = 0; j < retrievals.length; j++) {
+    sources.push(
+      await verifyRadonRetrieval(from, registry, retrievals[j])
+    )
   }
-  if (key) utils.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
-  let templateAddr = await factory.buildRequestTemplate.call(
-    sources, aggregate, tally,
-    template?.specs?.maxSize || 32,
+  return sources
+}
+
+async function deployWitOracleRequestTemplate (web3, from, registry, factory, template, key) {
+  const sources = await verifyRadonRetrievals(from, registry, template.specs.retrieve)
+  if (key) framework.traceHeader(`Building '\x1b[1;37m${key}\x1b[0m'...`)
+  let templateAddr = await factory.buildWitOracleRequestTemplate.call(
+    sources,
+    encodeWitnetRadon(template.specs.aggregate),
+    encodeWitnetRadon(template.specs.tally),
     { from }
   )
   if (isNullAddress(templateAddr) || (await web3.eth.getCode(templateAddr)).length <= 3) {
-    const tx = await factory.buildRequestTemplate(
-      sources, aggregate, tally,
-      template?.specs?.maxSize || 32,
+    const tx = await factory.buildWitOracleRequestTemplate(
+      sources,
+      encodeWitnetRadon(template.specs.aggregate),
+      encodeWitnetRadon(template.specs.tally),
       { from }
     )
     traceTx(tx.receipt)
-    tx.logs = tx.logs.filter(log => log.event === "WitnetRequestTemplateBuilt")
+    tx.logs = tx.logs.filter(log => log.event === "WitOracleRequestTemplateBuilt")
     templateAddr = tx.logs[0].args.template
   }
   return templateAddr
 };
 
 function encodeWitnetRadon (T) {
-  if (T instanceof Witnet.Reducers.Class) {
+  if (T instanceof Witnet.RadonReducers.RadonReducer) {
     return [
       T.opcode,
       T.filters?.map(filter => encodeWitnetRadon(filter)) || [],
     ]
-  } else if (T instanceof Witnet.Filters.Class) {
+  } else if (T instanceof Witnet.RadonFilters.RadonFilter) {
     return [
       T.opcode,
       `0x${T.args ? cbor.encode(T.args).toString("hex") : ""}`,
     ]
-  } else if (T instanceof Witnet.Sources.Class) {
+  } else if (T instanceof Witnet.RadonRetrieval) {
     return [
       T.method,
       T.url || "",
       T.body || "",
-      T.headers || "",
+      T.headers || [],
       encodeWitnetRadon(T.script) || "0x80",
     ]
-  } else if (T instanceof Witnet.Types.RadonType) {
-    return cbor.encode(T._encodeArray())
+  } else if (T instanceof Witnet.RadonScriptWrapper) {
+    return T.toBytecode()
   }
   return T
-};
-
-function flattenWitnetArtifacts (tree, headers) {
-  if (!headers) headers = []
-  const matches = []
-  for (const key in tree) {
-    if (tree[key]?.specs) {
-      matches.push({
-        key,
-        artifact: tree[key],
-      })
-    } else if (typeof tree[key] === "object") {
-      matches.push(...flattenWitnetArtifacts(
-        tree[key],
-        [...headers, key]
-      ))
-    }
-  }
-  return matches
 };
 
 function getFromFromArgs () {
@@ -187,7 +177,7 @@ function processDryRunJson (dryrun) {
   }
 }
 
-async function verifyWitnetRadonReducer (from, registry, reducer) {
+async function verifyRadonReducer (from, registry, reducer) {
   let hash
   if (reducer instanceof Witnet.Reducers.Class) {
     hash = await registry.verifyRadonReducer.call(encodeWitnetRadon(reducer), { from })
@@ -195,7 +185,7 @@ async function verifyWitnetRadonReducer (from, registry, reducer) {
       await registry.lookupRadonReducer.call(hash, { from })
     } catch {
       // register new reducer, otherwise:
-      utils.traceHeader("Verifying Radon Reducer ...")
+      framework.traceHeader("Verifying Radon Reducer ...")
       console.info(`   > Hash:        \x1b[35m${hash}\x1b[0m`)
       console.info(`   > Reducer:     \x1b[1;35m${reducer.toString()}\x1b[0m`)
       const tx = await registry.verifyRadonReducer(encodeWitnetRadon(reducer), { from })
@@ -207,12 +197,13 @@ async function verifyWitnetRadonReducer (from, registry, reducer) {
   return hash
 };
 
-async function verifyWitnetRadonRetrieval (from, registry, source) {
+async function verifyRadonRetrieval (from, registry, source) {
   // get actual hash for this data source
   let hash
   if (source) {
     try {
-      hash = await registry.methods["verifyRadonRetrieval(uint8,string,string,string[2][],bytes)"].call(...encodeWitnetRadon(source), { from })
+      var args = encodeWitnetRadon(source)
+      hash = await registry.methods["verifyRadonRetrieval(uint8,string,string,string[2][],bytes)"].call(...args, { from })
     } catch (e) {
       throw EvalError(`Cannot check if Witnet Radon Source is already verified: ${e}`)
     }
@@ -221,12 +212,12 @@ async function verifyWitnetRadonRetrieval (from, registry, source) {
       await registry.lookupRadonRetrieval.call(hash, { from })
     } catch {
       // register new source, otherwise:
-      utils.traceHeader("Verifying Radon Source ...")
+      framework.traceHeader("Verifying Radon Retrieval ...")
       console.info(`   > Hash:       \x1b[32m${hash}\x1b[0m`)
       if (source?.url) {
         console.info(`   > URL:        \x1b[1;32m${source.url}\x1b[0m`)
       }
-      console.info(`   > Method:     \x1b[1;32m${utils.getWitnetRequestMethodString(source?.method)}\x1b[0m`)
+      console.info(`   > Method:     \x1b[1;32m${framework.getWitOracleRequestMethodString(source?.method)}\x1b[0m`)
       if (source?.body) {
         console.info(`   > Body:       \x1b[1;32m${source.body}\x1b[0m`)
       }
@@ -267,4 +258,13 @@ function traceTx (receipt) {
   console.log("  ", "> Transaction block:", receipt.blockNumber)
   console.log("  ", "> Transaction hash: ", receipt.transactionHash)
   console.log("  ", "> Transaction gas:  ", receipt.gasUsed)
+};
+
+function getWitnetArtifactsFromArgs () {
+  let selection = []
+  const artifactsIndex = process.argv.indexOf('--artifacts')
+  if (artifactsIndex >= 0) {
+    selection = process.argv.slice(artifactsIndex + 1)
+  }
+  return selection
 };

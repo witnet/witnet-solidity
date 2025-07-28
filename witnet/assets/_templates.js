@@ -1,20 +1,24 @@
-/* eslint-disable no-unused-vars */
+const { assets, Witnet } = require("@witnet/sdk")
+const { RadonModal, RadonScript, RadonTemplate } = Witnet.Radon
+const { filters, reducers, retrievals, types } = Witnet.Radon
 
-const Witnet = require("witnet-toolkit")
-
-const sources = Witnet.Dictionary(
-  Witnet.Sources.Class,
-  require("./sources")
-)
+const sources = require("./sources")
 
 module.exports = {
   /// //// REQUEST TEMPLATES ///////////////////////////////////////////////////////
   // path: { ... path: {
-  //      WitnetRequestTemplateXXX: Witnet.RequestTemplate({
-  //          retrieve: [ sources['source-name-x'], ... ],
-  //          aggregate?: Witnet.Reducers..,
-  //          tally?: Witnet.Reducers..,
-  //          tests?: {
+  //      WitOracleRequestTemplateXXX: new RadonTemplate({
+  //          sources: [ 
+  //              sources..XX1,
+  //              // ...
+  //              sources..XX2.foldArgs(...args: string[]),
+  //              // ...
+  //              retrievals..({ ..
+  //              // ...
+  //          ],
+  //          sourcesReducer?: Witnet.Radon.Reducers..,
+  //          witnessReducer?: Witnet.Radon.Reducers..,
+  //          samples?: {
   //              "test-description-1": [
   //                  [ "..", ... ], // source #0 args (string[])
   //                  ...
@@ -22,6 +26,11 @@ module.exports = {
   //              ...
   //          }
   //      }),
+  //      WitOracleRequestTemplateYYY: new RadonTemplate({
+  //          sources: sources..YY1.spawnRetrievals(argIndex = 0, ...values: string[])
+  //          sourcesReducer?: reducers..,
+  //          witnessReducer?: reducers..,
+  //      }),  
   //      ...
   // }, ... },
-}
+};

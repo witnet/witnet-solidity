@@ -1,37 +1,36 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.7.0 <0.9.0;
-pragma experimental ABIEncoderV2;
+pragma solidity >=0.8.0 <0.9.0;
 
-import "witnet-solidity-bridge/contracts/WitnetPriceFeeds.sol";$_importWitnetMocks
+import "witnet-solidity-bridge/contracts/WitPriceFeeds.sol";$_importWitnetMocks
 
 contract $_contractName
     is
-        IWitnetOracleEvents
+        IWitOracleEvents
 {
-    using WitnetV2 for WitnetV2.RadonSLA;
+    using Witnet for Witnet.QuerySLA;
 
-    WitnetOracle public immutable witnet;
-    WitnetPriceFeeds internal immutable __PFS;
+    WitOracle public immutable witOracle;
+    WitPriceFeeds internal immutable __PFS;
     
     constructor ($_constructorParams) {
         require(
             address($_witnetAddress).code.length > 0
-                && $_witnetAddress.specs() == type(IWitnetPriceFeeds).interfaceId,
-            "$_contractName: uncompliant WitnetPriceFeeds appliance"
+                && $_witnetAddress.specs() == type(IWitPriceFeeds).interfaceId,
+            "$_contractName: uncompliant WitPriceFeeds appliance"
         );
         __PFS = $_witnetAddress;
-        witnet = __PFS.witnet();
+        witOracle = __PFS.witOracle();
     }
 
     /// @dev See ERC-2362 as to understand how price feed captions are composed:
-    function _witnetPriceFeedIdOf(string memory _caption)
+    function _erc2362FeedIdOf(string memory _caption)
         internal pure returns (bytes4)
     {
         return bytes4(keccak256(bytes(_caption)));
     }
 
-    function _witnetPriceFeedIdOf(
+    function _erc2362PriceFeedIdOf(
             string memory _base, 
             string memory _quote, 
             uint8 _decimals
@@ -70,10 +69,9 @@ contract $_contractName
         }
     }
 
-    /// ... Introspect the `IWitnetPriceFeeds` interface to learn about 
+    /// ... Introspect the `WitPriceFeeds` ABI as to learn about 
     /// ... the methods under `__PFS` for checking the list of supported price feeds,
     /// ... as well as their current status, or timestamp and audit trail proofs for latest 
-    /// ... updates as resolved by the Witnet Oracle blockhain, or even the actual data sources 
+    /// ... updates as resolved by the Wit/Oracle blockhain, or even the actual data sources 
     /// ... and APIs being used under the hood for every supported price feed.
-
 }

@@ -1,38 +1,47 @@
 {
-  "name": "witnet-solidity",
-  "version": "2.0.3",
-  "description": "Witnet CLI import module for Solidity projects",
+  "name": "@witnet/ethers",
+  "version": "1.0.0",
+  "description": "Wit/Oracle SDK Framework package for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/witnet/witnet-solidity/tree/2.0"
+    "url": "https://github.com/witnet/witnet-solidity/"
   },
   "private": false,
   "type": "commonjs",
   "bin": {
-    "witnet": "src/bin/witnet.js"
+    "witnet-ethers": "src/bin/solidity.js",
+    "witnet-solidity": "src/bin/solidity.js"
   },
   "exports": {
-    ".": "./witnet/assets/index.js",
-    "./assets": "./witnet/assets/index.js",
-    "./utils": "./witnet/scripts/utils.js"
+    ".": {
+      "require": "./dist/src/lib/index.js",
+      "default": "./dist/src/lib/index.js",
+      "types": "./dist/src/lib/*.d.ts"
+    }
   },
   "files": [
-    "src",
+    "dist",
+    "src/bin",
     "witnet",
     ".env_witnet"
   ],
+  "types": "./dist",
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
     "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
-    "postinstall": "npx witnet-toolkit update",
-    "test": "cross-env-shell WITNET_SOLIDITY_REQUIRE_RELATIVE_PATH='../../../witnet' WITNET_SOLIDITY_MODULE_PATH='./witnet' node ./src/bin/witnet.js test"
+    "prepare": "pnpm run build",
+    "postinstall": "node src/bin/postinstall.js",
+    "test": "cross-env-shell WITNET_SDK_RADON_ASSETS_PATH='../../witnet/assets' node ./src/bin/solidity.js",
+    "witnet-ethers": "cross-env-shell WITNET_SDK_RADON_ASSETS_PATH='../../witnet/assets' node ./src/bin/solidity.js",
   },
   "keywords": [
     "solidity",
     "oracle",
     "witnet",
+    "wit/oracle",
     "evm",
     "www",
     "randomness",
@@ -43,22 +52,28 @@
     "truffle"
   ],
   "dependencies": {
+    "axios": "^1.7.9",
+    "cbor": "^10.0.3",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.4.1",
-    "inquirer": "^8.0.0",
-    "truffle": "^5.11.5",
-    "witnet-solidity-bridge": "../witnet-solidity-bridge",
-    "witnet-toolkit": "../witnet-toolkit"
+    "ethers": "^6.14.0",
+    "ethrpc-gateway": "../web3-jsonrpc-gateway",
+    "json-bigint": "^1.0.0",
+    "lodash.merge": "^4.6.2",
+    "witnet-solidity-bridge": "latest",
+    "@witnet/sdk": "^1.0.0"
   },
   "devDependencies": {
-    "cbor": "^9.0.2",
-    "cross-env": "7.0.3",
-    "eslint": "^8.57.0",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.16.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^16.0.0",
-    "eslint-plugin-promise": "^6.1.1",
-    "ethers": "^6.10.0",
-    "hardhat": "^2.19.5",
-    "solhint": "^4.1.1"
+    "eslint-plugin-n": "^17.15.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "inquirer": "^8.0.0",
+    "moment": "^2.30.1",
+    "solhint": "^5.0.3",
+    "typescript": "^5.7.2"
   }
 }
