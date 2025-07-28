@@ -68,9 +68,9 @@ module.exports = async function (options = {}, args = []) {
 
                 const message = utils.abiEncodeDataPushReportMessage(report)
                 const digest = utils.abiEncodeDataPushReportDigest(report)
-                /**/const signingKey = new ethers.SigningKey(process.env.WITNET_REPORTER_PRIVATE_KEY)
-                /**/const signature = signingKey.sign(utils.fromHexString(digest))
-                /**/report.evm_proof = signature.serialized
+                const signingKey = new ethers.SigningKey(process.env.WITNET_REPORTER_PRIVATE_KEY)
+                const signature = signingKey.sign(utils.fromHexString(digest))
+                report.evm_proof = signature.serialized
 
                 traceData(`  > Push data report:  `, message.slice(2), 64, "\x1b[90m")
                 console.info(`  > Push data digest:  ${digest.slice(2)}`)
