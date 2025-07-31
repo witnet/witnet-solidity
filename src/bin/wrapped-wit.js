@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 require('dotenv').config()
-const { execSync } = require("node:child_process")
 const moment = require("moment")
-const { spawn } = require("node:child_process")
+const { execSync, spawn } = require("node:child_process")
 const os = require("os")
 const prompt = require("inquirer").createPromptModule()
 
@@ -18,8 +17,8 @@ const { green, yellow, lwhite } = helpers.colors
 
 const settings = {
   flags: {
-    help: "Describe how to use some command.",
-    version: "Print binary name and version as headline.",
+    help: "Show usage information for a specific command.",
+    version: "Print the CLI name and version.",
     
     check: "See if cross-chain transactions have been consolidated.",
     mints: "Include mint transactions, if any.",
@@ -28,9 +27,8 @@ const settings = {
     
   },
   options: {
-    
     offset: {
-      hint: "Skip first output records when using --fromBlock (default: 0)",
+      hint: "Skip the first output records when using --fromBlock (default: 0)",
       param: "OFFSET",
     },
     limit: {
@@ -38,11 +36,9 @@ const settings = {
       param: "LIMIT",
     },
     since: {
-      hint: "Process events since given EVM block number.",
+      hint: "Process events starting from the given EVM block number.",
       param: "EVM_BLOCK"
     },
-
-
     from: {
       hint: "Filter events by sender address.",
       param: "EVM|WIT_ADDRESS"
@@ -55,16 +51,14 @@ const settings = {
       hint: "The hash of some finalized wrap transfer transaction in Witnet, pending to be verified.",
       param: "WIT_VTT_HASH"
     },
-    
     value: {
       hint: "Send this amount of wrapped Wits to the specified recipient (requires --into).",
       param: "WIT_COINS",
     },
     gasPrice: {
-      hint: "EVM gas price to pay for.",
+      hint: "Specify the EVM transaction gas price to pay for.",
       param: "EVM_GAS_PRICE",
     },
-    
     port: {
       hint: "Port on which the local ETH/RPC signing gateway is expected to be listening (default: 8545).",
       param: "HTTP_PORT",
@@ -257,7 +251,7 @@ function showMainUsage(router, envars) {
   showUsageFlags(['help', 'version',])
   showUsageOptions(['port',])
   console.info(`\nCOMMANDS:`)
-  var maxLength = Object.keys(router.commands).map(key => key.length).reduce((prev, curr) => curr > prev ? curr : prev)
+  const maxLength = Object.keys(router.commands).map(key => key.length).reduce((prev, curr) => curr > prev ? curr : prev)
   Object.keys(router.commands).forEach(cmd => {
     if (router[cmd]) console.info("  ", `${cmd}${" ".repeat(maxLength - cmd.length)}`, " ", router[cmd]?.hint);
   })

@@ -6,7 +6,7 @@ const commas = (number) => {
   const parts = number.toString().split(".")
   const result = parts.length <= 1
     ? `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
-    : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`;
+    : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`
   return result
 }
 
@@ -103,12 +103,12 @@ function extractOptionsFromArgs(args, options) {
 }
 
 function flattenObject(ob) {
-    var toReturn = {};
+    let toReturn = {};
     for (const i in ob) {
         if (!ob.hasOwnProperty(i)) continue;
         if ((typeof ob[i]) == 'object' && ob[i] !== null) {
             const flatObject = flattenObject(ob[i]);
-            for (var x in flatObject) {
+            for (const x in flatObject) {
                 if (!flatObject.hasOwnProperty(x)) continue;
                 toReturn[i + '.' + x] = flatObject[x];
             }
@@ -269,7 +269,7 @@ const colorstrip = (str) => str.replace(
   /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ""
 )
 
-async function prompter (promise) {
+function prompter (promise) {
   const loading = (() => {
     const h = ["|", "/", "-", "\\"]
     let i = 0

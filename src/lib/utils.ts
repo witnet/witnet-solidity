@@ -2,7 +2,7 @@ import * as cbor from "cbor"
 import { AbiCoder, solidityPackedKeccak256 } from "ethers"
 import { Witnet } from "@witnet/sdk"
 
-const WSB = require("witnet-solidity-bridge")
+import WSB from "witnet-solidity-bridge"
 
 import {
     getNetworkAddresses as _getNetworkAddresses,
