@@ -2,12 +2,7 @@ import * as cbor from "cbor"
 import { AbiCoder, solidityPackedKeccak256 } from "ethers"
 import { Witnet } from "@witnet/sdk"
 
-import {
-    ABIs as _ABIs,
-    supportedEcosystems as _supportedEcosystems,
-    supportedNetworks as _supportedNetworks,
-    supportsNetwork as _supportsNetwork,
-} from "witnet-solidity-bridge"
+const WSB = require("witnet-solidity-bridge")
 
 import {
     getNetworkAddresses as _getNetworkAddresses,
@@ -19,25 +14,25 @@ import { HexString } from "node_modules/ethers/lib.commonjs/utils/data"
 
 export * from "@witnet/sdk/utils"
 
-export const ABIs = _ABIs;
+export const ABIs = WSB.ABIs;
 
 export function getEvmNetworkAddresses(network: string): any {
     return _getNetworkAddresses(network)
 }
 
 export function getEvmNetworkByChainId(chainId: number): string | undefined {
-    const found = Object.entries(_supportedNetworks()).find(([, config]) => config.network_id.toString() === chainId.toString())
+    const found = Object.entries(WSB.supportedNetworks()).find(([, config]: [string, any]) => config?.network_id.toString() === chainId.toString())
     if (found) return found[0];
     else return undefined;
 }
 
 export function isEvmNetworkMainnet(network: string): boolean {
-    const found = Object.entries(_supportedNetworks()).find(([key,]) => key === network.toLowerCase())
-    return found?.[1].mainnet
+    const found = Object.entries(WSB.supportedNetworks()).find(([key,]) => key === network.toLowerCase())
+    return (found as any)?.[1].mainnet
 }
 
 export function isEvmNetworkSupported(network: string): boolean {
-    return _supportsNetwork(network)
+    return WSB.supportsNetwork(network)
 }
 
 export function abiDecodeQueryStatus(status: bigint): WitOracleQueryStatus {
