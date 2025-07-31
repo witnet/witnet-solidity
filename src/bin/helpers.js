@@ -6,7 +6,7 @@ const commas = (number) => {
   const parts = number.toString().split(".")
   const result = parts.length <= 1
     ? `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
-    : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`
+    : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`;
   return result
 }
 
@@ -14,16 +14,20 @@ const blue = (str) => `\x1b[34m${str}\x1b[0m`
 const cyan = (str) => `\x1b[36m${str}\x1b[0m`
 const gray = (str) => `\x1b[90m${str}\x1b[0m`
 const green = (str) => `\x1b[32m${str}\x1b[0m`
+const magenta = (str) => `\x1b[0;35m${str}\x1b[0m`
 const red = (str) => `\x1b[31m${str}\x1b[0m`
 const yellow = (str) => `\x1b[33m${str}\x1b[0m`
 const white = (str) => `\x1b[98m${str}\x1b[0m`
 const lblue = (str) => `\x1b[1;94m${str}\x1b[0m`
 const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lgreen = (str) => `\x1b[1;92m${str}\x1b[0m`
+const lmagenta = (str) => `\x1b[1;95m${str}\x1b[0m`
 const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
+const lyellow = (str) => `\x1b[1;93m${str}\x1b[0m`
 const mblue = (str) => `\x1b[94m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
 const mgreen = (str) => `\x1b[92m${str}\x1b[0m`
+const mmagenta = (str) => `\x1b[0;95m${str}\x1b[0m`
 const mred = (str) => `\x1b[91m${str}\x1b[0m`
 const myellow = (str) => `\x1b[93m${str}\x1b[0m`
 
@@ -86,7 +90,8 @@ function extractOptionsFromArgs(args, options) {
             if (index >= 0) {
                 curated[option] = args[index]
                 if (!args[index + 1] || args[index + 1].startsWith('--')) {
-                    throw `Missing required parameter for --${option}`
+                    args.splice(index, 1)
+                    curated[option] = undefined
                 } else {
                     curated[option] = args[index + 1]
                     args.splice(index, 2)
@@ -141,7 +146,7 @@ function orderKeys(obj) {
 }
 
 function showVersion() {
-    console.info(`${mcyan(`Wit/Oracle Ethers SDK v${require("../../package.json").version}`)}`)
+    console.info(`${lwhite(`Wit/Oracle Ethers CLI v${require("../../package.json").version}`)}`)
 }
 
 function traceHeader(header, color = white, indent = "") {
@@ -264,11 +269,29 @@ const colorstrip = (str) => str.replace(
   /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, ""
 )
 
+async function prompter (promise) {
+  const loading = (() => {
+    const h = ["|", "/", "-", "\\"]
+    let i = 0
+    return setInterval(() => {
+      i = (i > 3) ? 0 : i
+      process.stdout.write(`\b\b${h[i]} `)
+      i++
+    }, 50)
+  })()
+  return promise
+    .then(result => {
+      clearInterval(loading)
+      process.stdout.write("\b\b")
+      return result
+    })
+}
+
 module.exports = {
     colors: {
-        blue, cyan, gray, green, red, yellow, white,
-        lblue, lcyan, lgreen, lwhite,
-        mblue, mcyan, mgreen, mred, myellow,
+        blue, cyan, gray, green, red, yellow, white, magenta,
+        lblue, lcyan, lgreen, lmagenta, lwhite, lyellow, 
+        mblue, mcyan, mgreen, mred, myellow, mmagenta,
     },
     deleteExtraFlags, extractFlagsFromArgs, extractOptionsFromArgs,
     flattenObject, orderKeys,
@@ -277,5 +300,5 @@ module.exports = {
     getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
     importRadonAssets,
     readWitnetJsonFiles, saveWitnetJsonFiles,
-    traceTable, commas, colorstrip,
+    traceTable, commas, colorstrip, prompter,
 }

@@ -1,6 +1,6 @@
 {
   "name": "@witnet/ethers",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Wit/Oracle SDK Framework package for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -12,7 +12,8 @@
   "type": "commonjs",
   "bin": {
     "witnet-ethers": "src/bin/solidity.js",
-    "witnet-solidity": "src/bin/solidity.js"
+    "witnet-solidity": "src/bin/solidity.js",
+    "wrapped-wit": "src/bin/wrapped-wit.js"
   },
   "exports": {
     ".": {
@@ -36,6 +37,7 @@
     "postinstall": "node src/bin/postinstall.js",
     "test": "cross-env-shell WITNET_SDK_RADON_ASSETS_PATH='../../witnet/assets' node ./src/bin/solidity.js",
     "witnet-ethers": "cross-env-shell WITNET_SDK_RADON_ASSETS_PATH='../../witnet/assets' node ./src/bin/solidity.js",
+    "wrapped-wit": "cross-env-shell node ./src/bin/wrapped-wit.js"
   },
   "keywords": [
     "solidity",
@@ -57,15 +59,14 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.1",
     "ethers": "^6.14.0",
-    "ethrpc-gateway": "../web3-jsonrpc-gateway",
+    "ethrpc-gateway": "^2.2.0",
     "json-bigint": "^1.0.0",
     "lodash.merge": "^4.6.2",
-    "witnet-solidity-bridge": "latest",
-    "@witnet/sdk": "^1.0.0"
+    "witnet-solidity-bridge": "~2.1.9",
+    "witnet-wrapped-wit": "^1.0.0",
+    "@witnet/sdk": "^1.0.6"
   },
   "devDependencies": {
-    "@types/lodash.merge": "^4.6.9",
-    "@types/node": "^22.10.2",
     "eslint": "^9.16.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.27.5",
@@ -74,6 +75,8 @@
     "inquirer": "^8.0.0",
     "moment": "^2.30.1",
     "solhint": "^5.0.3",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/node": "^22.10.2"
   }
 }

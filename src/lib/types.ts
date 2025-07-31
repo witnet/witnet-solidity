@@ -50,7 +50,7 @@ export type WitOracleQueryParams = {
      */
     resultMaxSize?: number,
     /**
-     * Mininum reward in $nanoWIT for very validator that positively contributes to get the Wit/Oracle
+     * Mininum reward in $pedros for very validator that positively contributes to get the Wit/Oracle
      * query attended, solved and stored into the Witnet blockchain. 
      */
     unitaryReward: bigint,

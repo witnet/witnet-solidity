@@ -54,7 +54,7 @@ module.exports = async function (options = {}, args = []) {
                 
                 if (!report.result.finalized) {
                     const user = await prompt([{
-                        message: `  > The Wit/Oracle query is not yet finalized. Proceed anyway ?`,
+                        message: `> The Wit/Oracle query is not yet finalized. Proceed anyway ?`,
                         name: "continue",
                         type: "confirm",
                         default: false,
