@@ -3,9 +3,10 @@ const framework = require("witnet-solidity-bridge/utils")
 const { utils, Witnet } = require("@witnet/sdk")
 
 module.exports = {
+  buildWitOracleRequestFromTemplate,
   deployWitOracleRequest,
   deployWitOracleRequestTemplate,
-  encodeWitnetRadon, 
+  encodeWitnetRadon,
   flattenRadonAssets: utils.radon.assets.flatten,
   getFromFromArgs,
   getRealmNetworkFromArgs: framework.getRealmNetworkFromArgs,
@@ -29,9 +30,9 @@ module.exports = {
 async function buildWitOracleRequestFromTemplate (web3, from, templateContract, args) {
   // convert all args values to string
   args = args.map(subargs => subargs.map(v => v.toString()))
-  const requestAddr = await templateContract.methods['buildWitOracleRequest(string[][])'].call(args, { from })
+  const requestAddr = await templateContract.methods["buildWitOracleRequest(string[][])"].call(args, { from })
   if ((await web3.eth.getCode(requestAddr)).length <= 3) {
-    const tx = await templateContract.methods['buildWitOracleRequest(string[][])'](args, { from })
+    const tx = await templateContract.methods["buildWitOracleRequest(string[][])"](args, { from })
     console.info("  ", "> Template settlement hash:", tx.receipt.transactionHash)
     console.info("  ", "> Template settlement gas: ", tx.receipt.gasUsed)
   }
@@ -202,7 +203,7 @@ async function verifyRadonRetrieval (from, registry, source) {
   let hash
   if (source) {
     try {
-      var args = encodeWitnetRadon(source)
+      const args = encodeWitnetRadon(source)
       hash = await registry.methods["verifyRadonRetrieval(uint8,string,string,string[2][],bytes)"].call(...args, { from })
     } catch (e) {
       throw EvalError(`Cannot check if Witnet Radon Source is already verified: ${e}`)
@@ -262,7 +263,7 @@ function traceTx (receipt) {
 
 function getWitnetArtifactsFromArgs () {
   let selection = []
-  const artifactsIndex = process.argv.indexOf('--artifacts')
+  const artifactsIndex = process.argv.indexOf("--artifacts")
   if (artifactsIndex >= 0) {
     selection = process.argv.slice(artifactsIndex + 1)
   }

@@ -1,3 +1,5 @@
+/* eslint no-unused-vars: 0 */
+
 const { assets, Witnet } = require("@witnet/sdk")
 const { RadonRequest, RadonScript } = Witnet.Radon
 const { filters, reducers, retrievals, types } = Witnet.Radon
@@ -9,12 +11,12 @@ module.exports = {
   /// //// REQUESTS FROM RETRIEVALS /////////////////////////////////////////////////
   // path: { ... path: {
   //      WitOracleRequestXXX: new RadonRequest({
-  //          sources: [ 
+  //          sources: [
   //              sources...RadonRetrieval1,
   //              sources...RadonRetrieval2.foldArgs("value21"),
   //              sources...RadonRetrieval3.foldArgs("value31", "value32"),
   //              retrievals..HttpXXX({ ... })
-  //              ... 
+  //              ...
   //          ],
   //          sourcesReducer?: reducers..,
   //          witnessReducer?: reducers..,
@@ -22,4 +24,4 @@ module.exports = {
   /// /// REQUESTS FROM TEMPLATE ///////////////////////////////////////////////////
   //      WitOracleRequestYYY: templates...RadonTemplate1.buildRequest([["arg11", "arg12", ..], ..])
   // }, ... },
-};
+}

@@ -54,29 +54,29 @@
     "truffle"
   ],
   "dependencies": {
+    "@witnet/sdk": "^1.0.6",
     "axios": "^1.7.9",
     "cbor": "^10.0.3",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.1",
     "ethers": "^6.14.0",
-    "ethrpc-gateway": "^2.2.0",
+    "ethrpc-gateway": "^2.2.1",
     "json-bigint": "^1.0.0",
     "lodash.merge": "^4.6.2",
-    "witnet-solidity-bridge": "~2.1.9",
-    "witnet-wrapped-wit": "^1.0.0",
-    "@witnet/sdk": "^1.0.6"
+    "witnet-solidity-bridge": "~2.1.10",
+    "witnet-wrapped-wit": "^1.0.0"
   },
   "devDependencies": {
-    "eslint": "^9.16.0",
+    "@types/lodash.merge": "^4.6.9",
+    "@types/node": "^22.10.2",
+    "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^17.15.0",
-    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.6.0",
     "inquirer": "^8.0.0",
     "moment": "^2.30.1",
     "solhint": "^5.0.3",
-    "typescript": "^5.7.2",
-    "@types/lodash.merge": "^4.6.9",
-    "@types/node": "^22.10.2"
+    "typescript": "^5.7.2"
   }
 }

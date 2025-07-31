@@ -1,3 +1,5 @@
+/* eslint no-unused-vars: 0 */
+
 const { assets, utils, Witnet } = require("@witnet/sdk")
 const { RadonScript, retrievals, types } = Witnet.Radon
 
