@@ -678,7 +678,7 @@ async function transfers (flags = {}) {
   }
 }
 
-async function unwrappings (flags = {}) {
+async function unwrappings(flags = {}) {
   let { check, provider, network, from, into, value, since, offset, limit, gasPrice, confirmations } = flags
   let contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
@@ -756,10 +756,10 @@ async function unwrappings (flags = {}) {
         wit?.hash,
         timediff,
       ]), {
-        headlines: ["BLOCK NUMBER", "EVM TRANSACTION HASH", `WITNET ${witnet.network.toUpperCase()} TRANSACTION HASH`, ":TIME DIFF"],
-        humanizers: [helpers.commas,,,],
-        colors: [, helpers.colors.gray, helpers.colors.magenta],
-      }
+      headlines: ["BLOCK NUMBER", "EVM UNWRAP TRANSACTION HASH", `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`, ":TIME DIFF"],
+      humanizers: [helpers.commas, , ,],
+      colors: [, helpers.colors.gray, helpers.colors.magenta],
+    }
     )
   } else {
     if (events.length > 0) {
@@ -774,21 +774,22 @@ async function unwrappings (flags = {}) {
             event.args[2],
           ]
         }), {
-          headlines: [
-            "BLOCK NUMBER",
-            "EVM TRANSACTION HASH",
-            "EVM SENDER",
-            `WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"} RECIPIENT`,
-            `VALUE (${helpers.colors.lwhite("$pedros")})`,
-          ],
-          humanizers: [helpers.commas,,,, helpers.commas],
-          colors: [, helpers.colors.gray, helpers.colors.mblue, helpers.colors.mmagenta, helpers.colors.yellow],
-        }
+        headlines: [
+          "BLOCK NUMBER",
+          "EVM UNWRAP TRANSACTION HASH",
+          "EVM UNWRAPPER",
+          `WIT RECIPIENT ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
+          `VALUE (${helpers.colors.lwhite("$pedros")})`,
+        ],
+        humanizers: [helpers.commas, , , , helpers.commas],
+        colors: [, helpers.colors.gray, helpers.colors.mblue, helpers.colors.mmagenta, helpers.colors.yellow],
+      }
       )
     } else {
       console.info(`^ No unwrappings found ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
     }
   }
+  process.exit(0)
 }
 
 async function wrappings (flags = {}) {
