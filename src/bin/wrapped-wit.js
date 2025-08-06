@@ -96,7 +96,9 @@ async function main () {
     ...(WrappedWIT.isNetworkSupported(ethRpcNetwork)
       ? {
         accounts: {
-          hint: `Show EVM native and Wrapped/WIT balances for all available signing accounts on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+          hint: `Show EVM native and Wrapped/WIT balances for all available signing accounts on ${
+            helpers.colors.mcyan(ethRpcNetwork.toUpperCase())
+          }.`,
           options: [
             "port",
           ],
@@ -241,7 +243,7 @@ async function main () {
     }
   } else {
     showMainUsage(router, [
-      ...(!process.env.ETHRPC_PRIVATE_KEYS ? ["ETHRPC_PRIVATE_KEYS"] : []), 
+      ...(!process.env.ETHRPC_PRIVATE_KEYS ? ["ETHRPC_PRIVATE_KEYS"] : []),
       ...(!process.env.WITNET_SDK_WALLET_MASTER_KEY ? ["WITNET_SDK_WALLET_MASTER_KEY"] : []),
       ...(!process.env.WITNET_SDK_PROVIDER_URL ? ["WITNET_SDK_PROVIDER_URL"] : []),
     ])
@@ -288,7 +290,8 @@ function showUsageError (router, cmd, specs, error) {
   showCommandUsage(router, cmd, specs)
   if (error) {
     console.info()
-    console.error(error?.stack?.split("\n")[0] || error)
+    console.info(error)
+    // console.error(error?.stack?.split("\n")[0] || error)
   }
 }
 
@@ -352,7 +355,7 @@ function showUsageOptions (options) {
 
 /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function balance(flags = {}) {
+async function balance (flags = {}) {
   const { provider, network } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
@@ -384,7 +387,7 @@ async function balance(flags = {}) {
       ]
     }), {
       headlines: ["INDEX", "EVM ADDRESS", `${helpers.colors.lwhite("ETH")} BALANCE`, `${helpers.colors.lwhite("WIT")} BALANCE`],
-      humanizers: [helpers.commas,,,],
+      humanizers: [helpers.commas, , ,],
       colors: [, helpers.colors.mblue],
     }
   )
@@ -436,19 +439,19 @@ async function networks (flags = {}) {
   console.table(networks)
 }
 
-async function contract(flags = {}) {
+async function contract (flags = {}) {
   const { network, provider } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   const settings = WrappedWIT.getNetworkSettings(network)
 
   const records = []
 
-  records.push([ 'Contract address', helpers.colors.lblue(await contract.getAddress()) ])
-  records.push([ 'Curator address', helpers.colors.blue(await contract.evmCurator()) ])
-  records.push([ 'Wit/Oracle address', helpers.colors.mcyan(await contract.witOracle()) ])
-  records.push([ "Wit/Oracle PoI's CCDR template", helpers.colors.cyan(await contract.witOracleCrossChainProofOfInclusionTemplate()) ])
-  records.push([ 'Wit/Custodian wrapper address', helpers.colors.mmagenta(await contract.witCustodianWrapper()) ])
-  records.push([ 'Wit/Custodian unwrapper address', helpers.colors.magenta(await contract.witCustodianUnwrapper()) ])
+  records.push(["Contract address", helpers.colors.lblue(await contract.getAddress())])
+  records.push(["Curator address", helpers.colors.blue(await contract.evmCurator())])
+  records.push(["Wit/Oracle address", helpers.colors.mcyan(await contract.witOracle())])
+  records.push(["Wit/Oracle PoI's CCDR template", helpers.colors.cyan(await contract.witOracleCrossChainProofOfInclusionTemplate())])
+  records.push(["Wit/Custodian wrapper address", helpers.colors.mmagenta(await contract.witCustodianWrapper())])
+  records.push(["Wit/Custodian unwrapper address", helpers.colors.magenta(await contract.witCustodianUnwrapper())])
 
   helpers.traceTable(records, {
     headlines: [
@@ -458,7 +461,7 @@ async function contract(flags = {}) {
   })
 }
 
-async function supplies(flags = {}) {
+async function supplies (flags = {}) {
   const { network, provider } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
 
@@ -484,20 +487,20 @@ async function supplies(flags = {}) {
         : helpers.colors.yellow(helpers.commas(totalReserve.wits.toFixed(2))),
     ])
 
-    const witCustodian = await contract.witCustodian()
-    const witUnwrapper = await contract.witUnwrapper()
+    const witCustodianWrapper = await contract.witCustodianWrapper()
+    const witCustodianUnwrapper = await contract.witCustodianUnwrapper()
     let witnetBalance = 0n
 
-    const custodianBalance = await witnet.getBalance(witCustodian)
+    const custodianBalance = await witnet.getBalance(witCustodianWrapper)
     witnetBalance += custodianBalance.locked + custodianBalance.staked + custodianBalance.unlocked
-    if (witnetBalance > totalSupply.pedros) {
-      records.push([
-        "Pending to-be-wrapped token supply",
-        helpers.colors.magenta(helpers.commas(Witnet.Coins.fromPedros(witnetBalance - totalSupply.pedros).wits.toFixed(2))),
-      ])
-    }
-    if (witUnwrapper !== witCustodian) {
-      const unwrapperBalance = await witnet.getBalance(witUnwrapper)
+    // if (witnetBalance > totalSupply.pedros) {
+    //   records.push([
+    //     "Pending to-be-wrapped token supply",
+    //     helpers.colors.magenta(helpers.commas(Witnet.Coins.fromPedros(witnetBalance - totalSupply.pedros).wits.toFixed(2))),
+    //   ])
+    // }
+    if (witCustodianUnwrapper !== witCustodianWrapper) {
+      const unwrapperBalance = await witnet.getBalance(witCustodianUnwrapper)
       witnetBalance += unwrapperBalance.locked + unwrapperBalance.staked + unwrapperBalance.unlocked
     }
     records.push([
@@ -589,8 +592,8 @@ async function supplies(flags = {}) {
         // push proof-of-reserve report into the token contract
         console.info(
           helpers.colors.lwhite("\n> Pushing Proof-of-Reserve report into ") +
-            helpers.colors.mblue(WrappedWIT.getNetworkContractAddress(network)) +
-            helpers.colors.lwhite(" ...")
+          helpers.colors.mblue(WrappedWIT.getNetworkContractAddress(network)) +
+          helpers.colors.lwhite(" ...")
         )
         // todo: fetch data push report from kermit
 
@@ -609,8 +612,7 @@ async function supplies(flags = {}) {
       `${helpers.colors.lcyan(network.replace(":", " ").toUpperCase())}`,
       "Available ($WIT)",
     ],
-  }
-  )
+  })
   process.exit(0)
 }
 
@@ -669,8 +671,8 @@ async function transfers (flags = {}) {
         ]
       }), {
         headlines: ["BLOCK NUMBER", "EVM TRANSACTION HASH", "EVM SENDER", "EVM RECIPIENT", `VALUE (${helpers.colors.lwhite("$pedros")})`],
-        humanizers: [helpers.commas,,,, helpers.commas],
-        colors: [, helpers.colors.gray,,, helpers.colors.yellow],
+        humanizers: [helpers.commas, , , , helpers.commas],
+        colors: [, helpers.colors.gray, , , helpers.colors.yellow],
       }
     )
   } else {
@@ -678,7 +680,7 @@ async function transfers (flags = {}) {
   }
 }
 
-async function unwrappings(flags = {}) {
+async function unwrappings (flags = {}) {
   let { check, provider, network, from, into, value, since, offset, limit, gasPrice, confirmations } = flags
   let contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
@@ -756,10 +758,15 @@ async function unwrappings(flags = {}) {
         wit?.hash,
         timediff,
       ]), {
-      headlines: ["BLOCK NUMBER", "EVM UNWRAP TRANSACTION HASH", `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`, ":TIME DIFF"],
-      humanizers: [helpers.commas, , ,],
-      colors: [, helpers.colors.gray, helpers.colors.magenta],
-    }
+        headlines: [
+          "BLOCK NUMBER",
+          "EVM UNWRAP TRANSACTION HASH",
+          `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`,
+          ":TIME DIFF",
+        ],
+        humanizers: [helpers.commas, , ,],
+        colors: [, helpers.colors.gray, helpers.colors.magenta],
+      }
     )
   } else {
     if (events.length > 0) {
@@ -774,16 +781,16 @@ async function unwrappings(flags = {}) {
             event.args[2],
           ]
         }), {
-        headlines: [
-          "BLOCK NUMBER",
-          "EVM UNWRAP TRANSACTION HASH",
-          "EVM UNWRAPPER",
-          `WIT RECIPIENT ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
-          `VALUE (${helpers.colors.lwhite("$pedros")})`,
-        ],
-        humanizers: [helpers.commas, , , , helpers.commas],
-        colors: [, helpers.colors.gray, helpers.colors.mblue, helpers.colors.mmagenta, helpers.colors.yellow],
-      }
+          headlines: [
+            "BLOCK NUMBER",
+            "EVM UNWRAP TRANSACTION HASH",
+            "EVM UNWRAPPER",
+            `WIT RECIPIENT ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
+            `VALUE (${helpers.colors.lwhite("$pedros")})`,
+          ],
+          humanizers: [helpers.commas, , , , helpers.commas],
+          colors: [, helpers.colors.gray, helpers.colors.mblue, helpers.colors.mmagenta, helpers.colors.yellow],
+        }
       )
     } else {
       console.info(`^ No unwrappings found ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
@@ -792,11 +799,11 @@ async function unwrappings(flags = {}) {
   process.exit(0)
 }
 
-async function wrappings(flags = {}) {
+async function wrappings (flags = {}) {
   let { provider, network, from, into, value, since, offset, limit, gasPrice, confirmations, check } = flags
-  
+
   let contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
-  let witnet = await Witnet.JsonRpcProvider.fromEnv(flags?.witnet)
+  const witnet = await Witnet.JsonRpcProvider.fromEnv(flags?.witnet)
 
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
 
@@ -821,7 +828,6 @@ async function wrappings(flags = {}) {
       throw new Error("--from <WIT_ADDRESS> not found on wallet.")
     }
   }
-
 
   // read Wit/ custodian address from token contract
   const witCustodianWrapper = await contract.witCustodianWrapper()
@@ -969,13 +975,13 @@ async function wrappings(flags = {}) {
   }
 
   const fromBlock = since ? BigInt(since) : undefined
-  
+
   let events = []
-  
+
   events.push(...(fromBlock !== undefined && !value
     ? (await contract.queryFilter("Wrapped", fromBlock)).slice(offset || 0, limit || 64)
     : (await contract.queryFilter("Wrapped")).reverse().slice(0, limit || 64)
-  ));
+  ))
 
   if (from) events = events.filter(event => event.args[0].toLowerCase().indexOf(from.toLowerCase()) > -1)
   if (into) events = events.filter(event => event.args[1].toLowerCase().indexOf(into.toLowerCase()) > -1)
@@ -991,14 +997,14 @@ async function wrappings(flags = {}) {
           let status = ""
           switch ((await contract.getWrapTransactionStatus(`0x${hashes[index]}`))) {
             case 0n:
-              status = (vtt.finalized === 1) ? "(finalized on Witnet)" : "(awaiting finalization on Witnet)";
-              break;
+              status = (vtt.finalized === 1) ? "(finalized on Witnet)" : "(awaiting finalization on Witnet)"
+              break
             case 1n:
-              status = "(awaiting cross-chain verification)";
-              break;
+              status = "(awaiting cross-chain verification)"
+              break
             case 2n:
-              status = "(cross-chain verification failed)";
-              break;
+              status = "(cross-chain verification failed)"
+              break
           }
           events.push({
             blockNumber: undefined,
@@ -1021,7 +1027,9 @@ async function wrappings(flags = {}) {
         return [
           { hash: witTxHash.slice(2), timestamp: witTx.timestamp },
           { blockNumber: event?.blockNumber, hash: ethTxHash, timestamp: ethBlock?.timestamp },
-          ethBlock ? moment.duration(moment.unix(ethBlock.timestamp).diff(moment.unix(witTx.timestamp))).humanize() : moment.unix(witTx.timestamp).fromNow()
+          ethBlock
+            ? moment.duration(moment.unix(ethBlock.timestamp).diff(moment.unix(witTx.timestamp))).humanize()
+            : moment.unix(witTx.timestamp).fromNow(),
         ]
       }))
     ))
@@ -1031,18 +1039,18 @@ async function wrappings(flags = {}) {
           return [
             evm?.blockNumber ? helpers.commas(evm.blockNumber) : "",
             wit.hash,
-            evm.hash.startsWith(`0x`) ? helpers.colors.gray(evm.hash) : helpers.colors.red(evm.hash),
+            evm.hash.startsWith("0x") ? helpers.colors.gray(evm.hash) : helpers.colors.red(evm.hash),
             timediff,
           ]
         }), {
-        headlines: [
-          "BLOCK NUMBER",
-          `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`,
-          "ERC-20 WRAP VALIDATING TRANSACTION HASH",
-          ":TIME DIFF",
-        ],
-        colors: [, helpers.colors.magenta,],
-      }
+          headlines: [
+            "BLOCK NUMBER",
+            `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`,
+            "ERC-20 WRAP VALIDATING TRANSACTION HASH",
+            ":TIME DIFF",
+          ],
+          colors: [, helpers.colors.magenta],
+        }
       )
     } else {
       console.info(`^ No verified wrappings found so far ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
@@ -1053,29 +1061,29 @@ async function wrappings(flags = {}) {
       sender: event.args[0],
       transactionHash: event.transactionHash,
       recipient: `${event.args[1].slice(0, 7)}...${event.args[1].slice(-7)}`,
-      value: event.args[2]
+      value: event.args[2],
     }))
     if (records.length > 0) {
       helpers.traceTable(
-          records.map(record => {
+        records.map(record => {
           return [
             record?.blockNumber ? helpers.commas(record.blockNumber) : "",
             record.sender,
-            record.transactionHash.startsWith(`0x`) ? helpers.colors.gray(record.transactionHash) : helpers.colors.red(record.transactionHash),
+            record.transactionHash.startsWith("0x") ? helpers.colors.gray(record.transactionHash) : helpers.colors.red(record.transactionHash),
             record.recipient,
             record.value,
           ]
         }), {
-        headlines: [
-          "BLOCK NUMBER",
-          `WIT WRAPPER ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
-          "ERC-20 WRAP VALIDATING TRANSACTION HASH",
-          "EVM RECIPIENT",
-          `VALUE (${helpers.colors.lwhite("$pedros")})`,
-        ],
-        humanizers: [, , , , helpers.commas],
-        colors: [, helpers.colors.mmagenta, , helpers.colors.mblue, helpers.colors.yellow],
-      }
+          headlines: [
+            "BLOCK NUMBER",
+            `WIT WRAPPER ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
+            "ERC-20 WRAP VALIDATING TRANSACTION HASH",
+            "EVM RECIPIENT",
+            `VALUE (${helpers.colors.lwhite("$pedros")})`,
+          ],
+          humanizers: [, , , , helpers.commas],
+          colors: [, helpers.colors.mmagenta, , helpers.colors.mblue, helpers.colors.yellow],
+        }
       )
     } else {
       console.info(`^ No verified wrappings found so far ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
