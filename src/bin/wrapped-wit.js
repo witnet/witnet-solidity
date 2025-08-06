@@ -207,7 +207,7 @@ async function main () {
     },
     commands: {
       accounts: balance,
-      contract: address,
+      contract,
       gateway,
       networks,
       supplies,
@@ -352,17 +352,7 @@ function showUsageOptions (options) {
 
 /// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function address (flags = {}) {
-  const { network } = flags
-  helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
-  console.info(`> ${
-    helpers.colors.lwhite(WrappedWIT.getNetworkSettings(network).contract)
-  }: ${
-    helpers.colors.lblue(WrappedWIT.getNetworkContractAddress(network))
-  }`)
-}
-
-async function balance (flags = {}) {
+async function balance(flags = {}) {
   const { provider, network } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
@@ -446,7 +436,29 @@ async function networks (flags = {}) {
   console.table(networks)
 }
 
-async function supplies (flags = {}) {
+async function contract(flags = {}) {
+  const { network, provider } = flags
+  const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
+  const settings = WrappedWIT.getNetworkSettings(network)
+
+  const records = []
+
+  records.push([ 'Contract address', helpers.colors.lblue(await contract.getAddress()) ])
+  records.push([ 'Curator address', helpers.colors.blue(await contract.evmCurator()) ])
+  records.push([ 'Wit/Oracle address', helpers.colors.mcyan(await contract.witOracle()) ])
+  records.push([ "Wit/Oracle PoI's CCDR template", helpers.colors.cyan(await contract.witOracleCrossChainProofOfInclusionTemplate()) ])
+  records.push([ 'Wit/Custodian wrapper address', helpers.colors.mmagenta(await contract.witCustodianWrapper()) ])
+  records.push([ 'Wit/Custodian unwrapper address', helpers.colors.magenta(await contract.witCustodianUnwrapper()) ])
+
+  helpers.traceTable(records, {
+    headlines: [
+      `:${helpers.colors.lcyan(network.replace(":", " ").toUpperCase())}`,
+      `:${helpers.colors.lwhite(settings.contract + " contract")}`,
+    ],
+  })
+}
+
+async function supplies(flags = {}) {
   const { network, provider } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
 
