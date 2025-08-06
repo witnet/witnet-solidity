@@ -792,9 +792,12 @@ async function unwrappings(flags = {}) {
   process.exit(0)
 }
 
-async function wrappings (flags = {}) {
+async function wrappings(flags = {}) {
   let { provider, network, from, into, value, since, offset, limit, gasPrice, confirmations, check } = flags
+  
   let contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
+  let witnet = await Witnet.JsonRpcProvider.fromEnv(flags?.witnet)
+
   helpers.traceHeader(network.toUpperCase(), helpers.colors.lcyan)
 
   if (into && !ethers.isAddress(into)) {
@@ -807,22 +810,21 @@ async function wrappings (flags = {}) {
     }
   }
 
-  let witnet, wallet, ledger
-  if (value || flags["vtt-hash"] || check) {
-    // connect to witnet provider
-    witnet = await Witnet.JsonRpcProvider.fromEnv(flags?.witnet)
+  let wallet, ledger
+  if (value || flags["vtt-hash"]) {
+    // create local wallet
+    wallet = await Witnet.Wallet.fromEnv({ provider: witnet, strategy: "slim-first", onlyWithFunds: false })
 
-    if (value || flags["vtt-has"]) {
-      // create local wallet
-      wallet = await Witnet.Wallet.fromEnv({ provider: witnet, strategy: "slim-first", onlyWithFunds: false })
-
-      // select account/signer address from witnet wallet
-      ledger = from ? wallet.getAccount(from) : wallet
-      if (!ledger) {
-        throw new Error("--from <WIT_ADDRESS> not found on wallet.")
-      }
+    // select account/signer address from witnet wallet
+    ledger = from ? wallet.getAccount(from) : wallet
+    if (!ledger) {
+      throw new Error("--from <WIT_ADDRESS> not found on wallet.")
     }
   }
+
+
+  // read Wit/ custodian address from token contract
+  const witCustodianWrapper = await contract.witCustodianWrapper()
 
   if (value && witnet) {
     value = Witnet.Coins.fromWits(value)
@@ -830,11 +832,8 @@ async function wrappings (flags = {}) {
       throw new Error(`Insufficient funds on ${ledger.pkh}`)
     }
 
-    // read Wit/ custodian address from token contract
-    const witCustodian = await contract.witCustodian()
-
     const user = await prompt([{
-      message: `Transfer ${value.toString(2)} into custodian address at ${witCustodian} ?`,
+      message: `Transfer ${value.toString(2)} into custodian address at ${witCustodianWrapper} ?`,
       name: "continue",
       type: "confirm",
       default: false,
@@ -846,12 +845,12 @@ async function wrappings (flags = {}) {
       const metadata = Witnet.PublicKeyHash.fromHexString(into).toBech32(witnet.network)
       let tx = await VTTs.sendTransaction({
         recipients: [
-          [witCustodian, value],
+          [witCustodianWrapper, value],
           [metadata, Witnet.Coins.fromPedros(1n)],
         ],
       })
       console.info(`  - From:       ${helpers.colors.mmagenta(ledger.pkh)}`)
-      console.info(`  - Into:       ${helpers.colors.mcyan(witCustodian)}`)
+      console.info(`  - Into:       ${helpers.colors.mcyan(witCustodianWrapper)}`)
       console.info(`  - Value:      ${helpers.colors.myellow(`${value.wits.toFixed(2)} WIT`)}`)
       console.info(`  - Fees:       ${helpers.colors.yellow(tx.fees.toString())}`)
       console.info(`  - VTT hash:   ${helpers.colors.lwhite(tx.hash)}`)
@@ -864,7 +863,7 @@ async function wrappings (flags = {}) {
       })
 
       console.info(helpers.colors.myellow("\n => Please, wait a few minutes until the transaction gets finalized on Witnet,"))
-      console.info(helpers.colors.myellow("      before querying on-chain verification.\n"))
+      console.info(helpers.colors.myellow("    before querying cross-chain verification.\n"))
 
       // remove --into filter
       into = undefined
@@ -880,14 +879,11 @@ async function wrappings (flags = {}) {
     // check the VTT exists, and fetch transaction etheral report
     const vtt = await witnet.getValueTransfer(vttHash, "ethereal")
 
-    // read Wit/ custodian address from token contract
-    const witCustodian = await contract.witCustodian()
-
     // check if the VTT is a valid transfer to the custodian address:
-    if (vtt.recipient !== witCustodian) {
-      throw new Error(`Transaction ${vttHash} transfers no value to custodian address at ${witCustodian}.`)
+    if (vtt.recipient !== witCustodianWrapper) {
+      throw new Error(`Transaction ${vttHash} transfers no value to custodian address at ${witCustodianWrapper}.`)
     } else if (!vtt.metadata) {
-      throw new Error(`Transaction ${vttHash} transfers value to custodian address at ${witCustodian}, but specifies no EVM recipient.`)
+      throw new Error(`Transaction ${vttHash} transfers value to custodian address at ${witCustodianWrapper}, but specifies no EVM recipient.`)
     }
 
     let proceed, wrapEvent, user
@@ -925,7 +921,7 @@ async function wrappings (flags = {}) {
 
     if (proceed && vtt.finalized !== 1) {
       console.info(helpers.colors.mred("\n => Sorry, wait a few minutes until the transaction gets finalized on Witnet,"))
-      console.info(helpers.colors.mred("      before querying on-chain verification.\n"))
+      console.info(helpers.colors.mred("      before querying cross-chain verification.\n"))
       proceed = false
     }
 
@@ -973,74 +969,117 @@ async function wrappings (flags = {}) {
   }
 
   const fromBlock = since ? BigInt(since) : undefined
-  let events = (fromBlock !== undefined && !value
+  
+  let events = []
+  
+  events.push(...(fromBlock !== undefined && !value
     ? (await contract.queryFilter("Wrapped", fromBlock)).slice(offset || 0, limit || 64)
     : (await contract.queryFilter("Wrapped")).reverse().slice(0, limit || 64)
-  )
+  ));
+
   if (from) events = events.filter(event => event.args[0].toLowerCase().indexOf(from.toLowerCase()) > -1)
   if (into) events = events.filter(event => event.args[1].toLowerCase().indexOf(into.toLowerCase()) > -1)
 
-  if (check && witnet) {
-    const records = await helpers.prompter(
+  // insert pending to-be-validated wrap transactions, only if --from or --into are specified:
+  {
+    const utxos = await witnet.getUtxos(witCustodianWrapper)
+    const hashes = [...new Set(utxos.map(utxo => utxo.output_pointer.split(":")[0]))]
+    for (let index = 0; index < hashes.length; index++) {
+      const vtt = await witnet.getValueTransfer(hashes[index], "ethereal")
+      if (!events.find(event => event.args[3] === `0x${hashes[index]}`)) {
+        if (vtt?.metadata && (!from || from.toLowerCase() === vtt.sender) && (!into || into.toLowerCase() === `0x${vtt.metadata}`)) {
+          let status = ""
+          switch ((await contract.getWrapTransactionStatus(`0x${hashes[index]}`))) {
+            case 0n:
+              status = (vtt.finalized === 1) ? "(finalized on Witnet)" : "(awaiting finalization on Witnet)";
+              break;
+            case 1n:
+              status = "(awaiting cross-chain verification)";
+              break;
+            case 2n:
+              status = "(cross-chain verification failed)";
+              break;
+          }
+          events.push({
+            blockNumber: undefined,
+            transactionHash: status,
+            args: [vtt.sender, ethers.getAddress(`0x${vtt.metadata}`), vtt.value, `0x${hashes[index]}`],
+          })
+        }
+      }
+    }
+  }
+
+  if (check) {
+    const records = []
+    records.push(...await helpers.prompter(
       Promise.all(events.map(async event => {
-        const ethBlock = await provider.getBlock(event.blockNumber)
+        const ethBlock = event.blockNumber ? await provider.getBlock(event.blockNumber) : undefined
         const ethTxHash = event.transactionHash
         const witTxHash = event.args[3]
         const witTx = await witnet.getValueTransfer(witTxHash.slice(2), "ethereal")
         return [
           { hash: witTxHash.slice(2), timestamp: witTx.timestamp },
-          { blockNumber: event.blockNumber, hash: ethTxHash, timestamp: ethBlock.timestamp },
-          moment.duration(moment.unix(ethBlock.timestamp).diff(moment.unix(witTx.timestamp))).humanize(),
+          { blockNumber: event?.blockNumber, hash: ethTxHash, timestamp: ethBlock?.timestamp },
+          ethBlock ? moment.duration(moment.unix(ethBlock.timestamp).diff(moment.unix(witTx.timestamp))).humanize() : moment.unix(witTx.timestamp).fromNow()
         ]
       }))
-    )
+    ))
     if (records.length > 0) {
       helpers.traceTable(
-        records.map(([wit, evm, timediff]) => [
-          evm.blockNumber,
-          wit.hash,
-          evm.hash,
-          timediff,
-        ]), {
-          headlines: [
-            "BLOCK NUMBER",
-            `WITNET ${witnet.network.toUpperCase()} TRANSFER HASH`,
-            "EVM WRAP VERIFICATION HASH",
-            ":TIME DIFF",
-          ],
-          humanizers: [helpers.commas,,,],
-          colors: [, helpers.colors.magenta, helpers.colors.gray],
-        }
+        records.map(([wit, evm, timediff]) => {
+          return [
+            evm?.blockNumber ? helpers.commas(evm.blockNumber) : "",
+            wit.hash,
+            evm.hash.startsWith(`0x`) ? helpers.colors.gray(evm.hash) : helpers.colors.red(evm.hash),
+            timediff,
+          ]
+        }), {
+        headlines: [
+          "BLOCK NUMBER",
+          `VALUE TRANSFER TRANSACTION HASH ON WITNET ${witnet.network.toUpperCase()}`,
+          "ERC-20 WRAP VALIDATING TRANSACTION HASH",
+          ":TIME DIFF",
+        ],
+        colors: [, helpers.colors.magenta,],
+      }
       )
     } else {
       console.info(`^ No verified wrappings found so far ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
     }
   } else {
-    if (events.length > 0) {
+    const records = events.map(event => ({
+      blockNumber: event.blockNumber,
+      sender: event.args[0],
+      transactionHash: event.transactionHash,
+      recipient: `${event.args[1].slice(0, 7)}...${event.args[1].slice(-7)}`,
+      value: event.args[2]
+    }))
+    if (records.length > 0) {
       helpers.traceTable(
-        events.map(event => {
-          const recipient = `${event.args[1].slice(0, 7)}...${event.args[1].slice(-7)}`
+          records.map(record => {
           return [
-            event.blockNumber,
-            event.args[0],
-            event.transactionHash,
-            recipient,
-            event.args[2],
+            record?.blockNumber ? helpers.commas(record.blockNumber) : "",
+            record.sender,
+            record.transactionHash.startsWith(`0x`) ? helpers.colors.gray(record.transactionHash) : helpers.colors.red(record.transactionHash),
+            record.recipient,
+            record.value,
           ]
         }), {
-          headlines: [
-            "BLOCK NUMBER",
-            `WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"} SENDER`,
-            "EVM WRAP VERIFICATION HASH",
-            "EVM RECIPIENT",
-            `VALUE (${helpers.colors.lwhite("$pedros")})`,
-          ],
-          humanizers: [helpers.commas,,,, helpers.commas],
-          colors: [, helpers.colors.mmagenta, helpers.colors.gray, helpers.colors.mblue, helpers.colors.yellow],
-        }
+        headlines: [
+          "BLOCK NUMBER",
+          `WIT WRAPPER ON WITNET ${WrappedWIT.isNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`,
+          "ERC-20 WRAP VALIDATING TRANSACTION HASH",
+          "EVM RECIPIENT",
+          `VALUE (${helpers.colors.lwhite("$pedros")})`,
+        ],
+        humanizers: [, , , , helpers.commas],
+        colors: [, helpers.colors.mmagenta, , helpers.colors.mblue, helpers.colors.yellow],
+      }
       )
     } else {
       console.info(`^ No verified wrappings found so far ${from ? `from "${from}" ` : ""}${into ? `into "${into}"` : ""}.`)
     }
   }
+  process.exit(0)
 }
