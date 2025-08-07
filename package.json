@@ -11,6 +11,7 @@
   "private": false,
   "type": "commonjs",
   "bin": {
+    "witeth": "src/bin/solidity.js",
     "witnet-ethers": "src/bin/solidity.js",
     "witnet-solidity": "src/bin/solidity.js"
   },
