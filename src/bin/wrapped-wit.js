@@ -9,7 +9,7 @@ const prompt = require("inquirer").createPromptModule()
 const { WrappedWIT } = require("witnet-wrapped-wit")
 const { Witnet } = require("@witnet/sdk")
 
-const { ethers, utils } = require("../../dist/src/lib")
+const { ethers, utils, KermitClient } = require("../../dist/src/lib")
 const helpers = require("./helpers")
 const { green, yellow, lwhite } = helpers.colors
 
@@ -67,9 +67,14 @@ const settings = {
       hint: "Wit/Oracle RPC provider to connect to, other than default.",
       param: "URL",
     },
+    kermit: {
+      hint: "Wit/Kermit REST-API provider to connect to, other than default.",
+      param: "URL",
+    },
   },
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
+    WITNET_KERMIT_PROVIDER_URL: "=> Wit/Kermit REST-API provider to connect to, if no otherwise specified.",
     WITNET_SDK_PROVIDER_URL: "=> Wit/Oracle RPC provider(s) to connect to, if no otherwise specified.",
     WITNET_SDK_WALLET_MASTER_KEY: "=> Wallet's master key in XPRV format, as exported from either a node, Sheikah or myWitWallet.",
   },
@@ -110,6 +115,7 @@ async function main () {
         supplies: {
           hint: `Show relevant token-related supplies on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           options: [
+            "kermit",
             "witnet",
             "port",
             ...(WrappedWIT.isNetworkCanonical(ethRpcNetwork)
@@ -566,8 +572,9 @@ async function supplies (flags = {}) {
         })
 
         // await inclusion of the DRT in Witnet
-        console.info(`  - DRO hash:   ${tx.droHash}`)
-        console.info(`  - DRT hash:   ${tx.hash}`)
+        console.info(`  - DRO hash:   ${helpers.colors.green(tx.droHash)}`)
+        console.info(`  - DRT hash:   ${helpers.colors.lwhite(tx.hash)}`)
+        console.info(`  - DRT cost:   ${helpers.colors.mmagenta(ethers.formatUnits(tx.fees.nanowits + tx.value?.nanowits, 9) + " WIT")}`)
         tx = await PoRs.confirmTransaction(tx.hash, {
           confirmations: 0,
           onStatusChange: () => console.info(`  - DRT status: ${tx.status}`),
@@ -588,16 +595,44 @@ async function supplies (flags = {}) {
           const delay = ms => new Promise(_resolve => setTimeout(_resolve, ms))
           await helpers.prompter(delay(5000))
         } while (status !== "solved")
-
-        // push proof-of-reserve report into the token contract
+        
+        // retrieve data push report from Wit/Kermit:
         console.info(
           helpers.colors.lwhite("\n> Pushing Proof-of-Reserve report into ") +
           helpers.colors.mblue(WrappedWIT.getNetworkContractAddress(network)) +
           helpers.colors.lwhite(" ...")
         )
-        // todo: fetch data push report from kermit
-
-        console.info()
+        const kermit = await KermitClient.fromEnv(flags?.kermit)
+        console.info(`  - Wit/Kermit provider: ${kermit.url}`)
+        const report = await kermit.getDataPushReport(tx.hash, network)
+        const message = utils.abiEncodeDataPushReportMessage(report)
+        const digest = utils.abiEncodeDataPushReportDigest(report)
+        helpers.traceData("  - Push data report: ", message.slice(2), 64, "\x1b[90m")
+        console.info(`  - Push data digest: ${digest.slice(2)}`)
+        console.info(`  - Push data proof:  ${report?.evm_proof.slice(2)}`)
+        
+        // push data report into the consumer contract:
+        if (!from) from = (await provider.listAccounts())[0].address;
+        contract = contract.connect(await provider.getSigner(from))
+        console.info(`  - EVM data pusher:  ${from}`)
+        await contract
+          .pushDataReport
+          .send(
+            utils.abiEncodeDataPushReport(report), 
+            report.evm_proof, 
+            { gasPrice }
+          )
+          .then(async (tx) => {
+            console.info(`  - Transaction hash: ${tx.hash}`)
+            return helpers.prompter(tx.wait(confirmations || 1 ))
+          })
+          .then(receipt => {
+            console.info(`  - Block number:     ${helpers.commas(receipt.blockNumber)}`)
+            console.info(`  - Gas price:        ${helpers.commas(receipt.gasPrice)}`)
+            console.info(`  - Gas used:         ${helpers.commas(receipt.gasUsed)}`)
+            console.info(`  - Transaction cost: ${ethers.formatEther(receipt.gasPrice * receipt.gasUsed)} ETH`)
+            return receipt
+          })
       }
     }
   } else {

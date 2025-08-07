@@ -17,7 +17,7 @@ const green = (str) => `\x1b[32m${str}\x1b[0m`
 const magenta = (str) => `\x1b[0;35m${str}\x1b[0m`
 const red = (str) => `\x1b[31m${str}\x1b[0m`
 const yellow = (str) => `\x1b[33m${str}\x1b[0m`
-const white = (str) => `\x1b[98m${str}\x1b[0m`
+const white = (str) => `\x1b[0;38m${str}\x1b[0m`
 const lblue = (str) => `\x1b[1;94m${str}\x1b[0m`
 const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lgreen = (str) => `\x1b[1;92m${str}\x1b[0m`
@@ -288,6 +288,17 @@ function prompter (promise) {
     })
 }
 
+function traceData (header, data, width, color) {
+  process.stdout.write(header)
+  if (color) process.stdout.write(color)
+  for (let ix = 0; ix < data.length / width; ix++) {
+    if (ix > 0) process.stdout.write(" ".repeat(header.length))
+    process.stdout.write(data.slice(width * ix, width * (ix + 1)))
+    process.stdout.write("\n")
+  }
+  if (color) process.stdout.write("\x1b[0m")
+}
+
 module.exports = {
   colors: {
     blue,
@@ -317,6 +328,7 @@ module.exports = {
   flattenObject,
   orderKeys,
   showVersion,
+  traceData,
   traceHeader,
   traceWitnetAddresses,
   getNetworkAddresses,
