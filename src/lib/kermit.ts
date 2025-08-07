@@ -27,7 +27,7 @@ export class KermitError extends Error {
 export class KermitClient implements IKermitClient {
 
     static async fromEnv(url?: string): Promise<KermitClient> {
-        return new KermitClient(url || process.env.WITNET_KERMIT_PROVIDER_URL || "http://3.141.105.139:3000/")
+        return new KermitClient(url || process.env.WITNET_KERMIT_PROVIDER_URL || "https://kermit.witnet.io")
     }
 
     public readonly url: string
@@ -48,7 +48,6 @@ export class KermitClient implements IKermitClient {
 
     protected async callApiGetMethod<T>(path: string, query?: any): Promise<Error | any> {
         const url = `${this.url}${path}${query ? `?${stringify(query)}` : ""}`
-        console.log("url =>", url)
         return axios
             .get(
                 url,
