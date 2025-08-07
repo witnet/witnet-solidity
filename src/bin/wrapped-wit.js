@@ -18,6 +18,7 @@ const { green, yellow, lwhite } = helpers.colors
 const settings = {
   flags: {
     help: "Show usage information for a specific command.",
+    verbose: "Outputs detailed information.",
     version: "Print the CLI name and version.",
 
     check: "See if cross-chain transactions have been consolidated.",
@@ -101,9 +102,8 @@ async function main () {
     ...(WrappedWIT.isNetworkSupported(ethRpcNetwork)
       ? {
         accounts: {
-          hint: `Show EVM native and Wrapped/WIT balances for all available signing accounts on ${
-            helpers.colors.mcyan(ethRpcNetwork.toUpperCase())
-          }.`,
+          hint: `Show EVM native and Wrapped/WIT balances for all available signing accounts on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())
+            }.`,
           options: [
             "port",
           ],
@@ -111,6 +111,9 @@ async function main () {
         },
         contract: {
           hint: `Show Wrapped/WIT contract address on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+          flags: [
+            "verbose",
+          ],
         },
         supplies: {
           hint: `Show relevant token-related supplies on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
@@ -445,19 +448,30 @@ async function networks (flags = {}) {
   console.table(networks)
 }
 
-async function contract (flags = {}) {
-  const { network, provider } = flags
+async function contract(flags = {}) {
+  const { network, provider, verbose } = flags
   const contract = await WrappedWIT.fetchContractFromEthersProvider(provider)
   const settings = WrappedWIT.getNetworkSettings(network)
 
   const records = []
 
   records.push(["Contract address", helpers.colors.lblue(await contract.getAddress())])
-  records.push(["Curator address", helpers.colors.blue(await contract.evmCurator())])
-  records.push(["Wit/Oracle address", helpers.colors.mcyan(await contract.witOracle())])
-  records.push(["Wit/Oracle PoI's CCDR template", helpers.colors.cyan(await contract.witOracleCrossChainProofOfInclusionTemplate())])
-  records.push(["Wit/Custodian wrapper address", helpers.colors.mmagenta(await contract.witCustodianWrapper())])
-  records.push(["Wit/Custodian unwrapper address", helpers.colors.magenta(await contract.witCustodianUnwrapper())])
+  if (verbose) records.push(["Curator address", helpers.colors.blue(await contract.evmCurator())]);
+  records.push(["Wit/Oracle address", helpers.colors.mblue(await contract.witOracle())])
+  if (verbose) {
+    records.push(["Wit/Oracle PoI's CCDR template", helpers.colors.blue(await contract.witOracleCrossChainProofOfInclusionTemplate())])
+    records.push(["Wit/Oracle PoR's Radon hash", helpers.colors.cyan((await contract.witOracleProofOfReserveRadonHash()).slice(2))])
+  }
+  if (verbose) {
+    const providers = await contract.witOracleCrossChainRpcProviders()
+    records.push(["Wit/Oracle Cross-chain Wit/RPC providers", helpers.colors.gray(providers[0])])
+    providers.slice(1).forEach(provider => records.push(["", helpers.colors.gray(provider)]))
+  }
+  records.push(["Wit/Custodian recipient address", helpers.colors.mcyan(await contract.witCustodianWrapper())])
+  if (verbose) records.push(["Wit/Custodian sender address", helpers.colors.mmagenta(await contract.witCustodianUnwrapper())]);
+  records.push(["Total wrap transactions", helpers.colors.white(helpers.commas(await contract.totalWraps()))])
+  records.push(["Total unwrap transactions", helpers.colors.white(helpers.commas(await contract.totalUnwraps()))])
+  
 
   helpers.traceTable(records, {
     headlines: [
