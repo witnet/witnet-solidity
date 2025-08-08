@@ -31,8 +31,8 @@
   "types": "./dist",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\"",
-    "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore && solhint --max-warnings 0 \"witnet/migrations/contracts/**/*.sol\" --fix",
+    "fmt": "eslint --ext .js,.ts,.cjs . --ignore-path .gitignore",
+    "fmt!": "eslint --ext .js,.ts,.cjs . --fix --ignore-path .gitignore",
     "prepare": "pnpm run build",
     "postinstall": "node src/bin/postinstall.js",
     "test": "cross-env-shell WITNET_SDK_RADON_ASSETS_PATH='../../witnet/assets' node ./src/bin/solidity.js"
@@ -73,7 +73,6 @@
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.6.0",
-    "solhint": "^5.0.3",
     "typescript": "^5.7.2"
   }
 }
