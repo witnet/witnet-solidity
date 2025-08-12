@@ -351,14 +351,14 @@ function showUsageHeadline (router, cmd, specs) {
       } else {
         params = optionalize(specs?.params) + " "
       }
-      console.info(`   ${lwhite(`npx witnet-ethers ${cmd}`)} ${params ? green(params) : ""}${flags}${options}`)
+      console.info(`   ${lwhite(`npx witeth ${cmd}`)} ${params ? green(params) : ""}${flags}${options}`)
     } else {
-      console.info(`   ${lwhite(`npx witnet-ethers ${cmd}`)} ${flags}${options}`)
+      console.info(`   ${lwhite(`npx witeth ${cmd}`)} ${flags}${options}`)
     }
     console.info("\nDESCRIPTION:")
     console.info(`   ${router[cmd].hint}`)
   } else {
-    console.info(`   ${lwhite("npx witnet-ethers")} <COMMAND> ${flags}${options}`)
+    console.info(`   ${lwhite("npx witeth")} <COMMAND> ${flags}${options}`)
   }
 }
 

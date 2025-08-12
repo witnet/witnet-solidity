@@ -12,8 +12,7 @@
   "type": "commonjs",
   "bin": {
     "witeth": "src/bin/solidity.js",
-    "witnet-ethers": "src/bin/solidity.js",
-    "witnet-solidity": "src/bin/solidity.js"
+    "witnet-ethers": "src/bin/solidity.js"
   },
   "exports": {
     ".": {
@@ -52,7 +51,7 @@
     "truffle"
   ],
   "dependencies": {
-    "@witnet/sdk": "^1.0.7",
+    "@witnet/sdk": "^1.0.8",
     "axios": "^1.7.9",
     "cbor": "^10.0.3",
     "cross-env": "^7.0.3",

@@ -87,13 +87,13 @@ module.exports = async function (flags = {}, params = []) {
             console.info()
             // if deployed, decode deployed bytecode
             execSync(
-              `npx witnet radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
+              `npx witsdk radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           } else {
             // if not deployed, decode locally compiled bytecode
             execSync(
-              `npx witnet radon decode ${key}`,
+              `npx witsdk radon decode ${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           }
@@ -165,13 +165,13 @@ module.exports = async function (flags = {}, params = []) {
             console.info()
             // if deployed, decode deployed bytecode
             execSync(
-              `npx witnet radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
+              `npx witsdk radon decode ${key} --headline ${network.toUpperCase()}::${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           } else {
             // if not deployed, decode locally compiled bytecode
             execSync(
-              `npx witnet radon decode ${key}`,
+              `npx witsdk radon decode ${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           }
@@ -224,12 +224,12 @@ module.exports = async function (flags = {}, params = []) {
           if (deployables.requests[network][key] !== undefined) {
             const bytecode = await registry.lookupRadonRequestBytecode(deployables.requests[network][key])
             execSync(
-              `npx witnet radon ${flags["dry-run"] ? "dry-run --verbose" : "decode"} ${bytecode} --headline ${network.toUpperCase()}::${key}`,
+              `npx witsdk radon ${flags["dry-run"] ? "dry-run --verbose" : "decode"} ${bytecode} --headline ${network.toUpperCase()}::${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           } else {
             execSync(
-              `npx witnet radon ${flags["dry-run"] ? "dry-run --verbose" : "decode"} ${key}`,
+              `npx witsdk radon ${flags["dry-run"] ? "dry-run --verbose" : "decode"} ${key}`,
               { stdio: "inherit", stdout: "inherit" },
             )
           }
