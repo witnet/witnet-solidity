@@ -1,1 +1,1 @@
-# Witnet Ethers SDK 
+# Wit/Oracle Ethers SDK and CLI

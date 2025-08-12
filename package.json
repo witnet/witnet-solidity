@@ -1,6 +1,6 @@
 {
   "name": "@witnet/ethers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Wit/Oracle SDK Framework package for Solidity projects",
   "author": "Witnet Foundation",
   "license": "MIT",
