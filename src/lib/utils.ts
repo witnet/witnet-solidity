@@ -26,6 +26,12 @@ export function getEvmNetworkByChainId(chainId: number): string | undefined {
     else return undefined;
 }
 
+export function getEvmNetworkSymbol(network: string): string {
+    const found = Object.entries(WSB.supportedNetworks()).find(([key,]: [string, any]) => key.toLowerCase() === network.toLowerCase())
+    if (found) return (found[1] as any)?.symbol;
+    else return "ETH"
+}
+
 export function isEvmNetworkMainnet(network: string): boolean {
     const found = Object.entries(WSB.supportedNetworks()).find(([key,]) => key === network.toLowerCase())
     return (found as any)?.[1].mainnet
