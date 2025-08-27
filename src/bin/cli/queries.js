@@ -1,36 +1,53 @@
 const helpers = require("../helpers")
 const moment = require("moment")
+
 const { utils, Witnet, WitOracle } = require("../../../dist/src/lib")
 
-const DEFAULT_BATCH_SIZE = 64
+const { DEFAULT_BATCH_SIZE, DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
+
+  const { limit, offset, since } = options
 
   const witOracle = await WitOracle.fromJsonRpcUrl(
     `http://127.0.0.1:${options?.port || 8545}`,
     options?.signer,
   )
 
-  const { address, network } = witOracle
+  const { address, network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
   const artifact = await witOracle.getEvmImplClass()
   const version = await witOracle.getEvmImplVersion()
   console.info(`> ${helpers.colors.lwhite(artifact)}: ${helpers.colors.lblue(address)} ${helpers.colors.blue(`[ v${version} ]`)}`)
 
-  let toBlock = BigInt(options?.toBlock || await witOracle.provider.getBlockNumber()) 
-  let fromBlock = BigInt(options?.fromBlock || 0n)//toBlock - 1024n)
+  // determine current block number
+  const blockNumber = await provider.getBlockNumber()
 
+  // determine fromBlock
+  let fromBlock
+  if (since === undefined || since < 0) {
+    fromBlock = BigInt(blockNumber) + BigInt(since ?? DEFAULT_SINCE)
+  } else {
+    fromBlock = BigInt(since ?? 0n)
+  }
+
+  // fetch events since specified block
   let logs = (await witOracle.filterWitOracleQueryEvents({
     fromBlock,
-    toBlock,
     where: {
       evmRequester: options["filter-requester"],
       queryRadHash: options["filter-radHash"],
     },
   }))
-  
+
+  // filter out unspecified query ids
+  if (args && args.length > 0) {
+    logs = logs.filter(log => args.includes(log.queryId.toString()))
+  }
+
+  // fetch query statuses
   const queryIds = logs.map(log => log.queryId)
   const queryStatuses = await helpers.prompter(
     Promise.all([...helpers.chunks(queryIds, DEFAULT_BATCH_SIZE)]
@@ -39,16 +56,23 @@ module.exports = async function (options = {}, args = []) {
     .then(ids => ids.flat())
   )
   logs = logs.map((log, index) => ({ ...log, queryStatus: queryStatuses[index] }))
+
+  // filter out deleted queries, if no otherwise specified
   if (!options.voids) {
     logs = logs.filter(log => log.queryStatus !== "Void");
   }
+
+  // count logs before last filter
   const totalLogs = logs.length
-  logs = logs.reverse().slice(0, options?.last || 64)
-  if (fromBlock || options?.toBlock) {
-    logs = logs.reverse()
-  }
-  const checkResults = options["check-result-status"]
+
+  // apply limit/offset filter
+  logs = (!since || BigInt(since) < 0n
+    ? logs.slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // oldest first
+    : logs.reverse().slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // latest first
+  )
+  
   let traceBack = options["trace-back"]
+  const checkResults = options["check-result-status"]
   if (checkResults) {
     traceBack = false
     logs = await helpers.prompter(
@@ -107,16 +131,18 @@ module.exports = async function (options = {}, args = []) {
             helpers.colors.white,
             helpers.colors.gray,
             helpers.colors.lwhite,
-            helpers.colors.mcyan,
-            ...(checkResults ? [] : [
+            ...(checkResults ? [
+              helpers.colors.cyan,
+            ] : [
+              helpers.colors.mcyan,
               helpers.colors.mblue,
               helpers.colors.mgreen,
               helpers.colors.green,
               helpers.colors.green,
             ]),
             ...(checkResults ? [
-              helpers.colors.cyan,
-              helpers.colors.cyan,
+              helpers.colors.magenta,
+              helpers.colors.mmagenta,
             ] : []),
           ],
           headlines: [
@@ -163,13 +189,10 @@ module.exports = async function (options = {}, args = []) {
         }
       )
     }
-    process.stdout.write(`^ Showing last ${logs.length} oracle queries`)
-    if (fromBlock || options?.toBlock) {
-      process.stdout.write(` pulled within the specified period (out of ${totalLogs}).\n`) 
-    } else {
-      process.stdout.write(".\n")
-    } 
+    console.info(`^ Listed ${logs.length} out of ${totalLogs} queries${
+      fromBlock ? ` since block #${helpers.commas(fromBlock)}.` : ` up until current block #${helpers.colors.lwhite(helpers.commas(blockNumber))}.`
+    }`)
   } else {
-    console.info("> No oracle queries were pulled during this period.")
+    console.info(`^ No oracle queries${fromBlock ? ` since block #${helpers.colors.lwhite(helpers.commas(fromBlock))}.` : "."}`)
   }
 }

@@ -4,6 +4,7 @@ require("dotenv").config()
 const { JsonRpcProvider } = require("ethers")
 
 const helpers = require("./helpers")
+const { DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 const { green, yellow, lwhite } = helpers.colors
 
 const { utils } = require("../../dist/src/lib")
@@ -56,10 +57,6 @@ const settings = {
       hint: "Filter events referring given RAD hash.",
       param: "RAD_HASH_FRAGMENT",
     },
-    fromBlock: {
-      hint: "Process events since given EVM block number.",
-      param: "EVM_BLOCK",
-    },
     gasPrice: {
       hint: "EVM gas price to pay for.",
       param: "GAS_PRICE",
@@ -68,13 +65,13 @@ const settings = {
       hint: "Maximum EVM gas to spend per transaction.",
       param: "GAS_LIMIT",
     },
-    limit: {
-      hint: "Limit number of output records (default: 64).",
-      param: "LIMIT",
-    },
     into: {
       hint: "Address of some WitOracleConsumer contract where to report into.",
       param: "EVM_ADDRESS",
+    },
+    limit: {
+      hint: `Limit number of listed records (default: ${DEFAULT_LIMIT}).`,
+      param: "LIMIT",
     },
     module: {
       hint: "Package where to fetch Radon assets from (supersedes --legacy).",
@@ -83,6 +80,10 @@ const settings = {
     network: {
       hint: "Bind mockup contract to immutable Wit/Oracle addresses on this EVM network.",
       param: "NETWORK",
+    },
+    offset: {
+      hint: "Skip first records before listing (default: 0)",
+      param: "OFFSET",
     },
     port: {
       hint: "Port on which the local ETH/RPC signing gateway is expected to be listening (default: 8545).",
@@ -100,13 +101,13 @@ const settings = {
       hint: "EVM signer address, other than gateway's default.",
       param: "EVM_ADDRESS",
     },
+    since: {
+      hint: `Process events since given EVM block number (default: ${DEFAULT_SINCE}).`,
+      param: "EVM_BLOCK",
+    },
     target: {
       hint: "Address of the contract to interact with.",
       param: "EVM_ADDRESS",
-    },
-    toBlock: {
-      hint: "Process events emitted before this EVM block number.",
-      param: "EVM_BLOCK",
     },
   },
   envars: {
@@ -149,9 +150,8 @@ async function main () {
         },
         contracts: {
           hint: `List available Wit/Oracle Framework addresses in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
-          params: "[ARTIFACT_NAMES ...]",
+          params: "[NAME_SUFFIX ...]",
           flags: [
-            // 'apps',
             "templates",
           ],
           options: [
@@ -167,6 +167,7 @@ async function main () {
         },
         queries: {
           hint: `Show latest Wit/Oracle queries pulled from smart contracts in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+          params: "[IDS ...]",
           flags: [
             "check-result-status",
             "trace-back",
@@ -175,12 +176,10 @@ async function main () {
           options: [
             "filter-radHash",
             "filter-requester",
-            "fromBlock",
             "limit",
-            "signer",
-            "toBlock",
+            "offset",
+            "since",
           ],
-          envars: [],
         },
         randomness: {
           hint: `Show latest Wit/Randomness seeds randomized from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
@@ -213,7 +212,8 @@ async function main () {
           ],
         },
       }
-      : {}),
+      : {}
+    ),
     gateway: {
       hint: "Launch a local ETH/RPC signing gateway connected to some specific EVM network.",
       params: ["EVM_NETWORK"],

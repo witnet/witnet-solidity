@@ -2,6 +2,10 @@ const fs = require("fs")
 const merge = require("lodash.merge")
 const framework = require("witnet-solidity-bridge")
 
+const DEFAULT_BATCH_SIZE = 64
+const DEFAULT_LIMIT = 64
+const DEFAULT_SINCE = -5000
+
 const commas = (number) => {
   const parts = number.toString().split(".")
   const result = parts.length <= 1
@@ -307,6 +311,9 @@ function* chunks(arr, n) {
 }
 
 module.exports = {
+  DEFAULT_BATCH_SIZE,
+  DEFAULT_LIMIT,
+  DEFAULT_SINCE,
   colors: {
     blue,
     cyan,
