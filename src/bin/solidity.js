@@ -92,7 +92,7 @@ const settings = {
       hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
       param: "PROVIDER_URL",
     },
-    "dr-tx-hash": {
+    push: {
       hint: "Retrieve the finalized result to the given Wit/Oracle query, and push it into some consumer contract (requires: --into).",
       param: "WIT_DR_TX_HASH",
     },
@@ -202,13 +202,11 @@ async function main () {
             "trace-back",
           ],
           options: [
-            "confirmations",
-            "dr-tx-hash",
             "filter-consumer",
             "filter-radHash",
-            "fromBlock",
-            "gasPrice",
-            "gasLimit",
+            "fromBlock", "toBlock",
+            "last",
+            "push",
             "into",
             "gasPrice", "gasLimit",
             "signer",
