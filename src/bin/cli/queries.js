@@ -18,7 +18,6 @@ module.exports = async function (options = {}, args = []) {
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
   const symbol = utils.getEvmNetworkSymbol(network)
-
   const artifact = await witOracle.getEvmImplClass()
   const version = await witOracle.getEvmImplVersion()
   console.info(`> ${helpers.colors.lwhite(artifact)}: ${helpers.colors.lblue(address)} ${helpers.colors.blue(`[ v${version} ]`)}`)
@@ -129,7 +128,7 @@ module.exports = async function (options = {}, args = []) {
             helpers.colors.lwhite,
             helpers.colors.mblue,
             helpers.colors.blue,
-            helpers.colors.green,
+            helpers.colors.mgreen,
             helpers.colors.green,
             helpers.colors.green,
             helpers.colors.cyan,

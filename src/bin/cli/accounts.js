@@ -31,7 +31,11 @@ module.exports = async function (flags = {}) {
         address !== "" ? helpers.colors.yellow(helpers.commas(eth)) : helpers.colors.myellow(helpers.commas(eth)),
       ]
     }), {
-      headlines: ["INDEX", "EVM SIGNER ADDRESSES", `${helpers.colors.lwhite("ETH")} BALANCE`],
+      headlines: [
+        "INDEX", 
+        "EVM SIGNER ADDRESSES", 
+        `${helpers.colors.lwhite("ETH")} BALANCE`
+      ],
       humanizers: [helpers.commas,,],
       colors: [, helpers.colors.mblue],
     }

@@ -1,27 +1,30 @@
-const ethers = require("ethers")
 const helpers = require("../helpers")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
 
-const { KermitClient, WitOracle, utils } = require("../../../dist/src/lib")
+const { utils, KermitClient, WitOracle, Witnet } = require("../../../dist/src/lib")
+const { DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
+
+  const { limit, offset, parse, push, since } = options
 
   const witOracle = await WitOracle.fromJsonRpcUrl(
     `http://127.0.0.1:${options?.port || 8545}`,
     options?.signer,
   )
 
-  const { address, network } = witOracle
+  const { address, network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
+  const symbol = utils.getEvmNetworkSymbol(network)
   const artifact = await witOracle.getEvmImplClass()
   const version = await witOracle.getEvmImplVersion()
   console.info(`> ${helpers.colors.lwhite(artifact)}: ${helpers.colors.lblue(address)} ${helpers.colors.blue(`[ v${version} ]`)}`)
 
-  if (options["dr-tx-hash"]) {
-    const drTxHash = options["dr-tx-hash"]
+  if (push) {
+    const drTxHash = push
     if (!utils.isHexStringOfLength(drTxHash, 32)) {
       throw new Error(`invalid <WIT_DR_TX_HASH>: ${drTxHash}`)
     } else if (!options?.into) {
@@ -83,53 +86,86 @@ module.exports = async function (options = {}, args = []) {
     }
   }
 
-  const toBlock = BigInt(options?.toBlock || await witOracle.provider.getBlockNumber())
-  const fromBlock = BigInt(options?.fromBlock || 0n)//toBlock - 1024n)
+  // determine current block number
+  const blockNumber = await provider.getBlockNumber()
 
+  // determine fromBlock
+  let fromBlock
+  if (since === undefined || since < 0) {
+    fromBlock = BigInt(blockNumber) + BigInt(since ?? DEFAULT_SINCE)
+  } else {
+    fromBlock = BigInt(since ?? 0n)
+  }
+
+  // fetch events since specified block
   let logs = (await witOracle.filterWitOracleReportEvents({
     fromBlock,
-    toBlock,
     where: {
       evmOrigin: options?.signer,
       evmConsumer: options["filter-consumer"],
       queryRadHash: options["filter-radHash"],
     },
   }))
-  let totalLogs = logs.length
-  logs = logs.reverse().slice(0, options?.last || 64)
-  if (fromBlock || options?.toBlock) {
-    logs = logs.reverse()
-  }
+
+  // count logs before last filter
+  const totalLogs = logs.length
+
+  // apply limit/offset filter
+  logs = (!since || BigInt(since) < 0n
+    ? logs.slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // oldest first
+    : logs.reverse().slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // latest first
+  )
+
+  // compute tx cost for each record
+  logs = await helpers.prompter(
+    Promise.all(
+      logs.map(async log => {
+        const receipt = await provider.getTransactionReceipt(log.evmTransactionHash)
+        const transaction = await provider.getTransaction(log.evmTransactionHash)
+        const evmTransactionCost = transaction.value + receipt.gasPrice * receipt.gasUsed
+        return {
+          ...log,
+          evmTransactionCost,
+        }
+      })
+    )
+  )
 
   if (logs.length > 0) {
     if (!options["trace-back"]) {
       helpers.traceTable(
         logs.map(log => [
           log.evmBlockNumber,
-          log.evmTransactionHash,
+          `${log?.queryRadHash?.slice(2).slice(0, 6)}..${log?.queryRadHash.slice(-5)}`,
+          `${log.queryParams.witnesses}`,
+          `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
           `${log.evmOrigin.slice(0, 8)}..${log.evmOrigin.slice(-4)}`,
           `${log?.evmConsumer.slice(0, 8)}..${log?.evmConsumer.slice(-4)}`,
-          helpers.colors.mgreen(`${log?.queryRadHash?.slice(2).slice(0, 6)}..${log?.queryRadHash.slice(-5)}`),
-          utils.cbor.decode(utils.fromHexString(log?.resultCborBytes)),
+          Number(Number(log?.evmTransactionCost || 0n) / 10 ** 18).toFixed(7),
+          parse ? utils.cbor.decode(utils.fromHexString(log?.resultCborBytes)) : log?.resultCborBytes,
         ]),
         {
           colors: [
             helpers.colors.white,
-            helpers.colors.gray,
-            helpers.colors.blue,
+            helpers.colors.mgreen,
+            helpers.colors.green,
+            helpers.colors.green,
             helpers.colors.mblue,
-            ,
-            helpers.colors.mcyan,
+            helpers.colors.mblue,
+            helpers.colors.blue,
+            parse ? helpers.colors.mcyan : helpers.colors.cyan,
           ],
           headlines: [
             "EVM BLOCK:",
-            "EVM DATA PUSHING TRANSACTION HASH",
+            ":radon request",
+            "witnesses",
+            "witnet fees",
             "EVM PUSHER",
             "EVM CONSUMER",
-            ":RADON REQUEST",
-            `REPORTED DATA`,
+            `$${helpers.colors.lwhite(symbol)} COST`,
+            parse ? "REPORTED DATA" : ":REPORTED CBOR BYTES",
           ],
-          humanizers: [helpers.commas,,,,,,],
+          humanizers: [helpers.commas],
         }
       )
     } else {
@@ -145,34 +181,31 @@ module.exports = async function (options = {}, args = []) {
       helpers.traceTable(
         logs.map(log => [
           log.evmBlockNumber,
-          log.evmTransactionHash,
           log.witDrTxHash.slice(2),
           moment.duration(moment.unix(log.ethBlockTimestamp).diff(moment.unix(log.resultTimestamp))).humanize(),
+          log.evmTransactionHash,
         ]),
         {
           colors: [
             helpers.colors.white,
-            helpers.colors.gray,
             helpers.colors.mmagenta,
             helpers.colors.magenta,
+            helpers.colors.gray,
           ],
           headlines: [
             "EVM BLOCK:",
-            "EVM DATA PUSHING TRANSACTION HASH",
             `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
-            "FRESHNESS"
+            "T.T.R.",
+            "EVM DATA REPORTING TRANSACTION HASH",
           ],
           humanizers: [helpers.commas,,,,,,],
         }
       )
     }
-    process.stdout.write(`^ Showing last ${logs.length} push data reports`)
-    if (fromBlock || options?.toBlock) {
-      process.stdout.write(` within the specified period (out of ${totalLogs}).\n`) 
-    } else {
-      process.stdout.write(".\n")
-    } 
+    console.info(`^ Listed ${logs.length} out of ${totalLogs} pushed data reports${
+      fromBlock ? ` since block #${helpers.commas(fromBlock)}.` : ` up until current block #${helpers.colors.lwhite(helpers.commas(blockNumber))}.`
+    }`)
   } else {
-    console.info("^ No data reports pushed during this period.")
+    console.info(`^ No data reports pushed${fromBlock ? ` since block #${helpers.colors.lwhite(helpers.commas(fromBlock))}.` : "."}`)
   }
 }
