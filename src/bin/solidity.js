@@ -199,7 +199,7 @@ async function main () {
         reports: {
           hint: `Show latest Wit/Oracle data reports pushed into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           flags: [
-            "verbose",
+            "trace-back",
           ],
           options: [
             "confirmations",
