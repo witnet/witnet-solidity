@@ -106,14 +106,6 @@ const settings = {
       hint: "Process events emitted before this EVM block number.",
       param: "EVM_BLOCK",
     },
-    witnet: {
-      hint: "Wit/Oracle RPC provider to connect to, other than default.",
-      param: "URL",
-    },
-    // witnesses: {
-    //   hint: "Number of witnessing nodes required to solve the randomness request in the Witnet blockchain.",
-    //   param: "NUMBER",
-    // },
   },
   envars: {
     ETHRPC_PRIVATE_KEYS: "=> Private keys used by the ETH/RPC gateway for signing EVM transactions.",
@@ -212,13 +204,8 @@ async function main () {
             "gasPrice",
             "gasLimit",
             "into",
-            "limit",
+            "gasPrice", "gasLimit",
             "signer",
-            "toBlock",
-            "witnet",
-          ],
-          envars: [
-            "WITNET_KERMIT_PROVIDER_URL",
           ],
         },
       }
