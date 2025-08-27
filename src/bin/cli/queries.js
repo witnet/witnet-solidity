@@ -1,5 +1,5 @@
 const helpers = require("../helpers")
-const { WitOracle } = require("../../../dist/src/lib")
+const DEFAULT_BATCH_SIZE = 64
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
@@ -16,28 +16,33 @@ module.exports = async function (options = {}, args = []) {
   const version = await witOracle.getEvmImplVersion()
   console.info(`> ${helpers.colors.lwhite(artifact)}: ${helpers.colors.lblue(address)} (${version})`)
 
-  const toBlock = BigInt(options?.toBlock || await witOracle.provider.getBlockNumber())
-  const fromBlock = BigInt(options?.fromBlock || toBlock - 1024n)
+  let toBlock = BigInt(options?.toBlock || await witOracle.provider.getBlockNumber()) 
+  let fromBlock = BigInt(options?.fromBlock || 0n)//toBlock - 1024n)
 
-  const logs = (await witOracle.filterWitOracleQueryEvents({
+  let logs = (await witOracle.filterWitOracleQueryEvents({
     fromBlock,
     toBlock,
     where: {
       evmRequester: options["filter-requester"],
       queryRadHash: options["filter-radHash"],
     },
-  })).reverse().slice(0, options?.limit || 64)
-
+  }))
+  
   const queryIds = logs.map(log => log.queryId)
-  const queryStatuses = await witOracle.getQueryStatuses(queryIds)
-  const queryResultDescriptions = []
-  const checkResultStatus = options["check-result-status"]
-  if (checkResultStatus) {
-    for (const queryId of queryIds) {
-      queryResultDescriptions.push(
-        await witOracle.getQueryResultStatusDescription(queryId)
-      )
-    }
+  const queryStatuses = await helpers.prompter(
+    Promise.all([...helpers.chunks(queryIds, DEFAULT_BATCH_SIZE)]
+      .map(ids => witOracle.getQueryStatuses(ids))
+    )
+    .then(ids => ids.flat())
+  )
+  logs = logs.map((log, index) => ({ ...log, queryStatus: queryStatuses[index] }))
+  if (!options.voids) {
+    logs = logs.filter(log => log.queryStatus !== "Void");
+  }
+  const totalLogs = logs.length
+  logs = logs.reverse().slice(0, options?.last || 64)
+  if (fromBlock || options?.toBlock) {
+    logs = logs.reverse()
   }
   if (logs.length > 0) {
     helpers.traceTable(

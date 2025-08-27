@@ -29,6 +29,7 @@ const settings = {
     testnets: "List supported EVM testnets.",
     verbose: "Outputs detailed information.",
     version: "Print binary name and version as headline.",
+    voids: "Include deleted queries."
   },
   options: {
     confirmations: {
@@ -165,6 +166,7 @@ async function main () {
           // params: "[TOPICS ...]",
           flags: [
             "check-result-status",
+            "voids",
           ],
           options: [
             "filter-radHash",
