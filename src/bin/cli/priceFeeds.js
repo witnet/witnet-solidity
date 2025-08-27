@@ -1,7 +1,7 @@
 const helpers = require("../helpers")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
-const { WitOracle } = require("../../../dist/src/lib")
+const { utils, WitOracle } = require("../../../dist/src/lib")
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
@@ -42,35 +42,36 @@ module.exports = async function (options = {}, args = []) {
   }
   const version = await pfs.getEvmImplVersion()
   const maxWidth = Math.max(18, artifact.length + 2)
-  console.info(`> ${helpers.colors.lwhite(artifact)}:${" ".repeat(maxWidth - artifact.length)}${helpers.colors.lblue(target)} (${version})`)
+  console.info(`> ${helpers.colors.lwhite(artifact)}:${" ".repeat(maxWidth - artifact.length)}${helpers.colors.lblue(target)} ${helpers.colors.blue(`[ v${version} ]`)}`)
 
+  const traceBack = options["trace-back"]
   const priceFeeds = await pfs.lookupPriceFeeds()
   if (priceFeeds.length > 0) {
     helpers.traceTable(
       priceFeeds.map(pf => [
         pf.id,
         pf.symbol,
-        helpers.colors.mgreen(`${pf.oracle?.dataSources?.slice(2).slice(0, 6)}..${pf.oracle?.dataSources.slice(-6)}`),
+        helpers.colors.mgreen(`${pf.oracle?.dataSources?.slice(2).slice(0, 6)}..${pf.oracle?.dataSources.slice(-5)}`),
         pf.lastUpdate.value.toFixed(6),
         moment.unix(Number(pf.lastUpdate.timestamp)).fromNow(),
-        pf.lastUpdate.trackHash.slice(2),
+        ...(traceBack ? [pf.lastUpdate.trackHash.slice(2)] : []),
       ]),
       {
         colors: [
           helpers.colors.lwhite,
           helpers.colors.lgreen,
           helpers.colors.mgreen,
-          helpers.colors.green,
           helpers.colors.mcyan,
-          helpers.colors.cyan,
+          helpers.colors.magenta,
+          ...(traceBack ? [helpers.colors.mmagenta] : []),
         ],
         headlines: [
           ":ID4",
           ":CAPTION",
-          ":DATA SOURCES",
+          ":RADON REQUEST",
           "LAST PRICE:",
-          "LAST TIMESTAMP:",
-          ":WIT/DR TX HASH",
+          "FRESHNESS:",
+          `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
         ],
       }
     )

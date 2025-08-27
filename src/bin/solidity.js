@@ -15,7 +15,7 @@ const settings = {
     all: "List all available Radon assets, even if not yet deployed.",
     apps: "Show addresses of Wit/Oracle appliances.",
     await: "Hold down until next event is triggered.",
-    "check-result-status": "Check result status for each oracle query.",
+    "check-result-status": "Check result status for each oracle query (supersedes --trace-back).",
     decode: "Decode selected Radon assets, as currently deployed.",
     deploy: "Deploy selected Radon assets, if not yet deployed.",
     "dry-run": "Dry-run selected Radon asset, as currently deployed (supersedes --decode).",
@@ -27,6 +27,7 @@ const settings = {
     requests: "Includes WitOracleRequest artifacts.",
     templates: "List deployed WitOracleRadonRequestTemplate contracts.",
     testnets: "List supported EVM testnets.",
+    "trace-back": "Trace matching witnessing acts on Witnet.",
     verbose: "Outputs detailed information.",
     version: "Print binary name and version as headline.",
     voids: "Include deleted queries."
@@ -160,6 +161,9 @@ async function main () {
         priceFeeds: {
           hint: `Show latest Wit/Price Feeds updates on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[EVM_ADDRESS]",
+          flags: [
+            "trace-back",
+          ],
         },
         queries: {
           hint: `Show latest Wit/Oracle queries pulled from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
