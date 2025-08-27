@@ -44,6 +44,14 @@ export type PriceFeedUpdateConditions = {
 export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
 export { TransactionReceipt } from "ethers"
 
+export type WitOracleQuery = {
+    checkpoint: BigInt,
+    hash: Witnet.Hash,
+    params: WitOracleQueryParams,
+    request: WitOracleQueryRequest,
+    response?: WitOracleQueryResponse,
+}
+
 export type WitOracleQueryParams = {
     /**
      * Maximum expected size of the CBOR-encoded query result, once solved by the Witnet blockchain.
@@ -59,6 +67,13 @@ export type WitOracleQueryParams = {
      */
     witnesses: number,
 }
+
+export type WitOracleQueryRequest = {
+    callbackGas?: number,
+    radonHash: Witnet.Hash,
+    requester: string,
+}
+
 export type WitOracleQueryResponse = {
     disputer?: string,
     reporter?: string,

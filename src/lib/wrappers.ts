@@ -33,7 +33,9 @@ import {
     PriceFeedUpdate,
     DataPushReport, 
     RandomizeStatus,
+    WitOracleQuery,
     WitOracleQueryParams, 
+    WitOracleQueryResponse,
     WitOracleQueryStatus, 
     WitOracleResultDataTypes 
 } from "./types"
@@ -296,6 +298,34 @@ export class WitOracle extends WitArtifactWrapper {
             .getFunction("getNextQueryId()")
             .staticCall()
     }
+
+    public async getQuery(queryId: bigint): Promise<WitOracleQuery> {
+        return this.contract
+            .getQuery
+            .staticCall(queryId)
+            .then(result => ({
+                checkpoint: BigInt(result[5]),
+                hash: result[3],
+                params: {
+                    resultMaxSize: result[2][0],
+                    unitaryReward: result[2][2],
+                    witnesses: result[2][1],
+                },
+                request: {
+                    callbackGas: Number(result[0][1]),
+                    radonHash: result[0][4],
+                    requester: result[0][0],
+                },
+                response: {
+                    disputer: result[1][5],
+                    reporter: result[1][0],
+                    resultTimestamp: Number(result[1][2].toString()),
+                    resultDrTxHash: result[1][3],
+                    resultCborBytes: result[1][4],
+                },
+            }));
+    }
+
     public async getQueryResponse(queryId: bigint): Promise<WitOracleQueryResponse> {
         return this.contract
             .getQueryResponse
