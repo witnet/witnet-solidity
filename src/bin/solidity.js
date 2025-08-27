@@ -140,6 +140,9 @@ async function main () {
   const router = {
     ...(ethRpcNetwork
       ? {
+        accounts: {
+          hint: `Show EVM gas currency balance for all available accounts on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+        },
         assets: {
           hint: `Formally verify deployable Radon assets into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[RADON_ASSETS ...]",
@@ -248,6 +251,7 @@ async function main () {
       ],
     },
     commands: {
+      accounts: require("./cli/accounts"),
       assets: require("./cli/assets"),
       contracts: require("./cli/contracts"),
       gateway: require("./cli/gateway"),
