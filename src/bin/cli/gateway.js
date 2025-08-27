@@ -17,7 +17,7 @@ module.exports = async function (flags = {}, args = []) {
         "ethrpc",
         network,
         flags?.port || 8545,
-        flags?.provider,
+        flags?.remote,
       ],
       { shell: true }
     )

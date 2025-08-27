@@ -86,7 +86,7 @@ const settings = {
       hint: "Port on which the local ETH/RPC signing gateway is expected to be listening (default: 8545).",
       param: "HTTP_PORT",
     },
-    provider: {
+    remote: {
       hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
       param: "PROVIDER_URL",
     },
@@ -228,7 +228,7 @@ async function main () {
       params: ["EVM_NETWORK"],
       options: [
         "port",
-        "provider",
+        "remote",
       ],
       envars: [
         "ETHRPC_PRIVATE_KEYS",
