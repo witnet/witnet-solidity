@@ -5,7 +5,7 @@ const { utils } = require("../../../dist/src/lib")
 const deployables = helpers.readWitnetJsonFiles("templates")
 
 module.exports = async function (flags = {}, params = []) {
-  const [args] = helpers.deleteExtraFlags(params)
+  let [args] = helpers.deleteExtraFlags(params)
 
   let provider
   try {
@@ -41,6 +41,9 @@ module.exports = async function (flags = {}, params = []) {
           })
       )
     }
+  }
+   else if (!args || args.length === 0) {
+    args = ["WitOracle"]
   }
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
   const addrs = helpers.orderKeys(Object.fromEntries(

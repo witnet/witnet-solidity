@@ -158,7 +158,7 @@ function traceHeader (header, color = white, indent = "") {
 function traceWitnetAddresses (addresses, constructorArgs, artifacts, indent = "", level) {
   const includes = (selection, key) => {
     return selection.filter(
-      artifact => key.toLowerCase().indexOf(artifact.toLowerCase()) >= 0
+      artifact => key.toLowerCase().endsWith(artifact.toLowerCase())
     ).length > 0
   }
   let found = 0
@@ -167,13 +167,14 @@ function traceWitnetAddresses (addresses, constructorArgs, artifacts, indent = "
       found += traceWitnetAddresses(addresses[key], constructorArgs, artifacts, indent, (level || 0) + 1)
     } else {
       if (
-        key !== (
-          "WitnetDeployer" &&
+        (
+          key !== "WitnetDeployer" &&
             !key.endsWith("Lib") &&
             !key.endsWith("Proxy") &&
             key.indexOf("Trustable") < 0 &&
             key.indexOf("Upgradable") < 0 &&
-            constructorArgs[key] !== undefined
+            key.indexOf("FactoryModals") < 0 &&
+            key.indexOf("FactoryTemplates") < 0  
         ) || includes(artifacts, key)
       ) {
         found++
@@ -299,6 +300,12 @@ function traceData (header, data, width, color) {
   if (color) process.stdout.write("\x1b[0m")
 }
 
+function* chunks(arr, n) {
+  for (let i = 0; i < arr.length; i += n) {
+    yield arr.slice(i, i + n)
+  }
+}
+
 module.exports = {
   colors: {
     blue,
@@ -322,6 +329,7 @@ module.exports = {
     myellow,
     mmagenta,
   },
+  chunks,
   deleteExtraFlags,
   extractFlagsFromArgs,
   extractOptionsFromArgs,
