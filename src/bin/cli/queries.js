@@ -2,7 +2,6 @@ const helpers = require("../helpers")
 const moment = require("moment")
 
 const { utils, Witnet, WitOracle } = require("../../../dist/src/lib")
-
 const { DEFAULT_BATCH_SIZE, DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {
@@ -17,6 +16,8 @@ module.exports = async function (options = {}, args = []) {
 
   const { address, network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
+
+  const symbol = utils.getEvmNetworkSymbol(network)
 
   const artifact = await witOracle.getEvmImplClass()
   const version = await witOracle.getEvmImplVersion()
@@ -71,30 +72,7 @@ module.exports = async function (options = {}, args = []) {
     : logs.reverse().slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // latest first
   )
   
-  let traceBack = options["trace-back"]
-  const checkResults = options["check-result-status"]
-  if (checkResults) {
-    traceBack = false
-    logs = await helpers.prompter(
-      Promise.all(
-        logs.map(async log => {
-          const resultStatus = log.queryStatus !== "Void" ? await witOracle.getQueryResultStatusDescription(log.queryId) : ""
-          let resultTTR = ""
-          if (["Finalized", "Reported", "Disputed"].includes(log.queryStatus)) {
-            const query = await witOracle.getQuery(log.queryId)
-            const evmCheckpointBlock = await witOracle.provider.getBlock(query.checkpoint)
-            const evmQueryBlock = await witOracle.provider.getBlock(log.evmBlockNumber)
-            resultTTR = moment.duration(moment.unix(evmCheckpointBlock.timestamp).diff(moment.unix(evmQueryBlock.timestamp))).humanize();
-          }
-          return {
-            ...log,
-            resultStatus,
-            resultTTR,
-          }
-        })
-      ).catch(err => console.error(err))
-    )
-  } else if (traceBack) {
+  if (options["trace-back"]) {
     logs = await Promise.all(
       logs.map(async log => {
         const response = await witOracle.getQueryResponse(log.queryId)
@@ -104,88 +82,97 @@ module.exports = async function (options = {}, args = []) {
         }
       })
     ).catch(err => console.error(err))
+  } else {
+    logs = await helpers.prompter(
+      Promise.all(
+        logs.map(async log => {
+          const receipt = await provider.getTransactionReceipt(log.evmTransactionHash)
+          const transaction = await provider.getTransaction(log.evmTransactionHash)
+          const evmTransactionCost = transaction.value + receipt.gasPrice * receipt.gasUsed
+          const resultStatus = log.queryStatus !== "Void" ? await witOracle.getQueryResultStatusDescription(log.queryId) : ""
+          let resultTTR = ""
+          if (["Finalized", "Reported", "Disputed"].includes(log.queryStatus)) {
+            const query = await witOracle.getQuery(log.queryId)
+            const evmCheckpointBlock = await provider.getBlock(query.checkpoint)
+            const evmQueryBlock = await provider.getBlock(log.evmBlockNumber)
+            resultTTR = moment.duration(moment.unix(evmCheckpointBlock.timestamp).diff(moment.unix(evmQueryBlock.timestamp))).humanize();
+          }
+          return {
+            ...log,
+            evmTransactionCost,
+            resultStatus,
+            resultTTR,
+          }
+        })
+      ).catch(err => console.error(err))
+    )
   }
   
   if (logs.length > 0) {
-    if (!traceBack) {
+    if (!options["trace-back"]) {
       helpers.traceTable(
         logs.map(log => [
           log.evmBlockNumber,
-          log.evmTransactionHash,
           log.queryId,
-          ...(checkResults ? [] : [
-            log.queryStatus,
-            `${log.evmRequester?.slice(0, 8)}..${log.evmRequester?.slice(-4)}`,
-            `${log.queryRadHash?.slice(2).slice(0, 6)}..${log.queryRadHash.slice(-5)}`,
-            `${log.queryParams.witnesses}`, 
-            `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
-          ]),
-          ...(checkResults ? [
-            log.queryStatus,
-            log.resultTTR,
-            log.resultStatus,
-          ] : []),
+          `${log.evmRequester?.slice(0, 8)}..${log.evmRequester?.slice(-4)}`,
+          Number(Number(log?.evmTransactionCost || 0n) / 10 ** 18).toFixed(7),
+          `${log.queryRadHash?.slice(2).slice(0, 6)}..${log.queryRadHash.slice(-5)}`,
+          `${log.queryParams.witnesses}`, 
+          `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
+          log.resultTTR,
+          log.queryStatus,
+          log.resultStatus,
         ]),
         {
           colors: [ 
             helpers.colors.white,
-            helpers.colors.gray,
             helpers.colors.lwhite,
-            ...(checkResults ? [
-              helpers.colors.cyan,
-            ] : [
-              helpers.colors.mcyan,
-              helpers.colors.mblue,
-              helpers.colors.mgreen,
-              helpers.colors.green,
-              helpers.colors.green,
-            ]),
-            ...(checkResults ? [
-              helpers.colors.magenta,
-              helpers.colors.mmagenta,
-            ] : []),
+            helpers.colors.mblue,
+            helpers.colors.blue,
+            helpers.colors.green,
+            helpers.colors.green,
+            helpers.colors.green,
+            helpers.colors.cyan,
+            helpers.colors.mcyan,
+            helpers.colors.magenta,
           ],
           headlines: [
             "EVM BLOCK:",
-            "EVM DATA QUERYING TRANSACTION HASH",
             "QUERY ID:",
+            "EVM REQUESTER",
+            `$${helpers.colors.lwhite(symbol)} COST`,
+            "radon request",
+            "witnesses",
+            "witnet fees",
+            "T.T.R.:",
             ":QUERY STATUS",
-            ...(checkResults ? [] : [
-              "EVM REQUESTER",
-              "RADON REQUEST",
-              "witnesses",
-              "witnet fees",
-            ]),
-            ...(checkResults ? [
-              "T.T.R.:",
-              ":RESULT STATUS",
-            ] : []),
+            ":RESULT STATUS",
           ],
-          humanizers: [helpers.commas,, helpers.commas],
+          humanizers: [helpers.commas, helpers.commas],
         }
       )
     } else { // traceBack is ON
       helpers.traceTable(
         logs.map(log => [
           log.evmBlockNumber,
-          log.evmTransactionHash,
           log.queryId,
+          log.evmTransactionHash,
           log.resultDrTxHash.slice(2),
         ]),
         {
           colors: [ 
             helpers.colors.white,
-            helpers.colors.gray,
             helpers.colors.lwhite,
+            helpers.colors.gray,
             helpers.colors.mmagenta,
           ],
           headlines: [
             "EVM BLOCK:",
-            "EVM DATA QUERYING TRANSACTION HASH",
             "QUERY ID:",
+            "EVM DATA QUERYING TRANSACTION HASH",
             `QUERY'S RESOLUTION ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
           ],
-          humanizers: [helpers.commas,, helpers.commas],
+          humanizers: [helpers.commas, helpers.commas],
         }
       )
     }

@@ -89,13 +89,13 @@ const settings = {
       hint: "Port on which the local ETH/RPC signing gateway is expected to be listening (default: 8545).",
       param: "HTTP_PORT",
     },
-    remote: {
-      hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
-      param: "PROVIDER_URL",
-    },
     push: {
       hint: "Retrieve the finalized result to the given Wit/Oracle query, and push it into some consumer contract (requires: --into).",
       param: "WIT_DR_TX_HASH",
+    },
+    remote: {
+      hint: "Force the local gateway to rely on this remote ETH/RPC provider.",
+      param: "PROVIDER_URL",
     },
     signer: {
       hint: "EVM signer address, other than gateway's default.",
@@ -159,7 +159,7 @@ async function main () {
           ],
         },
         priceFeeds: {
-          hint: `Show latest Wit/Price Feeds updates on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
+          hint: `Show latest Wit/PriceFeeds updates on ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[EVM_ADDRESS]",
           flags: [
             "trace-back",
@@ -169,7 +169,6 @@ async function main () {
           hint: `Show latest Wit/Oracle queries pulled from smart contracts in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[IDS ...]",
           flags: [
-            "check-result-status",
             "trace-back",
             "voids",
           ],
