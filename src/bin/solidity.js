@@ -166,10 +166,10 @@ async function main () {
           ],
         },
         queries: {
-          hint: `Show latest Wit/Oracle queries pulled from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
-          // params: "[TOPICS ...]",
+          hint: `Show latest Wit/Oracle queries pulled from smart contracts in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           flags: [
             "check-result-status",
+            "trace-back",
             "voids",
           ],
           options: [
