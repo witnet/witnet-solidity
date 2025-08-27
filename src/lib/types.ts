@@ -59,6 +59,13 @@ export type WitOracleQueryParams = {
      */
     witnesses: number,
 }
+export type WitOracleQueryResponse = {
+    disputer?: string,
+    reporter?: string,
+    resultTimestamp?: number,
+    resultDrTxHash: Witnet.Hash,
+    resultCborBytes: Witnet.HexString,
+}
 
 export type WitOracleQueryStatus = "Void" | "Posted" | "Reported" | "Finalized" | "Delayed" | "Expired" | "Disputed";
 export type WitOracleResultDataTypes = "any" | "array" | "boolean" | "bytes" | "float" | "integer" | "map" | "string";

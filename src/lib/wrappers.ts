@@ -296,6 +296,18 @@ export class WitOracle extends WitArtifactWrapper {
             .getFunction("getNextQueryId()")
             .staticCall()
     }
+    public async getQueryResponse(queryId: bigint): Promise<WitOracleQueryResponse> {
+        return this.contract
+            .getQueryResponse
+            .staticCall(queryId)
+            .then(result => ({
+                disputer: result[5],
+                reporter: result[0],
+                resultTimestamp: Number(result[2].toString()),
+                resultDrTxHash: result[3],
+                resultCborBytes: result[4],
+            }));
+    }
 
     public async getQueryResultStatusDescription(queryId: bigint): Promise<string> {
         let reason 
