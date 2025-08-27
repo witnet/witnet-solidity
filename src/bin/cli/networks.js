@@ -1,16 +1,12 @@
 const helpers = require("../helpers")
 
-// const WITNET_ASSETS_PATH = process.env.WITNET_SOLIDITY_ASSETS_RELATIVE_PATH || "../../../../../witnet/assets"
-// const assets = require(`${WITNET_ASSETS_PATH}`)
-
 const { supportedNetworks } = require("witnet-solidity-bridge")
 
-module.exports = async function (flags = {}, args = []) {
-  [args] = helpers.deleteExtraFlags(args)
+module.exports = async function (flags = {}, [ ecosystem ]) {
   const networks = Object.fromEntries(
     Object.entries(supportedNetworks())
-      .filter(([network, config]) => {
-        return (!args || !args[0] || network.indexOf(args[0].toLowerCase()) >= 0) && (
+      .filter(([, config]) => {
+        return (
           !flags ||
             (flags?.mainnets && config.mainnet) ||
             (flags?.testnets && !config.mainnet) ||
@@ -18,12 +14,30 @@ module.exports = async function (flags = {}, args = []) {
         )
       }).map(([network, config]) => [
         network, {
-          Mainnet: config?.mainnet,
-          "Network id": config?.network_id,
-          "Gateway port": config?.port,
-          "Contracts verification explorer URL": config?.verified,
+          browser: config?.verified,
+          id: config?.network_id,
+          mainnet: config?.mainnet,
+          match: ecosystem && network.toLowerCase().indexOf(ecosystem.toLowerCase()) > -1,
+          name: network,
+          symbol: config?.symbol,
         },
       ])
   )
-  console.table(networks)
+  helpers.traceTable(
+    Object.values(networks).map(network => [
+      network.match ? helpers.colors.mcyan(network.name) : helpers.colors.cyan(network.name),
+      network.match ? helpers.colors.lwhite(network.symbol) : helpers.colors.white(network.symbol),
+      network.id,
+      network.browser,
+    ]), {
+      headlines: [
+        ":Network",
+        "Symbol",
+        "Network Id",
+        ":Verified Block Explorer",
+      ],
+      humanizers: [,, helpers.commas ],
+      colors: [,, helpers.colors.yellow, helpers.colors.gray ],
+    }
+  )
 }

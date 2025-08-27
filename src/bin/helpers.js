@@ -26,7 +26,7 @@ const lblue = (str) => `\x1b[1;94m${str}\x1b[0m`
 const lcyan = (str) => `\x1b[1;96m${str}\x1b[0m`
 const lgreen = (str) => `\x1b[1;92m${str}\x1b[0m`
 const lmagenta = (str) => `\x1b[1;95m${str}\x1b[0m`
-const lwhite = (str) => `\x1b[1;98m${str}\x1b[0m`
+const lwhite = (str) => `\x1b[0;1;98m${str}\x1b[0m`
 const lyellow = (str) => `\x1b[1;93m${str}\x1b[0m`
 const mblue = (str) => `\x1b[94m${str}\x1b[0m`
 const mcyan = (str) => `\x1b[96m${str}\x1b[0m`
