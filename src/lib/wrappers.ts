@@ -1369,6 +1369,32 @@ class WitRandomness extends WitApplianceWrapper {
         return result
     }
 
+    public async filterEvents(options: {
+        fromBlock: BlockTag,
+        toBlock?: BlockTag,
+        // where?: {},
+    }): Promise<Array<{
+        evmBlockNumber: bigint,
+        evmTransactionHash: string,
+        evmGasPrice: bigint,
+        evmRandomizeFee: bigint,
+        queryId: bigint,
+    }>> {
+        return this._legacy
+            .queryFilter("Randomizing", options.fromBlock, options?.toBlock)
+            .then(logs => logs.filter(log => 
+                !log.removed
+                // && (!options?.where?.queryRadHash || (log as EventLog).args?.radonHash.indexOf(options.where.queryRadHash) >= 0)
+            ))
+            .then(logs => logs.map(log => ({
+                evmBlockNumber: BigInt(log.blockNumber),
+                evmTransactionHash: log.transactionHash,
+                evmGasPrice: (log as EventLog)?.args[1],
+                evmRandomizeFee: (log as EventLog)?.args[2],
+                queryId: (log as EventLog)?.args[3],
+            })));
+    }
+
     public async getLastRandomizeBlock(): Promise<bigint> {
         return this.contract
             .getFunction("getLastRandomizeBlock()")
