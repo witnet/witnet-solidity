@@ -1298,13 +1298,7 @@ class WitRandomness extends WitApplianceWrapper {
 
     protected constructor (witOracle: WitOracle, at: string) {
         super(witOracle, "WitRandomness", at)
-        this._legacy = new Contract(at, [
-            "function fetchRandomnessAfter(uint256) public view returns (bytes32)",
-            "function fetchRandomnessAfterProof(uint256) public view returns ((bytes32,uint64,bytes32,uint256))",
-            "function getRandomizePrevBlock(uint256) public view returns (uint256)",
-            "function getRandomizeStatus(uint256) public view returns (uint8)",
-            "function isRandomized(uint256) public view returns (bool)",
-        ], this.signer)
+        this._legacy = new Contract(at, ABIs["WitRandomnessV2"], this.signer)
     }
 
     static async at(witOracle: WitOracle, target: string): Promise<WitRandomness> {
@@ -1335,64 +1329,61 @@ class WitRandomness extends WitApplianceWrapper {
             .staticCall(evmGasPrice)
     }
 
-    public async getRandomnessAfter(evmBlockNumber: bigint): Promise<Witnet.HexString | undefined> {
-        if (await this.isRandomized(evmBlockNumber)) {
-            let randomness
-            try {
-                try { randomness = await this.contract.fetchRandomnessAfter.staticCall(evmBlockNumber) }
-                catch { randomness = await this._legacy.fetchRandomnessAfter.staticCall(evmBlockNumber) }
-            } catch (error: any) {
-                throw new Error(`${this.constructor.name}: cannot fetch randomness on block ${evmBlockNumber}.\n${
-                    error?.stack?.split('\n')[0] || error
-                }`)
-            }
-            return randomness
-        } else {
-            return undefined;
-        }
+    public async fetchRandomnessAfter(evmBlockNumber: bigint): Promise<Witnet.HexString | undefined> {
+        return this
+            .isRandomized(evmBlockNumber)
+            .then(isRandomized => {
+                return (isRandomized
+                    ? this.contract.fetchRandomnessAfter.staticCall(evmBlockNumber)
+                    : undefined
+                )
+            })
     }
 
-    public async fetchRandomnessAfterProof(evmBlockNumber: bigint): Promise<[Witnet.Hash, number]> {
-        let result
-        try {
-            try { result = await this.contract.fetchRandomnessAfterProof.staticCall(evmBlockNumber) } 
-            catch { 
-                result = await this._legacy
-                    .fetchRandomnessAfterProof.staticCall(evmBlockNumber)
-                    .then(result => [ result[2], result[1] ])
-            }
-        } catch (error: any) {
-            throw new Error(`${this.constructor.name}: cannot fetch randomness proof on block ${evmBlockNumber}.\n${
-                error?.stack?.split('\n')[0] || error
-            }`)
-        }
-        return result
+    public async fetchRandomnessAfterProof(evmBlockNumber: bigint): Promise<{
+        finality: bigint,
+        timestamp: number, 
+        trail: Witnet.Hash, 
+        uuid: Witnet.Hash, 
+    }> {
+        return this
+            .contract
+            .fetchRandomnessAfterProof
+            .staticCall(evmBlockNumber)
+            .then(result => ({
+                finality: BigInt(result[3]),
+                timestamp: Number(result[1]),
+                trail: result[2],
+                uuid: result[0],
+            }))
     }
 
     public async filterEvents(options: {
         fromBlock: BlockTag,
         toBlock?: BlockTag,
-        // where?: {},
     }): Promise<Array<{
-        evmBlockNumber: bigint,
-        evmTransactionHash: string,
-        evmGasPrice: bigint,
-        evmRandomizeFee: bigint,
+        blockNumber: bigint,
         queryId: bigint,
+        requester?: string,
+        transactionHash: string,
     }>> {
-        return this._legacy
-            .queryFilter("Randomizing", options.fromBlock, options?.toBlock)
-            .then(logs => logs.filter(log => 
-                !log.removed
-                // && (!options?.where?.queryRadHash || (log as EventLog).args?.radonHash.indexOf(options.where.queryRadHash) >= 0)
-            ))
-            .then(logs => logs.map(log => ({
-                evmBlockNumber: BigInt(log.blockNumber),
-                evmTransactionHash: log.transactionHash,
-                evmGasPrice: (log as EventLog)?.args[1],
-                evmRandomizeFee: (log as EventLog)?.args[2],
+        let logs = await this._legacy.queryFilter("Randomizing", options.fromBlock, options?.toBlock)
+        if (logs && logs.length > 0) {
+            return logs.filter(log => !log.removed).map(log => ({
+                blockNumber: BigInt(log.blockNumber),
                 queryId: (log as EventLog)?.args[3],
-            })));
+                transactionHash: log.transactionHash,
+            }))
+        } else {
+            return this.contract.queryFilter("Randomizing", options.fromBlock, options?.toBlock)
+                .then(logs => logs.filter(log => !log.removed))
+                .then(logs => logs.map(log => ({
+                    blockNumber: BigInt(log.blockNumber),
+                    queryId: (log as EventLog)?.args[1],
+                    requester: (log as EventLog)?.args[0],
+                    transactionHash: log.transactionHash,
+                })))
+        }
     }
 
     public async getLastRandomizeBlock(): Promise<bigint> {
@@ -1401,82 +1392,27 @@ class WitRandomness extends WitApplianceWrapper {
             .staticCall()
     }
 
-    public async getRandomizePrevBlock(evmBlockNumber: bigint): Promise<bigint> {
-        let evmPrevBlock
-        try {
-            try { evmPrevBlock = await this.contract.getRandomizePrevBlock.staticCall(evmBlockNumber).then(result => BigInt(result)) }
-            catch { evmPrevBlock = await this._legacy.getRandomizePrevBlock.staticCall(evmBlockNumber).then(result => BigInt(result)) }
-        } catch (error: any) {
-            throw new Error(`${this.constructor.name}: cannot fetch previous randomize block before ${evmBlockNumber}.\n${
-                error?.stack?.split('\n')[0] || error
-            }`)
-        }
-        return evmPrevBlock
-    }
-
     public async getRandomizeStatus(evmBlockNumber: bigint): Promise<RandomizeStatus> {
-        let result
-        try {
-            try { result = await this.contract.getRandomizeStatus.staticCall(evmBlockNumber) }
-            catch { result = await this._legacy.getRandomizeStatus.staticCall(evmBlockNumber) }
-        } catch (error: any) {
-            throw new Error(`${this.constructor.name}: cannot get randomize status on block ${evmBlockNumber}.\n${
-                error?.stack?.split('\n')[0] || error
-            }`)
-        }
-        switch (Number(result)) {
-            case 1: return "Awaiting";
-            case 2: return "Ready";
-            case 3: return "Error";
-            case 4: return "Finalizing";
-            default: 
+        return this
+            .contract
+            .getRandomizeStatus
+            .staticCall(evmBlockNumber)
+            .then(result => {
+                switch(Number(result)) {
+                    case 1: return "Awaiting";
+                    case 2: return "Ready";
+                    case 3: return "Error";
+                    case 4: return "Finalizing";
+                }
                 return "Void";
-        }
-    }
-
-    public async getRandomizeStatusDescription(evmBlockNumber: bigint): Promise<string> {
-        try {
-            return this.contract
-                .getFunction("getRandomizeStatusDescription(uint96)")
-                .staticCall(evmBlockNumber)
-        } catch {
-            return this.getRandomizeStatus(evmBlockNumber)
-        }
-    }
-
-    public async getRandomizeHistory(limit = 16): Promise<Array<{
-        evmBlockNumber: bigint, 
-        evmRandomizeStatus: RandomizeStatus, 
-        witResult: Witnet.HexString | undefined,
-        witResultDrTxHash: Witnet.Hash | undefined,
-        witResultTimestamp: number | undefined,
-    }>> {
-        const result = []
-        let evmBlockNumber = await this.getLastRandomizeBlock()
-        while (evmBlockNumber && result.length < limit) {
-            const evmRandomizeStatus = await this.getRandomizeStatus(evmBlockNumber)
-            const witResult = await this.getRandomnessAfter(evmBlockNumber)
-            let witResultDrTxHash, witResultTimestamp
-            if (witResult) {
-                [ witResultDrTxHash, witResultTimestamp ] = await this.fetchRandomnessAfterProof(evmBlockNumber)
-            }
-            result.push({ evmBlockNumber, evmRandomizeStatus, witResult, witResultDrTxHash, witResultTimestamp })
-            evmBlockNumber = await this.getRandomizePrevBlock(evmBlockNumber)
-        }
-        return result
+            })
     }
 
     public async isRandomized(evmBlockNumber: bigint): Promise<boolean> {
-        let result 
-        try {
-            try { result = await this.contract.isRandomized.staticCall(evmBlockNumber) }
-            catch { result = await this._legacy.isRandomized.staticCall(evmBlockNumber) }
-        } catch (error: any) {
-            throw new Error(`${this.constructor.name}: cannot get randomize status on block ${evmBlockNumber}.\n${
-                error?.stack?.split('\n')[0] || error
-            }`)
-        }
-        return result
+        return this
+            .contract
+            .isRandomized
+            .staticCall(evmBlockNumber)
     }
 
     public async randomize(options?: {
