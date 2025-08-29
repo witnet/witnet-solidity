@@ -197,7 +197,7 @@ export class WitOracle extends WitArtifactWrapper {
                 abiEncodeWitOracleQueryParams(queryParams),
             )
     }
-
+    
     public async filterWitOracleQueryEvents(options: {
         fromBlock: BlockTag,
         toBlock?: BlockTag,
@@ -502,7 +502,7 @@ class WitOracleRadonRegistry extends WitArtifactWrapper {
     public async lookupRadonRequestBytecode(radHash: string): Promise<Witnet.HexString> {
         return this.contract
             .getFunction("lookupRadonRequestBytecode(bytes32)")
-            .staticCall(`0x${radHash}`)
+            .staticCall(`${radHash.startsWith("0x") ? radHash : `0x${radHash}`}`)
     }
 
     /**
