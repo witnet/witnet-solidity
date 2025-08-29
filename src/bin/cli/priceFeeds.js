@@ -1,7 +1,7 @@
 const helpers = require("../helpers")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
-const { utils, WitOracle } = require("../../../dist/src/lib")
+const { utils, Witnet, WitOracle } = require("../../../dist/src/lib")
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
@@ -44,9 +44,38 @@ module.exports = async function (options = {}, args = []) {
   const maxWidth = Math.max(18, artifact.length + 2)
   console.info(`> ${helpers.colors.lwhite(artifact)}:${" ".repeat(maxWidth - artifact.length)}${helpers.colors.lblue(target)} ${helpers.colors.blue(`[ v${version} ]`)}`)
 
+  let priceFeeds = await pfs.lookupPriceFeeds()
+
   const traceBack = options["trace-back"]
-  const priceFeeds = await pfs.lookupPriceFeeds()
-  if (priceFeeds.length > 0) {
+  const dryRun = options["dry-run"]
+  if (!traceBack || dryRun) {
+    const registry = await witOracle.getWitOracleRadonRegistry()
+    priceFeeds = await helpers.prompter(
+      Promise.all(
+        priceFeeds.map(async pf => {
+          let providers, dryrun
+          const bytecode = await registry.lookupRadonRequestBytecode(pf.oracle.dataSources)
+          if (!traceBack) {
+            const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
+            providers = request.sources.map(source => {
+              const authority = source.authority.split('.').slice(-2)[0]
+              return authority[0].toUpperCase() + authority.slice(1)
+            })
+          }
+          if (dryRun) {
+            // TODO
+          }
+          return {
+            ...pf,
+            dryrun,
+            providers
+          }
+        })
+      ).catch(err => console.error(err))
+    )
+  }
+  
+  if (priceFeeds?.length > 0) {
     helpers.traceTable(
       priceFeeds.map(pf => [
         pf.id,
@@ -54,7 +83,7 @@ module.exports = async function (options = {}, args = []) {
         helpers.colors.mgreen(`${pf.oracle?.dataSources?.slice(2).slice(0, 6)}..${pf.oracle?.dataSources.slice(-5)}`),
         pf.lastUpdate.value.toFixed(6),
         moment.unix(Number(pf.lastUpdate.timestamp)).fromNow(),
-        ...(traceBack ? [pf.lastUpdate.trackHash.slice(2)] : []),
+        ...(traceBack ? [pf.lastUpdate.trackHash.slice(2)] : [pf?.providers.join(", ")]),
       ]),
       {
         colors: [
@@ -63,7 +92,7 @@ module.exports = async function (options = {}, args = []) {
           helpers.colors.mgreen,
           helpers.colors.mcyan,
           helpers.colors.magenta,
-          ...(traceBack ? [helpers.colors.mmagenta] : []),
+          helpers.colors.mmagenta,
         ],
         headlines: [
           ":ID4",
@@ -71,7 +100,9 @@ module.exports = async function (options = {}, args = []) {
           ":RADON REQUEST",
           "LAST PRICE:",
           "FRESHNESS:",
-          `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
+          options["trace-back"] 
+            ? `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`
+            : "DATA PROVIDERS"
         ],
       }
     )
