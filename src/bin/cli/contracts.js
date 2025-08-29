@@ -41,8 +41,7 @@ module.exports = async function (flags = {}, params = []) {
           })
       )
     }
-  }
-   else if (!args || args.length === 0) {
+  } else if (!args || args.length === 0) {
     args = ["WitOracle"]
   }
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)

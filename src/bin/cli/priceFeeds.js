@@ -42,7 +42,17 @@ module.exports = async function (options = {}, args = []) {
   }
   const version = await pfs.getEvmImplVersion()
   const maxWidth = Math.max(18, artifact.length + 2)
-  console.info(`> ${helpers.colors.lwhite(artifact)}:${" ".repeat(maxWidth - artifact.length)}${helpers.colors.lblue(target)} ${helpers.colors.blue(`[ v${version} ]`)}`)
+  console.info(
+    `> ${
+      helpers.colors.lwhite(artifact)
+    }:${
+      " ".repeat(maxWidth - artifact.length)
+    }${
+      helpers.colors.lblue(target)
+    } ${
+      helpers.colors.blue(`[ v${version} ]`)
+    }`
+  )
 
   let priceFeeds = await pfs.lookupPriceFeeds()
 
@@ -58,7 +68,7 @@ module.exports = async function (options = {}, args = []) {
           if (!traceBack) {
             const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
             providers = request.sources.map(source => {
-              const authority = source.authority.split('.').slice(-2)[0]
+              const authority = source.authority.split(".").slice(-2)[0]
               return authority[0].toUpperCase() + authority.slice(1)
             })
           }
@@ -68,13 +78,13 @@ module.exports = async function (options = {}, args = []) {
           return {
             ...pf,
             dryrun,
-            providers
+            providers,
           }
         })
       ).catch(err => console.error(err))
     )
   }
-  
+
   if (priceFeeds?.length > 0) {
     helpers.traceTable(
       priceFeeds.map(pf => [
@@ -100,9 +110,9 @@ module.exports = async function (options = {}, args = []) {
           ":RADON REQUEST",
           "LAST PRICE:",
           "FRESHNESS:",
-          options["trace-back"] 
+          options["trace-back"]
             ? `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`
-            : "DATA PROVIDERS"
+            : "DATA PROVIDERS",
         ],
       }
     )

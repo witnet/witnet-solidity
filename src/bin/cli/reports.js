@@ -152,7 +152,7 @@ module.exports = async function (options = {}, args = []) {
             helpers.colors.green,
             helpers.colors.mblue,
             helpers.colors.mblue,
-            helpers.colors.blue,
+            helpers.colors.gray,
             parse ? helpers.colors.mcyan : helpers.colors.cyan,
           ],
           headlines: [
@@ -174,7 +174,7 @@ module.exports = async function (options = {}, args = []) {
           const ethBlock = await witOracle.provider.getBlock(log.evmBlockNumber)
           return {
             ...log,
-            ethBlockTimestamp: ethBlock.timestamp
+            ethBlockTimestamp: ethBlock.timestamp,
           }
         })).catch(err => console.error(err))
       )

@@ -53,13 +53,13 @@ module.exports = async function (options = {}, args = []) {
     Promise.all([...helpers.chunks(queryIds, DEFAULT_BATCH_SIZE)]
       .map(ids => witOracle.getQueryStatuses(ids))
     )
-    .then(ids => ids.flat())
+      .then(ids => ids.flat())
   )
   logs = logs.map((log, index) => ({ ...log, queryStatus: queryStatuses[index] }))
 
   // filter out deleted queries, if no otherwise specified
   if (!options.voids) {
-    logs = logs.filter(log => log.queryStatus !== "Void");
+    logs = logs.filter(log => log.queryStatus !== "Void")
   }
 
   // count logs before last filter
@@ -70,7 +70,7 @@ module.exports = async function (options = {}, args = []) {
     ? logs.slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // oldest first
     : logs.reverse().slice(offset || 0).slice(0, limit || DEFAULT_LIMIT) // latest first
   )
-  
+
   if (options["trace-back"]) {
     logs = await Promise.all(
       logs.map(async log => {
@@ -94,7 +94,7 @@ module.exports = async function (options = {}, args = []) {
             const query = await witOracle.getQuery(log.queryId)
             const evmCheckpointBlock = await provider.getBlock(query.checkpoint)
             const evmQueryBlock = await provider.getBlock(log.evmBlockNumber)
-            resultTTR = moment.duration(moment.unix(evmCheckpointBlock.timestamp).diff(moment.unix(evmQueryBlock.timestamp))).humanize();
+            resultTTR = moment.duration(moment.unix(evmCheckpointBlock.timestamp).diff(moment.unix(evmQueryBlock.timestamp))).humanize()
           }
           return {
             ...log,
@@ -106,7 +106,7 @@ module.exports = async function (options = {}, args = []) {
       ).catch(err => console.error(err))
     )
   }
-  
+
   if (logs.length > 0) {
     if (!options["trace-back"]) {
       helpers.traceTable(
@@ -116,18 +116,18 @@ module.exports = async function (options = {}, args = []) {
           `${log.evmRequester?.slice(0, 8)}..${log.evmRequester?.slice(-4)}`,
           Number(Number(log?.evmTransactionCost || 0n) / 10 ** 18).toFixed(7),
           `${log.queryRadHash?.slice(2).slice(0, 6)}..${log.queryRadHash.slice(-5)}`,
-          `${log.queryParams.witnesses}`, 
+          `${log.queryParams.witnesses}`,
           `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
           log.resultTTR,
           log.queryStatus,
           log.resultStatus,
         ]),
         {
-          colors: [ 
+          colors: [
             helpers.colors.white,
             helpers.colors.lwhite,
             helpers.colors.mblue,
-            helpers.colors.blue,
+            helpers.colors.gray,
             helpers.colors.mgreen,
             helpers.colors.green,
             helpers.colors.green,
@@ -159,7 +159,7 @@ module.exports = async function (options = {}, args = []) {
           log.resultDrTxHash.slice(2),
         ]),
         {
-          colors: [ 
+          colors: [
             helpers.colors.white,
             helpers.colors.lwhite,
             helpers.colors.gray,

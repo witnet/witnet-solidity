@@ -32,7 +32,7 @@ const settings = {
     "trace-back": "Trace matching witnessing acts on Witnet.",
     verbose: "Outputs detailed information.",
     version: "Print binary name and version as headline.",
-    voids: "Include deleted queries."
+    voids: "Include deleted queries.",
   },
   options: {
     confirmations: {
@@ -208,7 +208,7 @@ async function main () {
             "since",
             "push",
             "into",
-            "gasPrice", 
+            "gasPrice",
             "gasLimit",
             "signer",
           ],

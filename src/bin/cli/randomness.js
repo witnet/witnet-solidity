@@ -41,7 +41,17 @@ module.exports = async function (options = {}, args = []) {
   const artifact = await randomizer.getEvmImplClass()
   const version = await randomizer.getEvmImplVersion()
   const maxWidth = Math.max(18, artifact.length + 2)
-  console.info(`> ${helpers.colors.lwhite(artifact)}:${" ".repeat(maxWidth - artifact.length)}${helpers.colors.lblue(target)} ${helpers.colors.blue(`[ ${version} ]`)}`)
+  console.info(
+    `> ${
+      helpers.colors.lwhite(artifact)
+    }:${
+      " ".repeat(maxWidth - artifact.length)
+    }${
+      helpers.colors.lblue(target)
+    } ${
+      helpers.colors.blue(`[ ${version} ]`)
+    }`
+  )
 
   if (options?.randomize) {
     const receipt = await randomizer.randomize({
@@ -82,7 +92,7 @@ module.exports = async function (options = {}, args = []) {
   }
 
   // fetch events since specified block
-  let logs = await randomizer.filterEvents({ fromBlock })  
+  let logs = await randomizer.filterEvents({ fromBlock })
 
   // count logs before last filter
   const totalLogs = logs.length
@@ -102,11 +112,11 @@ module.exports = async function (options = {}, args = []) {
         const status = await randomizer.getRandomizeStatus(log.blockNumber)
         const transaction = await provider.getTransaction(log.transactionHash)
         let readiness = {}
-        if (status === "Ready") {  
-          let randomness = options["trace-back"] ? await randomizer.fetchRandomnessAfter(log.blockNumber) : undefined
+        if (status === "Ready") {
+          const randomness = options["trace-back"] ? await randomizer.fetchRandomnessAfter(log.blockNumber) : undefined
           let { finality, trail, timestamp } = await randomizer.fetchRandomnessAfterProof(log.blockNumber)
-          if (finality) timestamp = (await provider.getBlock(finality)).timestamp;
-          ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
+          if (finality) timestamp = (await provider.getBlock(finality)).timestamp
+          const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
           readiness = { finality, randomness, trail, ttr }
         }
         return {
@@ -129,41 +139,41 @@ module.exports = async function (options = {}, args = []) {
           log.trail?.slice(2),
         ]),
         {
-          colors: [ 
+          colors: [
             helpers.colors.white,
             helpers.colors.green,
             helpers.colors.magenta,
           ],
           headlines: [
             "EVM BLOCK:",
-            `WITNET-GENERATED RANDOMNESS`,
-            `RANDOMIZE WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`
+            "WITNET-GENERATED RANDOMNESS",
+            `RANDOMIZE WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
           ],
-          humanizers: [helpers.commas,],
+          humanizers: [helpers.commas],
         }
       )
     } else {
       helpers.traceTable(
         logs.map(log => [
           log.blockNumber,
-          log.origin, //`${log.origin?.slice(0, 8)}..${log.origin?.slice(-4)}`,
+          log.origin, // `${log.origin?.slice(0, 8)}..${log.origin?.slice(-4)}`,
           (
-            Number(log.gasPrice) / 10 ** 9 < 1.0 
-              ? Number(Number(log.gasPrice) / 10 ** 9).toFixed(6) 
+            Number(log.gasPrice) / 10 ** 9 < 1.0
+              ? Number(Number(log.gasPrice) / 10 ** 9).toFixed(6)
               : helpers.commas(Number(Number(log.gasPrice) / 10 ** 9).toFixed(1))
-            ) + " gwei",
+          ) + " gwei",
           Number(Number(log.cost) / 10 ** 18).toFixed(9),
           log.ttr,
           log.status === "Error"
             ? helpers.colors.mred("Error")
             : (log.status === "Ready"
-                ? helpers.colors.mgreen("Ready")
-                : helpers.colors.yellow(log.status)
+              ? helpers.colors.mgreen("Ready")
+              : helpers.colors.yellow(log.status)
             ),
-          
+
         ]),
         {
-          colors: [ 
+          colors: [
             helpers.colors.white,
             helpers.colors.mblue,
             helpers.colors.blue,

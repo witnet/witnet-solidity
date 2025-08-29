@@ -178,7 +178,7 @@ function traceWitnetAddresses (addresses, constructorArgs, artifacts, indent = "
             key.indexOf("Trustable") < 0 &&
             key.indexOf("Upgradable") < 0 &&
             key.indexOf("FactoryModals") < 0 &&
-            key.indexOf("FactoryTemplates") < 0  
+            key.indexOf("FactoryTemplates") < 0
         ) || includes(artifacts, key)
       ) {
         found++
@@ -304,7 +304,7 @@ function traceData (header, data, width, color) {
   if (color) process.stdout.write("\x1b[0m")
 }
 
-function* chunks(arr, n) {
+function * chunks (arr, n) {
   for (let i = 0; i < arr.length; i += n) {
     yield arr.slice(i, i + n)
   }

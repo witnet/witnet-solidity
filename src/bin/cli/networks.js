@@ -2,7 +2,7 @@ const helpers = require("../helpers")
 
 const { supportedNetworks } = require("witnet-solidity-bridge")
 
-module.exports = async function (flags = {}, [ ecosystem ]) {
+module.exports = async function (flags = {}, [ecosystem]) {
   const networks = Object.fromEntries(
     Object.entries(supportedNetworks())
       .filter(([, config]) => {
@@ -36,8 +36,8 @@ module.exports = async function (flags = {}, [ ecosystem ]) {
         "Network Id",
         ":Verified Block Explorer",
       ],
-      humanizers: [,, helpers.commas ],
-      colors: [,, helpers.colors.yellow, helpers.colors.gray ],
+      humanizers: [,, helpers.commas],
+      colors: [,, helpers.colors.yellow, helpers.colors.gray],
     }
   )
 }

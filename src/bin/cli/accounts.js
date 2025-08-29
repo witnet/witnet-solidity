@@ -2,14 +2,13 @@ const helpers = require("../helpers")
 const { WitOracle } = require("../../../dist/src/lib")
 
 module.exports = async function (flags = {}) {
-
   const witOracle = await WitOracle.fromJsonRpcUrl(
     `http://127.0.0.1:${flags?.port || 8545}`,
   )
 
   const { provider, network } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
-  
+
   const signers = await provider.listAccounts()
   const records = []
   let totalEth = 0n
@@ -32,9 +31,9 @@ module.exports = async function (flags = {}) {
       ]
     }), {
       headlines: [
-        "INDEX", 
-        "EVM SIGNER ADDRESSES", 
-        `${helpers.colors.lwhite("ETH")} BALANCE`
+        "INDEX",
+        "EVM SIGNER ADDRESSES",
+        `${helpers.colors.lwhite("ETH")} BALANCE`,
       ],
       humanizers: [helpers.commas,,],
       colors: [, helpers.colors.mblue],
