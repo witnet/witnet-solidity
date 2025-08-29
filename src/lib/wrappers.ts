@@ -1032,7 +1032,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
             .staticCall()
     }
 
-    public async getPrice(id4: Witnet.HexString, ema: boolean): Promise<PriceFeedUpdate> {
+    public async getPrice(id4: Witnet.HexString, ema = false): Promise<PriceFeedUpdate> {
         return this.contract
             .getPrice
             .staticCall(id4, ema)
@@ -1045,7 +1045,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
             }))
     }
 
-    public async getPriceNotOlderThan(id4: Witnet.HexString, ema: boolean, age: number): Promise<PriceFeedUpdate> {
+    public async getPriceNotOlderThan(id4: Witnet.HexString, age: number, ema = false): Promise<PriceFeedUpdate> {
         return this.contract
             .getPriceNotOlderThan
             .staticCall(id4, ema, age)
@@ -1058,7 +1058,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
             }))
     }
 
-    public async getPriceUnsafe(id4: Witnet.HexString, ema: boolean): Promise<PriceFeedUpdate> {
+    public async getPriceUnsafe(id4: Witnet.HexString, ema = false): Promise<PriceFeedUpdate> {
         return this.contract
             .getPriceUnsafe
             .staticCall(id4, ema)
