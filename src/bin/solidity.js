@@ -43,9 +43,6 @@ const settings = {
       hint: "Path or name of the new mockup contract to be created",
       param: "path/to/output",
     },
-    depth: {
-      hint: "Maximum number of randomize transactions to list, before the latest one (default: 16).",
-    },
     "filter-consumer": {
       hint: "Filter events triggered by given consumer.",
       param: "EVM_ADDRESS",
@@ -186,10 +183,12 @@ async function main () {
           params: "[EVM_ADDRESS]",
           flags: [
             "randomize",
+            "trace-back",
           ],
           options: [
-            "confirmations",
-            "depth",
+            "limit",
+            "offset",
+            "since",
             "gasPrice",
             "signer",
           ],
