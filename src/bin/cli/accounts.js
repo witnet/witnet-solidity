@@ -23,7 +23,7 @@ module.exports = async function (flags = {}) {
 
   helpers.traceTable(
     records.map(([address, eth], index) => {
-      eth = Number(Number(eth) / 10 ** 18).toFixed(9)
+      eth = Number(Number(eth) / 10 ** 18).toFixed(10)
       return [
         address !== "" ? index : "",
         address,
@@ -33,7 +33,7 @@ module.exports = async function (flags = {}) {
       headlines: [
         "INDEX",
         "EVM SIGNER ADDRESSES",
-        `${helpers.colors.lwhite("ETH")} BALANCE`,
+        `$${helpers.colors.lwhite("ETH")} BALANCE`,
       ],
       humanizers: [helpers.commas,,],
       colors: [, helpers.colors.mblue],

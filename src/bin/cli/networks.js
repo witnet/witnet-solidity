@@ -28,7 +28,7 @@ module.exports = async function (flags = {}, [ecosystem]) {
       network.match ? helpers.colors.mcyan(network.name) : helpers.colors.cyan(network.name),
       network.match ? helpers.colors.lwhite(network.symbol) : helpers.colors.white(network.symbol),
       network.id,
-      network.browser,
+      network.match ? helpers.colors.white(network.browser) : helpers.colors.gray(network.browser),
     ]), {
       headlines: [
         ":Network",
@@ -37,7 +37,7 @@ module.exports = async function (flags = {}, [ecosystem]) {
         ":Verified Block Explorer",
       ],
       humanizers: [,, helpers.commas],
-      colors: [,, helpers.colors.yellow, helpers.colors.gray],
+      colors: [,, helpers.colors.yellow, ],
     }
   )
 }
