@@ -1359,7 +1359,7 @@ class WitRandomness extends WitApplianceWrapper {
                 timestamp: Number(result[1]),
                 trail: result[2],
                 uuid: result[0],
-            }))
+            }));
     }
 
     public async filterEvents(options: {
@@ -1388,6 +1388,28 @@ class WitRandomness extends WitApplianceWrapper {
                     transactionHash: log.transactionHash,
                 })))
         }
+    }
+
+    public async getSettings(): Promise<{
+        feeOverHeadPercentage: number,
+        maxCallbackGasLimit: number,
+        minWitCommitteeSize: number,
+        minWitInclusionFees: bigint,
+        randomizeWaitBlocks: number,
+    }> {
+        const abi = [ "function settings() public view returns (uint16, uint24, uint16, uint64, uint16)", ]
+        const contract = new Contract(this.address, abi, this.signer)
+        return contract
+            .settings
+            .staticCall()
+            .then(result => ({
+                feeOverHeadPercentage: Number(result[0]),
+                maxCallbackGasLimit: Number(result[1]),
+                minWitCommitteeSize: Number(result[2]),
+                minWitInclusionFees: BigInt(result[3]),
+                randomizeWaitBlocks: Number(result[4]),
+            }))
+        
     }
 
     public async getLastRandomizeBlock(): Promise<bigint> {
