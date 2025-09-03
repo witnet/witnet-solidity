@@ -28,7 +28,7 @@ module.exports = async function (options = {}, args = []) {
     } else {
       const selection = await prompt([{
         choices: Object.values(contracts),
-        message: "Select WitRandomness address ... ",
+        message: "Select randomness contract:",
         name: "addr",
         type: "rawlist",
       }])
@@ -36,7 +36,6 @@ module.exports = async function (options = {}, args = []) {
     }
   }
   const randomizer = await witOracle.getWitRandomnessAt(target)
-
   const symbol = utils.getEvmNetworkSymbol(network)
   const artifact = await randomizer.getEvmImplClass()
   const version = await randomizer.getEvmImplVersion()
@@ -114,10 +113,13 @@ module.exports = async function (options = {}, args = []) {
         let readiness = {}
         if (status === "Ready") {
           const randomness = options["trace-back"] ? await randomizer.fetchRandomnessAfter(log.blockNumber) : undefined
-          let { finality, trail, timestamp } = await randomizer.fetchRandomnessAfterProof(log.blockNumber)
-          if (finality) timestamp = (await provider.getBlock(finality)).timestamp
+          let { btr, finality, trail, timestamp } = await randomizer.fetchRandomnessAfterProof(log.blockNumber)
+          if (finality) {
+            timestamp = (await provider.getBlock(finality)).timestamp
+            btr = finality - log.blockNumber
+          }
           const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
-          readiness = { finality, randomness, trail, ttr }
+          readiness = { btr, exists, finality, matches, randomness, trail, ttr }
         }
         return {
           ...log,
@@ -126,6 +128,7 @@ module.exports = async function (options = {}, args = []) {
           origin: transaction.from,
           status,
           ...readiness,
+          blockTimestamp: block.timestamp,
         }
       })
     ).catch(err => console.error(err))
@@ -135,27 +138,31 @@ module.exports = async function (options = {}, args = []) {
       helpers.traceTable(
         logs.map(log => [
           log.blockNumber,
-          log.randomness,
+          log.btr,
           log.trail?.slice(2),
+          log.randomness,
         ]),
         {
           colors: [
             helpers.colors.white,
-            helpers.colors.green,
+            helpers.colors.lwhite,
             helpers.colors.magenta,
+            helpers.colors.green,
           ],
           headlines: [
             "EVM BLOCK:",
-            "WITNET-GENERATED RANDOMNESS",
+            "B.T.R.",
             `RANDOMIZE WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`,
+            "WITNET-GENERATED RANDOMNESS",
           ],
-          humanizers: [helpers.commas],
+          humanizers: [helpers.commas, helpers.commas],
         }
       )
     } else {
       helpers.traceTable(
         logs.map(log => [
           log.blockNumber,
+          moment.unix(log.blockTimestamp),
           log.origin, // `${log.origin?.slice(0, 8)}..${log.origin?.slice(-4)}`,
           (
             Number(log.gasPrice) / 10 ** 9 < 1.0
@@ -175,6 +182,7 @@ module.exports = async function (options = {}, args = []) {
         {
           colors: [
             helpers.colors.white,
+            helpers.colors.lwhite,
             helpers.colors.mblue,
             helpers.colors.blue,
             helpers.colors.gray,,
@@ -182,13 +190,14 @@ module.exports = async function (options = {}, args = []) {
           ],
           headlines: [
             "EVM BLOCK:",
+            "EVM TIMESTAMP",
             ":EVM RANDOMIZER",
             "EVM GAS PRICE",
             `$${helpers.colors.lwhite(symbol)} COST`,
             "T.T.R.",
             ":STATUS",
           ],
-          humanizers: [helpers.commas],
+          humanizers: [helpers.commas,,, helpers.commas],
         }
       )
     }
