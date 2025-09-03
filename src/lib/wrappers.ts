@@ -1323,6 +1323,10 @@ class WitRandomness extends WitApplianceWrapper {
         return randomizer
     }
 
+    public async class(): Promise<string> {
+        return this.contract.class.staticCall()
+    }
+
     public async estimateRandomizeFee(evmGasPrice: bigint): Promise<bigint> {
         return this.contract
             .getFunction("estimateRandomizeFee(uint256)")
