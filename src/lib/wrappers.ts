@@ -783,7 +783,7 @@ class WitOracleRadonRequestFactory extends WitApplianceWrapper {
 class WitOracleRadonRequestModal extends WitApplianceWrapper {
 
     protected constructor (witOracle: WitOracle, at: string) {
-        super(witOracle, "IWitOracleRadonRequestModal", at)
+        super(witOracle, "WitOracleRadonRequestModal", at)
     }
 
     static async at(witOracle: WitOracle, target: string): Promise<WitOracleRadonRequestModal> {
@@ -873,7 +873,7 @@ class WitOracleRadonRequestModal extends WitApplianceWrapper {
 class WitOracleRadonRequestTemplate extends WitApplianceWrapper {
 
     protected constructor (witOracle: WitOracle, at: string) {
-        super(witOracle, "IWitOracleRadonRequestTemplate", at)
+        super(witOracle, "WitOracleRadonRequestTemplate", at)
     }
 
     static async at(witOracle: WitOracle, target: string): Promise<WitOracleRadonRequestTemplate> {
@@ -1298,7 +1298,7 @@ class WitRandomness extends WitApplianceWrapper {
 
     protected constructor (witOracle: WitOracle, at: string) {
         super(witOracle, "WitRandomness", at)
-        this._legacy = new Contract(at, ABIs["WitRandomnessV2"], this.signer)
+        this._legacy = new Contract(at, ABIs["WitRandomnessLegacy"], this.signer)
     }
 
     static async at(witOracle: WitOracle, target: string): Promise<WitRandomness> {
