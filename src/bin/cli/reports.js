@@ -128,8 +128,8 @@ module.exports = async function (options = {}, args = []) {
           evmTransactionCost,
         }
       })
+      )
     )
-  )
 
   if (logs.length > 0) {
     if (!options["trace-back"]) {
