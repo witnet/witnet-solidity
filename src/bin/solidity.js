@@ -25,6 +25,7 @@ const settings = {
     legacy: "Filter to those declared in witnet/assets folder.",
     parse: "Parse reported CBOR bytes",
     mainnets: "List supported EVM mainnets.",
+    modals: "List deployed WitOracleRadonRequestModal contracts.",
     randomize: "Pay for a new randomize request.",
     requests: "Includes WitOracleRequest artifacts.",
     templates: "List deployed WitOracleRadonRequestTemplate contracts.",
@@ -146,11 +147,13 @@ async function main () {
             "signer",
           ],
         },
-        contracts: {
+        framework: {
           hint: `List available Wit/Oracle Framework addresses in ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[NAME_SUFFIX ...]",
           flags: [
+            "modals",
             "templates",
+            "verbose",
           ],
           options: [
             "port",
@@ -246,7 +249,7 @@ async function main () {
     commands: {
       accounts: require("./cli/accounts.js"),
       assets: require("./cli/assets.js"),
-      contracts: require("./cli/contracts"),
+      framework: require("./cli/contracts.js"),
       gateway: require("./cli/gateway.js"),
       networks: require("./cli/networks.js"),
       priceFeeds: require("./cli/priceFeeds.js"),

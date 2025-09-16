@@ -159,40 +159,6 @@ function traceHeader (header, color = white, indent = "") {
   console.info(`${indent}└─${"─".repeat(header.length)}─┘`)
 }
 
-function traceWitnetAddresses (addresses, constructorArgs, artifacts, indent = "", level) {
-  const includes = (selection, key) => {
-    return selection.filter(
-      artifact => key.toLowerCase().endsWith(artifact.toLowerCase())
-    ).length > 0
-  }
-  let found = 0
-  for (const key in orderKeys(addresses)) {
-    if (typeof addresses[key] === "object") {
-      found += traceWitnetAddresses(addresses[key], constructorArgs, artifacts, indent, (level || 0) + 1)
-    } else {
-      if (
-        (
-          key !== "WitnetDeployer" &&
-            !key.endsWith("Lib") &&
-            !key.endsWith("Proxy") &&
-            key.indexOf("Trustable") < 0 &&
-            key.indexOf("Upgradable") < 0 &&
-            key.indexOf("FactoryModals") < 0 &&
-            key.indexOf("FactoryTemplates") < 0
-        ) || includes(artifacts, key)
-      ) {
-        found++
-        if (includes(artifacts, key)) {
-          console.info(`${indent}${mblue(addresses[key])}`, "<=", `${lwhite(key)}`)
-        } else {
-          console.info(`${indent}${blue(addresses[key])}`, "<=", `${white(key)}`)
-        }
-      }
-    }
-  }
-  return found
-}
-
 function importRadonAssets (options) {
   const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("@witnet/sdk"))
   return !options?.module && isModuleInitialized && fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}`)
@@ -345,7 +311,6 @@ module.exports = {
   showVersion,
   traceData,
   traceHeader,
-  traceWitnetAddresses,
   getNetworkAddresses,
   getNetworkArtifacts: framework.getNetworkArtifacts,
   getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
