@@ -42,8 +42,8 @@ importers:
         specifier: ^2.30.1
         version: 2.30.1
       witnet-solidity-bridge:
-        specifier: 2.2.0-beta.1
-        version: 2.2.0-beta.1
+        specifier: 2.2.1
+        version: 2.2.1
     devDependencies:
       '@types/lodash.merge':
         specifier: ^4.6.9
@@ -2056,9 +2056,6 @@ packages:
   winston@3.17.0:
     resolution: {integrity: sha512-DLiFIXYC5fMPxaRg832S6F5mJYvePtmO5G9v9IgUFPhXm9/GkXarH/TUrBAVzhTCzAj9anE/+GjrgXp/54nOgw==}
     engines: {node: '>= 12.0.0'}
-
-  witnet-solidity-bridge@2.2.0-beta.1:
-    resolution: {integrity: sha512-hXNqP4HQDFTXfatapaGKP3FOxB20SPOewQrLQj/dczcbVGMwW6xWdanumEVOnWcdS+pKenR1vdHFh0AUiLK8iQ==}
 
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
@@ -4672,11 +4669,6 @@ snapshots:
       stack-trace: 0.0.10
       triple-beam: 1.4.1
       winston-transport: 4.9.0
-
-  witnet-solidity-bridge@2.2.0-beta.1:
-    dependencies:
-      dotenv: 16.6.1
-      lodash.merge: 4.6.2
 
   word-wrap@1.2.5: {}
 
