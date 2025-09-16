@@ -1,4 +1,4 @@
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 
 const { supportedNetworks } = require("witnet-solidity-bridge")
 
@@ -27,17 +27,16 @@ module.exports = async function (flags = {}, [ecosystem]) {
     Object.values(networks).map(network => [
       network.match ? helpers.colors.mcyan(network.name) : helpers.colors.cyan(network.name),
       network.match ? helpers.colors.lwhite(network.symbol) : helpers.colors.white(network.symbol),
-      network.id,
-      network.match ? helpers.colors.white(network.browser) : helpers.colors.gray(network.browser),
+      network.match ? helpers.colors.myellow(helpers.commas(network.id)) : helpers.colors.yellow(helpers.commas(network.id)),
+      network.match ? helpers.colors.white(network.browser || "") : helpers.colors.gray(network.browser || ""),
     ]), {
       headlines: [
         ":Network",
-        "Symbol",
+        ":Symbol",
         "Network Id",
         ":Verified Block Explorer",
       ],
-      humanizers: [,, helpers.commas],
-      colors: [,, helpers.colors.yellow, ],
     }
   )
+  console.info(`^ Listed ${Object.keys(networks).length} networks.`)
 }
