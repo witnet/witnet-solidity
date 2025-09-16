@@ -1,4 +1,4 @@
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
 const { utils, Witnet, WitOracle } = require("../../../dist/src/lib")

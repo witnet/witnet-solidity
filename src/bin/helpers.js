@@ -347,6 +347,7 @@ module.exports = {
   traceHeader,
   traceWitnetAddresses,
   getNetworkAddresses,
+  getNetworkArtifacts: framework.getNetworkArtifacts,
   getNetworkConstructorArgs: framework.getNetworkConstructorArgs,
   importRadonAssets,
   readWitnetJsonFiles,

@@ -2,7 +2,7 @@ const { spawn } = require("node:child_process")
 const os = require("os")
 const { supportsNetwork } = require("witnet-solidity-bridge")
 
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 
 module.exports = async function (flags = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)

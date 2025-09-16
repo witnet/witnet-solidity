@@ -7,10 +7,9 @@ import WSB from "witnet-solidity-bridge"
 import {
     getNetworkAddresses as _getNetworkAddresses,
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
-} from "../bin/helpers"
+} from "../bin/helpers.js"
 
 import { DataPushReport, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
-import { HexString } from "node_modules/ethers/lib.commonjs/utils/data"
 
 export * from "@witnet/sdk/utils"
 
@@ -113,14 +112,14 @@ export function abiEncodeDataPushReport(report: DataPushReport): any {
     ]
 }
 
-export function abiEncodeDataPushReportMessage(report: DataPushReport): HexString {
+export function abiEncodeDataPushReportMessage(report: DataPushReport): Witnet.HexString {
     return AbiCoder.defaultAbiCoder().encode(
         ["bytes32", "bytes32", "(uint16, uint16, uint64)", "uint64", "bytes"],
         abiEncodeDataPushReport(report)
     )
 }
 
-export function abiEncodeDataPushReportDigest(report: DataPushReport): HexString {
+export function abiEncodeDataPushReportDigest(report: DataPushReport): Witnet.HexString {
     return solidityPackedKeccak256(
         ["bytes"],
         [abiEncodeDataPushReportMessage(report)],

@@ -1,4 +1,4 @@
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 const { WitOracle } = require("../../../dist/src/lib")
 
 module.exports = async function (flags = {}) {

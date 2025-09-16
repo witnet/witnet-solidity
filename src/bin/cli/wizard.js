@@ -4,7 +4,7 @@ const path = require("path")
 
 const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("witnet-solidity-bridge")
 
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 
 const MODULE_WITNET_PATH = process.env.WITNET_SOLIDITY_MODULE_PATH || "node_modules/witnet-solidity/witnet"
 

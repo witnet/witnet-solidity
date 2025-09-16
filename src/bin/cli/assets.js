@@ -1,7 +1,7 @@
 const { execSync } = require("node:child_process")
 const prompt = require("inquirer").createPromptModule()
 
-const helpers = require("../helpers")
+const helpers = require("../helpers.js")
 const { WitOracle, Witnet } = require("../../../dist/src/lib")
 
 const deployables = helpers.readWitnetJsonFiles("modals", "requests", "templates")
