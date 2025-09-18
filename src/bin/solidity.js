@@ -53,8 +53,8 @@ const settings = {
       param: "EVM_ADDRESS",
     },
     "filter-radHash": {
-      hint: "Filter events referring given RAD hash.",
-      param: "RAD_HASH_FRAGMENT",
+      hint: "Filter events referring the fragment of some RAD hash.",
+      param: "FRAGMENT",
     },
     gasPrice: {
       hint: "EVM gas price to pay for.",

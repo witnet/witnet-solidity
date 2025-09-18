@@ -2,7 +2,7 @@ const fs = require("fs")
 const inquirer = require("inquirer")
 const path = require("path")
 
-const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("witnet-solidity-bridge")
+const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("witnet-solidity-bridge").default
 
 const helpers = require("../helpers.js")
 

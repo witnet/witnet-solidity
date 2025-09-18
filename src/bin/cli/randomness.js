@@ -21,6 +21,7 @@ module.exports = async function (options = {}, args = []) {
   const framework = helpers.getNetworkAddresses(network)
 
   let target = args[0]
+  let chosen = false
   if (!target) {
     const contracts = Object.fromEntries(Object.entries(framework?.apps).filter(([key]) => key.startsWith("WitRandomness")))
     if (Object.keys(contracts).length === 1) {
@@ -33,24 +34,27 @@ module.exports = async function (options = {}, args = []) {
         type: "rawlist",
       }])
       target = selection.addr
+      chosen = true
     }
   }
   const randomizer = await witOracle.getWitRandomnessAt(target)
   const symbol = utils.getEvmNetworkSymbol(network)
-  const artifact = await randomizer.getEvmImplClass()
-  const version = await randomizer.getEvmImplVersion()
-  const maxWidth = Math.max(18, artifact.length + 2)
-  console.info(
-    `> ${
-      helpers.colors.lwhite(artifact)
-    }:${
-      " ".repeat(maxWidth - artifact.length)
-    }${
-      helpers.colors.lblue(target)
-    } ${
-      helpers.colors.blue(`[ ${version} ]`)
-    }`
-  )
+  if (!chosen) {
+    const artifact = await randomizer.getEvmImplClass()
+    const version = await randomizer.getEvmImplVersion()
+    const maxWidth = Math.max(18, artifact.length + 2)
+    console.info(
+      `> ${
+        helpers.colors.lwhite(artifact)
+      }:${
+        " ".repeat(maxWidth - artifact.length)
+      }${
+        helpers.colors.lblue(target)
+      } ${
+        helpers.colors.blue(`[ ${version} ]`)
+      }`
+    )
+  }
 
   if (options?.randomize) {
     const receipt = await randomizer.randomize({
@@ -119,7 +123,7 @@ module.exports = async function (options = {}, args = []) {
             btr = finality - log.blockNumber
           }
           const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
-          readiness = { btr, exists, finality, matches, randomness, trail, ttr }
+          readiness = { btr, finality, randomness, trail, ttr }
         }
         return {
           ...log,
@@ -133,7 +137,7 @@ module.exports = async function (options = {}, args = []) {
       })
     ).catch(err => console.error(err))
   )
-  if (logs.length > 0) {
+  if (logs?.length > 0) {
     if (options["trace-back"]) {
       helpers.traceTable(
         logs.map(log => [

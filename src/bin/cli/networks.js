@@ -1,6 +1,6 @@
 const helpers = require("../helpers.js")
 
-const { supportedNetworks } = require("witnet-solidity-bridge")
+const { supportedNetworks } = require("witnet-solidity-bridge").default
 
 module.exports = async function (flags = {}, [ecosystem]) {
   const networks = Object.fromEntries(

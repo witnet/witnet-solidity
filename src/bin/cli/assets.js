@@ -23,8 +23,6 @@ module.exports = async function (flags = {}, params = []) {
   const registry = await witOracle.getWitOracleRadonRegistry()
   const deployer = await witOracle.getWitOracleRadonRequestFactory()
 
-  // console.log(address, registry.address, deployer.address, network)
-
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
   let assets = helpers.importRadonAssets(flags)

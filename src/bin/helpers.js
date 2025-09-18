@@ -1,13 +1,13 @@
 const fs = require("fs")
 const merge = require("lodash.merge")
-const framework = require("witnet-solidity-bridge")
+const framework = require("witnet-solidity-bridge").default
 
 const DEFAULT_BATCH_SIZE = 64
 const DEFAULT_LIMIT = 64
 const DEFAULT_SINCE = -5000
 
 const commas = (number) => {
-  const parts = number.toString().split(".")
+  const parts = number?.toString().split(".") || [""]
   const result = parts.length <= 1
     ? `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
     : `${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${parts[1]}`
