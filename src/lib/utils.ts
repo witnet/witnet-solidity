@@ -39,16 +39,16 @@ export async function getWitAppliances(provider: JsonRpcProvider): Promise<Array
                 ]
                 const contracts = Object.fromEntries(
                     Object.entries(flattenObject(_getNetworkArtifacts(network)))
-                        .map(([key, value]) => [key.split(".").slice(-1)[0], value])
+                        .map(([key, value]) => [key.split(".").pop(), value])
                 );
                 return Object.fromEntries(
                     await Promise.all(
                         Object.entries(flattenObject(_getNetworkAddresses(network)))
                             .map(([key, address]) => [
-                                key.split(".").slice(-1)[0],
+                                key.split(".").pop(),
                                 address
                             ])
-                            .sort((a, b) => (a[0] as string).localeCompare(b[0]))
+                            .sort(([a], [b]) => (a as string).localeCompare(b))
                             .filter(([key,]) => {
                                 const base = _findBase(contracts, key)
                                 return (
