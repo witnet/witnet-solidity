@@ -75,9 +75,9 @@ module.exports = async function (options = {}, args = []) {
       console.info(`> EVM block number:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.blockNumber))}`)
       console.info(`> EVM tx gas price:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.gasPrice))} weis`)
       console.info(`> EVM tx fee:${" ".repeat(maxWidth - 10)}${helpers.colors.lwhite(ethers.formatEther(receipt.fee))} ETH`)
-      console.info(`> EVM randomize fee:${" ".repeat(maxWidth - 17)}${helpers.colors.lwhite(ethers.formatEther((
-        await receipt.getTransaction()
-      ).value))} ETH`)
+      const value = (await receipt.getTransaction()).value
+      console.info(`> EVM randomize fee:${" ".repeat(maxWidth - 17)}${helpers.colors.lwhite(ethers.formatEther(value))} ETH`)
+      console.info(`> EVM effective gas:${" ".repeat(maxWidth - 17)}${helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))} gas units`)
     }
   }
 
