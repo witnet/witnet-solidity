@@ -11,25 +11,28 @@ module.exports = async function (options = {}, args = []) {
     options?.signer,
   )
 
-  const { network } = witOracle
+  const { network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
-  const framework = helpers.getNetworkAddresses(network)
+  const framework = await helpers.prompter(utils.getWitAppliances(provider))
 
   let target = args[0]
+  let chosen = false
   if (!target) {
-    const contracts = Object.fromEntries(Object.entries(framework?.apps).filter(([key]) => key.startsWith("WitPriceFeeds")))
-    if (Object.keys(contracts).length === 1) {
-      target = Object.values(contracts)[0]
+    const artifacts = Object.entries(framework).filter(([key]) => key.startsWith("WitPriceFeeds"))
+    if (artifacts.length === 1) {
+      target = artifacts[0][1].address
     } else {
       const selection = await prompt([{
-        choices: Object.values(contracts),
-        message: "Select EVM contract address ... ",
-        name: "addr",
+        choices: artifacts.map(([key, artifact]) => artifact.address),
+        message: "Price feeds contract:",
+        name: "target",
         type: "rawlist",
       }])
-      target = selection.addr
+      target = selection.target
+      chosen = true
     }
   }
+
   let pfs
   try {
     pfs = await witOracle.getWitPriceFeedsAt(target)
@@ -48,9 +51,9 @@ module.exports = async function (options = {}, args = []) {
     }:${
       " ".repeat(maxWidth - artifact.length)
     }${
-      helpers.colors.lblue(target)
-    } ${
-      helpers.colors.blue(`[ v${version} ]`)
+      chosen ? "" : helpers.colors.lblue(target) + " "
+    }${
+      helpers.colors.blue(`[ ${version} ]`)
     }`
   )
 

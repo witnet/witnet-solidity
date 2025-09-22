@@ -1,19 +1,109 @@
 import * as cbor from "cbor"
-import { AbiCoder, solidityPackedKeccak256 } from "ethers"
+import { AbiCoder, Contract, JsonRpcProvider, solidityPackedKeccak256 } from "ethers"
+
 import { Witnet } from "@witnet/sdk"
 
 import WSB from "witnet-solidity-bridge"
 
 import {
+    flattenObject,
     getNetworkAddresses as _getNetworkAddresses,
+    getNetworkArtifacts as _getNetworkArtifacts,
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
 } from "../bin/helpers.js"
 
-import { DataPushReport, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
+import { DataPushReport, WitAppliance, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
 
 export * from "@witnet/sdk/utils"
 
 export const ABIs = WSB.ABIs;
+
+export async function getWitAppliances(provider: JsonRpcProvider): Promise<Array<WitAppliance>> {
+    return provider
+        .getNetwork()
+        .then(async value => {
+            const network = getEvmNetworkByChainId(Number(value.chainId))
+            if (network) {
+                const exclusions = [
+                    "WitOracleRadonRequestFactoryModals",
+                    "WitOracleRadonRequestFactoryTemplates",
+                ]
+                const targets = [
+                    "WitOracle",
+                    "WitOracleRadonRegistry",
+                    "WitOracleRadonRequestFactory",
+                    // "WitOracleRequestFactory",
+                    "WitPriceFeeds",
+                    "WitRandomnessV2",
+                    "WitRandomnessV3",  
+                ]
+                const contracts = Object.fromEntries(
+                    Object.entries(flattenObject(_getNetworkArtifacts(network)))
+                        .map(([key, value]) => [key.split(".").slice(-1)[0], value])
+                );
+                return Object.fromEntries(
+                    await Promise.all(
+                        Object.entries(flattenObject(_getNetworkAddresses(network)))
+                            .map(([key, address]) => [
+                                key.split(".").slice(-1)[0],
+                                address
+                            ])
+                            .sort((a, b) => (a[0] as string).localeCompare(b[0]))
+                            .filter(([key,]) => {
+                                const base = _findBase(contracts, key)
+                                return (
+                                    targets.includes(key) 
+                                        && !exclusions.includes(base) 
+                                        && (ABIs[key] || ABIs[base])
+                                )
+                            })
+                            .map(async ([key, address]) => {
+                                const bytecode = await provider.getCode(address)
+                                if (bytecode.length > 2) {
+                                    let impl, isUpgradable = false, interfaceId, version
+                                    const appliance = new Contract(address, ABIs.WitAppliance, provider)
+                                    try { impl = await appliance.class.staticCall() } catch { impl = key }
+                                    try { interfaceId = await appliance.specs.staticCall() } catch {}
+                                    const upgradable = new Contract(address, ABIs.WitnetUpgradableBase, provider)
+                                    try { isUpgradable = await upgradable.isUpgradable.staticCall() } catch { isUpgradable = false }
+                                    try { version = await upgradable.version.staticCall() } catch {}
+                                    return [
+                                        key,
+                                        { 
+                                            abi: ABIs[key],
+                                            address,
+                                            class: impl,
+                                            gitHash: _versionLastCommitOf(version),
+                                            interfaceId,
+                                            isUpgradable, 
+                                            semVer: _versionTagOf(version),
+                                            version,
+                                        } as WitAppliance
+                                    ]
+                                } else {
+                                    return [key, undefined]
+                                }
+                                
+                            })
+                    ).then(artifacts => artifacts.filter(value => value[1] !== undefined))
+                );
+            } else {
+                return []
+            }
+        });
+}
+
+function _findBase (obj: { [k: string]: any; }, value: string): string {
+    return Object.entries(obj).find(([, impl]) => impl === value)?.[0] || ""
+}
+function _versionTagOf (version?: string) { return version?.slice(0, 5) }
+function _versionLastCommitOf (version?: string) { 
+    if (version) {
+        return version?.length >= 21 ? version?.slice(-15, -8) : "" 
+    } else {
+        return undefined
+    }
+}
 
 export function getEvmNetworkAddresses(network: string): any {
     return _getNetworkAddresses(network)

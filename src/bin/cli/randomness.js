@@ -18,43 +18,41 @@ module.exports = async function (options = {}, args = []) {
 
   const { network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
-  const framework = helpers.getNetworkAddresses(network)
-
+  const framework = await helpers.prompter(utils.getWitAppliances(provider))
   let target = args[0]
   let chosen = false
   if (!target) {
-    const contracts = Object.fromEntries(Object.entries(framework?.apps).filter(([key]) => key.startsWith("WitRandomness")))
-    if (Object.keys(contracts).length === 1) {
-      target = Object.values(contracts)[0]
+    const artifacts = Object.entries(framework).filter(([key]) => key.startsWith("WitRandomness"))
+    if (artifacts.length === 1) {
+      target = artifacts[0][1].address
     } else {
       const selection = await prompt([{
-        choices: Object.values(contracts),
-        message: "Select randomness contract:",
-        name: "addr",
+        choices: artifacts.map(([key, artifact]) => artifact.address),
+        message: "Randomness contract:",
+        name: "target",
         type: "rawlist",
       }])
-      target = selection.addr
+      target = selection.target
       chosen = true
     }
   }
   const randomizer = await witOracle.getWitRandomnessAt(target)
   const symbol = utils.getEvmNetworkSymbol(network)
-  if (!chosen) {
-    const artifact = await randomizer.getEvmImplClass()
-    const version = await randomizer.getEvmImplVersion()
-    const maxWidth = Math.max(18, artifact.length + 2)
-    console.info(
-      `> ${
-        helpers.colors.lwhite(artifact)
-      }:${
-        " ".repeat(maxWidth - artifact.length)
-      }${
-        helpers.colors.lblue(target)
-      } ${
-        helpers.colors.blue(`[ ${version} ]`)
-      }`
-    )
-  }
+  
+  const artifact = await randomizer.getEvmImplClass()
+  const version = await randomizer.getEvmImplVersion()
+  const maxWidth = Math.max(20, artifact.length + 2)
+  console.info(
+    `> ${
+      helpers.colors.lwhite(artifact)
+    }:${
+      " ".repeat(maxWidth - artifact.length)
+    }${
+      chosen ? "" : helpers.colors.lblue(target) + " "
+    }${
+      helpers.colors.blue(`[ ${version} ]`)
+    }`
+  )
 
   if (options?.randomize) {
     const receipt = await randomizer.randomize({

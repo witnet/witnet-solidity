@@ -44,6 +44,17 @@ export type PriceFeedUpdateConditions = {
 export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
 export { TransactionReceipt } from "ethers"
 
+export type WitAppliance = {
+    address: Witnet.HexString,
+    abi: any,
+    class: string,
+    gitHash?: string,
+    interfaceId: Witnet.HexString,
+    isUpgradable: boolean,
+    semVer?: string,
+    version?: string,
+}
+
 export type WitOracleQuery = {
     checkpoint: BigInt,
     hash: Witnet.Hash,
