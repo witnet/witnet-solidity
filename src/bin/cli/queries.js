@@ -1,7 +1,8 @@
-const helpers = require("../helpers.js")
+const { Witnet } = require("@witnet/sdk")
 const moment = require("moment")
+const { utils, WitOracle } = require("../../../dist/src/lib")
+const helpers = require("../helpers.js")
 
-const { utils, Witnet, WitOracle } = require("../../../dist/src/lib")
 const { DEFAULT_BATCH_SIZE, DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {

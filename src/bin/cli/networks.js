@@ -1,8 +1,17 @@
+const { JsonRpcProvider } = require("ethers")
+const { supportedNetworks } = require("witnet-solidity-bridge").default
+const { utils } = require("../../../dist/src/lib")
 const helpers = require("../helpers.js")
 
-const { supportedNetworks } = require("witnet-solidity-bridge").default
-
 module.exports = async function (flags = {}, [ecosystem]) {
+  if (ecosystem === undefined) {
+    let provider
+    try {
+      provider = new JsonRpcProvider(`http://127.0.0.1:${flags?.port || 8545}`)
+      const chainId = (await provider.getNetwork()).chainId
+      ecosystem = utils.getEvmNetworkByChainId(chainId)
+    } catch (err) {}
+  }
   const networks = Object.fromEntries(
     Object.entries(supportedNetworks())
       .filter(([, config]) => {
@@ -32,7 +41,7 @@ module.exports = async function (flags = {}, [ecosystem]) {
     ]), {
       headlines: [
         ":Network",
-        ":Symbol",
+        ":Fee token",
         "Network Id",
         ":Verified Block Explorer",
       ],

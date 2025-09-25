@@ -19,6 +19,7 @@ module.exports = async function (flags = {}, params = []) {
   if (!network) {
     throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
   }
+  helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
   
   let artifacts = {}
   if (flags?.templates || flags?.modals) {
@@ -46,13 +47,12 @@ module.exports = async function (flags = {}, params = []) {
       }
     }   
   } else {
-    const framework = await helpers.prompter(utils.getWitAppliances(provider))
+    const framework = await helpers.prompter(utils.getWitAppliances(provider).catch(err => console.error(err)))
     artifacts = Object.entries(framework)
     if (!args || args.length === 0) {
       args = ["WitOracle"]
     }
   }
-  helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
   helpers.traceTable(
     artifacts.map(([key, obj]) => {
       const match = includes(args, key)
@@ -62,7 +62,7 @@ module.exports = async function (flags = {}, params = []) {
         match ? helpers.colors.mgreen(obj?.interfaceId || "") : helpers.colors.green(obj?.interfaceId || ""),
         ...(flags?.verbose ? [
           match ? helpers.colors.myellow(obj?.class || "") : helpers.colors.yellow(obj?.class || ""),
-          helpers.colors.gray(obj?.version || ""),
+          match ? helpers.colors.white(obj?.version || "") : helpers.colors.gray(obj?.version || ""),
         ] : [])
       ]
     }), {

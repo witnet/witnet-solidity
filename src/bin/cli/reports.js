@@ -1,8 +1,9 @@
-const helpers = require("../helpers.js")
+const { Witnet } = require("@witnet/sdk")
 const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
+const { utils, KermitClient, WitOracle } = require("../../../dist/src/lib")
+const helpers = require("../helpers.js")
 
-const { utils, KermitClient, WitOracle, Witnet } = require("../../../dist/src/lib")
 const { DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {
