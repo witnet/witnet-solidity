@@ -32,8 +32,8 @@ export async function getWitAppliances(provider: JsonRpcProvider): Promise<Array
                     "WitOracle",
                     "WitOracleRadonRegistry",
                     "WitOracleRadonRequestFactory",
-                    // "WitOracleRequestFactory",
                     "WitPriceFeeds",
+                    "WitPriceFeedsLegacy",
                     "WitRandomnessV2",
                     "WitRandomnessV3",  
                 ]
@@ -52,14 +52,14 @@ export async function getWitAppliances(provider: JsonRpcProvider): Promise<Array
                             .filter(([key,]) => {
                                 const base = _findBase(contracts, key)
                                 return (
-                                    targets.includes(key) 
+                                    targets.includes(key)
                                         && !exclusions.includes(base) 
                                         && (ABIs[key] || ABIs[base])
                                 )
                             })
                             .map(async ([key, address]) => {
-                                const bytecode = await provider.getCode(address)
-                                if (bytecode.length > 2) {
+                                const bytecode = await provider.getCode(address).catch(err => console.error(`Warning: ${key}: ${err}`))
+                                if (bytecode?.length && bytecode.length > 2) {
                                     let impl, isUpgradable = false, interfaceId, version
                                     const appliance = new Contract(address, ABIs.WitAppliance, provider)
                                     try { impl = await appliance.class.staticCall() } catch { impl = key }
