@@ -17,6 +17,7 @@ const settings = {
     apps: "Show addresses of Wit/Oracle appliances.",
     await: "Hold down until next event is triggered.",
     "check-result-status": "Check result status for each oracle query (supersedes --trace-back).",
+    debug: "Outputs stack trace in case of error.",
     decode: "Decode selected Radon assets, as currently deployed.",
     deploy: "Deploy selected Radon assets, if not yet deployed.",
     "dry-run": "Dry-run selected Radon asset, as currently deployed (supersedes --decode).",
@@ -273,7 +274,7 @@ async function main () {
       try {
         await router.commands[cmd]({ ...settings, ...flags, ...options }, args.slice(1))
       } catch (e) {
-        showUsageError(router, cmd, router[cmd], e)
+        showUsageError(router, cmd, router[cmd], e, flags)
       }
     }
   } else {
@@ -283,7 +284,7 @@ async function main () {
 
 function showMainUsage (router) {
   showUsageHeadline(router)
-  showUsageFlags(["help", "version"])
+  showUsageFlags(["help", "debug", "version"])
   showUsageOptions(["port"])
   console.info("\nCOMMANDS:")
   const maxLength = Object.keys(router.commands).map(key => key.length).reduce((prev, curr) => curr > prev ? curr : prev)
@@ -313,12 +314,15 @@ function showUsageEnvars (envars) {
   }
 }
 
-function showUsageError (router, cmd, specs, error) {
+function showUsageError (router, cmd, specs, error, flags) {
   showCommandUsage(router, cmd, specs)
   if (error) {
     console.info()
-    console.error(error)
-    // console.error(error?.stack?.split('\n')[0] || error)
+    if (flags?.debug) {
+      console.error(error)
+    } else {
+      console.error(error?.stack?.split('\n')[0] || error)
+    }
   }
 }
 
