@@ -18,7 +18,7 @@ export * from "@witnet/sdk/utils"
 
 export const ABIs = WSB.ABIs;
 
-export async function getWitAppliances(provider: JsonRpcProvider): Promise<Array<WitAppliance>> {
+export async function fetchWitAppliance(provider: JsonRpcProvider): Promise<Array<WitAppliance>> {
     return provider
         .getNetwork()
         .then(async value => {
