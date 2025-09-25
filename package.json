@@ -16,9 +16,14 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/src/lib/*.d.ts",
       "require": "./dist/src/lib/index.js",
-      "default": "./dist/src/lib/index.js",
-      "types": "./dist/src/lib/*.d.ts"
+      "default": "./dist/src/lib/index.js,"
+    },
+    "./utils": {
+      "types": "./dist/src/lib/*.d.ts",
+      "require": "./dist/src/lib/utils.js",
+      "default": "./dist/src/lib/utils.js"
     }
   },
   "files": [
