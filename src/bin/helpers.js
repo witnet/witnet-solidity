@@ -160,8 +160,8 @@ function traceHeader (header, color = white, indent = "") {
 }
 
 function importRadonAssets (options) {
-  const { assets } = options?.module ? require(options.module) : (options?.legacy ? {} : require("@witnet/sdk"))
-  return !options?.module && isModuleInitialized && fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}`)
+  const { assets } = options?.legacy ? {} : require("@witnet/sdk")
+  return isModuleInitialized && fs.existsSync(`${WITNET_SDK_RADON_ASSETS_PATH}`)
     ? merge(assets, require(`${WITNET_SDK_RADON_ASSETS_PATH}`))
     : assets
 }

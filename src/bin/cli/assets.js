@@ -2,7 +2,8 @@ const { execSync } = require("node:child_process")
 const prompt = require("inquirer").createPromptModule()
 
 const helpers = require("../helpers.js")
-const { WitOracle, Witnet } = require("../../../dist/src/lib")
+const { Witnet } = require("@witnet/sdk")
+const { WitOracle } = require("../../../dist/src/lib")
 
 const deployables = helpers.readWitnetJsonFiles("modals", "requests", "templates")
 
@@ -25,12 +26,13 @@ module.exports = async function (flags = {}, params = []) {
 
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
-  let assets = helpers.importRadonAssets(flags)
+  let assets = flags?.module ? require(flags.module) : helpers.importRadonAssets(flags)
   if (!assets || Object.keys(assets).length === 0) {
     throw new Error("No Radon assets declared just yet in witnet/assets.")
   } else {
     assets = clearEmptyBranches(network, assets, args, !flags?.all)
   }
+  
   const selection = (
     await selectWitnetArtifacts(registry, assets, args, "  ", !flags?.all)
   ).sort(([a], [b]) => (a > b) - (a < b))
@@ -243,14 +245,14 @@ function clearEmptyBranches (network, node, args, filter) {
         if (
           (
             !filter ||
-                            args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0) ||
-                            deployables.modals[network][key] !== undefined ||
-                            deployables.requests[network][key] !== undefined ||
-                            deployables.templates[network][key] !== undefined
+              args.find(arg => key.toLowerCase().indexOf(arg.toLowerCase()) >= 0) ||
+              deployables.modals[network][key] !== undefined ||
+              deployables.requests[network][key] !== undefined ||
+              deployables.templates[network][key] !== undefined
           ) && (
             value instanceof Witnet.Radon.RadonModal ||
-                        value instanceof Witnet.Radon.RadonTemplate ||
-                        value instanceof Witnet.Radon.RadonRequest
+              value instanceof Witnet.Radon.RadonTemplate ||
+              value instanceof Witnet.Radon.RadonRequest
           )
         ) {
           return [key, value]

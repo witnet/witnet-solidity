@@ -36,7 +36,7 @@ $ npm install --save @witnet/ethers
   ```
 ### Interact with the Witnet network by using the embedded Witnet SDK library
   ```typescript
-  import { assets, utils, Witnet } from "@witnet/ethers"
+  import { Witnet } from "@witnet/sdk"
   ```
 
 ## ⚙️ Requirements

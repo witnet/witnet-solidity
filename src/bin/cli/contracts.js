@@ -1,7 +1,6 @@
-const { Contract, JsonRpcProvider } = require("ethers")
+const { JsonRpcProvider } = require("ethers")
 const helpers = require("../helpers.js")
 const { utils } = require("../../../dist/src/lib")
-const { ABIs } = require("witnet-solidity-bridge").default
 
 const deployables = helpers.readWitnetJsonFiles("templates", "modals")
 
