@@ -25,7 +25,7 @@ export enum PriceFeedMappers {
     Fallback,
     Hottest,
     Product,
-    // Inverse,
+    Inverse,
 }
 
 export type PriceFeedOracle = {
