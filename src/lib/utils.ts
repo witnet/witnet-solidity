@@ -163,6 +163,10 @@ export function getEvmNetworkSymbol(network: string): string {
     else return "ETH"
 }
 
+export function getEvmNetworks(): string[] {
+    return Object.keys(WSB.supportedNetworks())
+}
+
 export function isEvmNetworkMainnet(network: string): boolean {
     const found = Object.entries(WSB.supportedNetworks()).find(([key,]) => key === network.toLowerCase())
     return (found as any)?.[1].mainnet
@@ -294,5 +298,3 @@ export function abiEncodeRadonAsset(asset: any): any {
         throw new TypeError(`Not a Radon asset: ${asset}`)
     }
 }
-
-export function decodeCborBytes(_cborBytes: Witnet.HexString): any { }
