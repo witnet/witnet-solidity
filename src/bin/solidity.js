@@ -141,7 +141,7 @@ async function main () {
         assets: {
           hint: `Formally verify deployable Radon assets into ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[RADON_ASSETS ...]",
-          flags: ["all", "decode", "deploy", "dry-run", "legacy"],
+          flags: ["all", "decode", "deploy", "dry-run", "force", "legacy"],
           options: [
             "module",
             "port",

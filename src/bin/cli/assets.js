@@ -15,6 +15,7 @@ module.exports = async function (flags = {}, params = []) {
     flags?.signer,
   )
 
+  const { force } = flags
   const { network } = witOracle
 
   if (!deployables.modals[network]) deployables.modals[network] = {}
@@ -24,7 +25,7 @@ module.exports = async function (flags = {}, params = []) {
   const registry = await witOracle.getWitOracleRadonRegistry()
   const deployer = await witOracle.getWitOracleRadonRequestFactory()
 
-  helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
+  if (!flags?.force) helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
 
   let assets = flags?.module ? require(flags.module) : helpers.importRadonAssets(flags)
   if (!assets || Object.keys(assets).length === 0) {
@@ -44,13 +45,18 @@ module.exports = async function (flags = {}, params = []) {
       if (asset instanceof Witnet.Radon.RadonModal) {
         if (flags?.deploy) {
           console.info()
-          const user = await prompt([{
-            message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
-            name: "continue",
-            type: "confirm",
-            default: true,
-          }])
-          if (user.continue) {
+          let user
+          if (!force) {
+            user = await prompt([{
+              message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
+              name: "continue",
+              type: "confirm",
+              default: true,
+            }])
+          } else {
+              console.info(color(key))
+          }
+          if (force || user?.continue) {
             let gasUsed = BigInt(0)
             const modal = await deployer.deployRadonRequestModal(asset, {
               confirmations: 1,
@@ -100,13 +106,18 @@ module.exports = async function (flags = {}, params = []) {
       } else if (asset instanceof Witnet.Radon.RadonTemplate) {
         if (flags?.deploy) {
           console.info()
-          const user = await prompt([{
-            message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
-            name: "continue",
-            type: "confirm",
-            default: true,
-          }])
-          if (user.continue) {
+          let user
+          if (!force) {
+            user = await prompt([{
+              message: `Deploy ${asset.constructor.name}::${color(key)} ?`,
+              name: "continue",
+              type: "confirm",
+              default: true,
+            }])
+          } else {
+              console.info(color(key))
+          }
+          if (force || user?.continue) {
             let target
             let gasUsed = BigInt(0)
             const template = await deployer.deployRadonRequestTemplate(asset, {
@@ -178,13 +189,18 @@ module.exports = async function (flags = {}, params = []) {
       } else if (asset instanceof Witnet.Radon.RadonRequest) {
         if (flags?.deploy) { // && (!deployables.requests[network] || deployables.requests[network][key] !== asset.radHash)) {
           console.info()
-          const user = await prompt([{
-            message: `Formally verify RadonRequest::${color(key)} ?`,
-            name: "continue",
-            type: "confirm",
-            default: true,
-          }])
-          if (user.continue) {
+          let user
+          if (!force) {
+            user = await prompt([{
+              message: `Formally verify RadonRequest::${color(key)} ?`,
+              name: "continue",
+              type: "confirm",
+              default: true,
+            }])
+          } else {
+              console.info(helpers.colors.lwhite(`  ${key}`))
+          }
+          if (force ||user?.continue) {
             let gasUsed = BigInt(0)
             const radHash = await registry.verifyRadonRequest(asset, {
               confirmations: 1,
