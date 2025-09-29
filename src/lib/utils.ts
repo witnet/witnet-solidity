@@ -188,15 +188,6 @@ export function abiDecodeQueryStatus(status: bigint): WitOracleQueryStatus {
     }
 }
 
-export function abiDecodePriceFeedMappingAlgorithm(algorithm: bigint): string {
-    switch (algorithm) {
-        case 1n: return "Fallback";
-        case 2n: return "Hottest";
-        case 3n: return "Product";
-        default: return "None";
-    }
-}
-
 /**
  * Contains information about the resolution of some Data Request Transaction in the Witnet blockchain.
  */
@@ -260,6 +251,17 @@ export function abiEncodeDataPushReportDigest(report: DataPushReport): Witnet.He
         ["bytes"],
         [abiEncodeDataPushReportMessage(report)],
     )
+}
+
+export function abiEncodePriceFeedUpdateConditions(conditions: PriceFeedUpdateConditions): any {
+    return [
+        conditions.callbackGas,
+        conditions.computeEMA,
+        conditions.cooldownSecs,
+        conditions.heartbeatSecs,
+        Math.floor(conditions.maxDeviationPercentage * 10),
+        conditions.minWitnesses,
+    ]
 }
 
 export function abiEncodeWitOracleQueryParams(queryParams: WitOracleQueryParams): any {

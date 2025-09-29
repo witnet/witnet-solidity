@@ -19,9 +19,9 @@ import { utils, Witnet } from "@witnet/sdk"
 
 import {
     ABIs,
-    abiDecodePriceFeedMappingAlgorithm,
     abiDecodeQueryStatus,
     abiEncodeDataPushReport,
+    abiEncodePriceFeedUpdateConditions,
     abiEncodeWitOracleQueryParams,
     abiEncodeRadonAsset,
     getEvmNetworkAddresses,
@@ -1023,16 +1023,238 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             })
     }
 
+    public async settlePriceFeedRadonHash(caption: string, decimals: number, radHash: Witnet.HexString, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .settlePriceFeedRadonHash
+            .populateTransaction(caption, decimals, radHash)
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async settlePriceFeedOracle(
+        caption: string, 
+        decimals: number, 
+        oracle: PriceFeedOracles | string,
+        target: Witnet.HexString,
+        sources?: Witnet.HexString,
+        options?: {
+            evmConfirmations?: number,
+            evmGasPrice?: bigint,
+            evmTimeout?: number,
+            onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+            onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        }
+    ): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .settlePriceFeedOracle
+            .populateTransaction(
+                caption, 
+                decimals, 
+                typeof oracle === "string" ? Object.values(PriceFeedOracles).indexOf(oracle) : oracle, 
+                target, 
+                sources || "0x0000000000000000000000000000000000000000000000000000000000000000",
+            );
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async settlePriceFeedMapper(
+        caption: string, 
+        decimals: number, 
+        mapper: PriceFeedMappers | string,
+        dependencies: string[],
+        options?: {
+            evmConfirmations?: number,
+            evmGasPrice?: bigint,
+            evmTimeout?: number,
+            onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+            onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        }
+    ): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .settlePriceFeedMapper
+            .populateTransaction(
+                caption, 
+                decimals, 
+                typeof mapper === "string" ? Object.values(PriceFeedMappers).indexOf(mapper) : mapper, 
+                dependencies,
+            );
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async removePriceFeed(caption: string, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .removePriceFeed
+            .populateTransaction(caption, true);
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async settleDefaultUpdateConditions(conditions: PriceFeedUpdateConditions, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .settleDefaultUpdateConditions
+            .populateTransaction(
+                abiEncodePriceFeedUpdateConditions(conditions),
+            );
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async settlePriceFeedUpdateConditions(caption: string, conditions: PriceFeedUpdateConditions, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
+        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const evmTransaction: ContractTransaction = await this.contract
+            .settlePriceFeedUpdateConditions
+            .populateTransaction(
+                caption,
+                abiEncodePriceFeedUpdateConditions(conditions),
+            );
+        evmTransaction.gasPrice = options?.evmGasPrice || evmTransaction?.gasPrice
+        return this.signer
+            .sendTransaction(evmTransaction)
+            .then(response => {
+                if (options?.onSettlePriceFeedTransaction) {
+                    options.onSettlePriceFeedTransaction(response.hash);
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onSettlePriceFeedTransactionReceipt) {
+                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async getDefaultUpdateConditions(): Promise<PriceFeedUpdateConditions> {
+        return this.contract
+            .defaultUpdateConditions
+            .staticCall()
+    }
+
     public async determineChainlinkAggregatorAddress(id4: Witnet.HexString): Promise<string> {
         return this.contract
             .createChainlinkAggregator
             .staticCall(id4)
     }
 
+    public async getEvmConsumer(): Promise<Witnet.HexString> {
+        return this.contract
+            .consumer
+            .staticCall()
+    }
+
+    public async getEvmCurator(): Promise<Witnet.HexString> {
+        return this.contract
+            .owner
+            .staticCall()
+    }
+
     public async getEvmFootprint(): Promise<string> {
         return this.contract
             .footprint
             .staticCall()
+    }
+
+    public async getEvmMaster(): Promise<string> {
+        return this.contract
+            .master
+            .staticCall()
+    }
+
+    public async getId4(caption: string): Promise<Witnet.HexString> {
+        return this.contract
+            .hash
+            .staticCall(caption)
+            .then(id => id.slice(0, 10))
     }
 
     public async getPrice(id4: Witnet.HexString, ema = false): Promise<PriceFeedUpdate> {
@@ -1144,34 +1366,37 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             .staticCall()
             .then(results => results.map((result: any) => ({
                 id: result.id,
+                id4: result.id.slice(0, 10),
                 exponent: Number(result.exponent),
                 symbol: result.symbol,
-                mapper: {
-                    algorithm: "", // todo: PriceFeedMappers[result.mapper.algo],
-                    description: result.mapper.desc,
-                    dependencies: result.mapper.deps,
-                },
-                oracle: {
-                    address: result.oracle.addr,
-                    name: result.oracle.name,
-                    dataBytecode: result.oracle.dataBytecode,
-                    dataSources: result.oracle.dataSources,
-                    interfaceId: result.oracle.interfaceId,
-                },
+                ...(result.mapper.class !== 0n ? { 
+                    mapper: {
+                        class: PriceFeedMappers[result.mapper.class],
+                        deps: result.mapper.deps,
+                    }
+                } : {
+                    oracle: {
+                        class: PriceFeedOracles[result.oracle.class],
+                        target: result.oracle.target,
+                        sources: result.oracle.sources,
+                    },
+                }),
                 updateConditions: {
-                    computeEMA: result.computeEma,
-                    cooldownSecs: result.cooldownSecs,
-                    heartbeatSecs: result.heartbeatSecs,
-                    maxDeviation1000: result.maxDeviation100,
+                    callbackGas: Number(result.updateConditions.callbackGas),
+                    computeEMA: result.updateConditions.computeEma,
+                    cooldownSecs: Number(result.updateConditions.cooldownSecs),
+                    heartbeatSecs: Number(result.updateConditions.heartbeatSecs),
+                    maxDeviationPercentage: Number(result.updateConditions.maxDeviation1000) / 10,
+                    minWitnesses: Number(result.updateConditions.minWitnesses)
                 },
                 lastUpdate: {
-                    delta1000: BigInt(result.conf),
-                    exponent: Number(result.expo),
-                    timestamp: BigInt(result.publishTime),
-                    trackHash: result.track,
-                    value: BigInt(result.price),
+                    price: Number(result.lastUpdate.price) / 10 ** Number(result.lastUpdate.exponent),
+                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(result.lastUpdate.exponent),
+                    exponent: Number(result.lastUpdate.exponent),
+                    timestamp: BigInt(result.lastUpdate.timestamp),
+                    trail: result.lastUpdate.trail,
                 },
-            })))
+            })));
     }
 
 }
