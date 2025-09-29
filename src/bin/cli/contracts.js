@@ -47,7 +47,7 @@ module.exports = async function (flags = {}, params = []) {
       }
     }   
   } else {
-    const framework = await helpers.prompter(utils.fetchWitAppliance(provider).catch(err => console.error(err)))
+    const framework = await helpers.prompter(utils.fetchWitOracleFramework(provider).catch(err => console.error(err)))
     artifacts = Object.entries(framework)
     if (!args || args.length === 0) {
       args = ["WitOracle"]

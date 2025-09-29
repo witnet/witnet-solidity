@@ -18,7 +18,7 @@ module.exports = async function (options = {}, args = []) {
 
   const { network, provider } = witOracle
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
-  const framework = await helpers.prompter(utils.fetchWitAppliance(provider))
+  const framework = await helpers.prompter(utils.fetchWitOracleFramework(provider))
   let target = args[0]
   let chosen = false
   if (!target) {

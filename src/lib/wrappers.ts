@@ -30,7 +30,10 @@ import {
 
 import { 
     PriceFeed,
+    PriceFeedMappers,
+    PriceFeedOracles,
     PriceFeedUpdate,
+    PriceFeedUpdateConditions,
     DataPushReport, 
     RandomizeStatus,
     WitOracleQuery,
@@ -40,7 +43,7 @@ import {
     WitOracleResultDataTypes 
 } from "./types"
 
-abstract class ContractWrapper {
+export abstract class ContractWrapper {
 
     constructor (signer: JsonRpcSigner, network: string, abi: Interface | InterfaceAbi, target: string) {
         this.address = target
@@ -461,7 +464,7 @@ class WitOracleConsumer extends WitApplianceWrapper {
  * as to be securely referred on both Wit/Oracle queries pulled from within smart contracts, 
  * or Wit/Oracle query results pushed into smart contracts from offchain workflows.
  */
-class WitOracleRadonRegistry extends WitArtifactWrapper {
+export class WitOracleRadonRegistry extends WitArtifactWrapper {
 
     constructor (signer: JsonRpcSigner, network: string) {
         super(signer, network, "WitOracleRadonRegistry")
@@ -640,7 +643,7 @@ class WitOracleRadonRegistry extends WitArtifactWrapper {
     }
 }
 
-class WitOracleRadonRequestFactory extends WitApplianceWrapper {  
+export class WitOracleRadonRequestFactory extends WitApplianceWrapper {  
 
     public readonly registry: WitOracleRadonRegistry
     
@@ -978,7 +981,7 @@ class WitOracleRadonRequestTemplate extends WitApplianceWrapper {
     }
 }
 
-class WitPriceFeeds extends WitApplianceWrapper {
+export class WitPriceFeeds extends WitApplianceWrapper {
     
     protected constructor (witOracle: WitOracle, at: string) {
         super(witOracle, "WitPriceFeeds", at)
@@ -1037,11 +1040,11 @@ class WitPriceFeeds extends WitApplianceWrapper {
             .getPrice
             .staticCall(id4, ema)
             .then((result: any) => ({
-                delta1000: BigInt(result.conf),
-                exponent: Number(result.expo),
-                timestamp: BigInt(result.publishTime),
-                trackHash: result.track,
-                value: Number(result.price) / 10 ** Number(result.expo),
+                price: Number(result.price) / 10 ** Number(result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                exponent: Number(result.exponent),
+                timestamp: BigInt(result.timestamp),
+                trail: result.trail,
             }))
     }
 
@@ -1050,11 +1053,11 @@ class WitPriceFeeds extends WitApplianceWrapper {
             .getPriceNotOlderThan
             .staticCall(id4, ema, age)
             .then((result: any) => ({
-                delta1000: BigInt(result.conf),
-                exponent: Number(result.expo),
-                timestamp: BigInt(result.publishTime),
-                trackHash: result.track,
-                value: Number(result.price) / 10 ** Number(result.expo),
+                price: Number(result.price) / 10 ** Number(result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                exponent: Number(result.exponent),
+                timestamp: BigInt(result.timestamp),
+                trail: result.trail,
             }))
     }
 
@@ -1063,11 +1066,11 @@ class WitPriceFeeds extends WitApplianceWrapper {
             .getPriceUnsafe
             .staticCall(id4, ema)
             .then((result: any) => ({
-                delta1000: BigInt(result.conf),
-                exponent: Number(result.expo),
-                timestamp: BigInt(result.publishTime),
-                trackHash: result.track,
-                value: Number(result.price) / 10 ** Number(result.expo),
+                price: Number(result.price) / 10 ** Number(result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                exponent: Number(result.exponent),
+                timestamp: BigInt(result.timestamp),
+                trail: result.trail,
             }))
     }
 
@@ -1083,32 +1086,35 @@ class WitPriceFeeds extends WitApplianceWrapper {
             .staticCall(id4)
             .then((result: any) => ({
                 id: result.id,
+                id4: result.id.slice(0, 10),
                 exponent: Number(result.exponent),
                 symbol: result.symbol,
-                mapper: {
-                    algorithm: abiDecodePriceFeedMappingAlgorithm(result.mapper.algo),
-                    description: result.mapper.desc,
-                    dependencies: result.mapper.deps,
-                },
-                oracle: {
-                    address: result.oracle.addr,
-                    name: result.oracle.name,
-                    dataBytecode: result.oracle.dataBytecode,
-                    dataSources: result.oracle.dataSources,
-                    interfaceId: result.oracle.interfaceId,
-                },
+                ...(result.mapper.class !== 0n ? { 
+                    mapper: {
+                        class: PriceFeedMappers[result.mapper.class],
+                        deps: result.mapper.deps,
+                    }
+                } : {
+                    oracle: {
+                        class: PriceFeedOracles[result.oracle.class],
+                        target: result.oracle.target,
+                        sources: result.oracle.sources,
+                    },
+                }),
                 updateConditions: {
-                    computeEMA: result.computeEma,
-                    cooldownSecs: result.cooldownSecs,
-                    heartbeatSecs: result.heartbeatSecs,
-                    maxDeviation1000: result.maxDeviation100,
+                    callbackGas: Number(result.updateConditions.callbackGas),
+                    computeEMA: result.updateConditions.computeEma,
+                    cooldownSecs: Number(result.updateConditions.cooldownSecs),
+                    heartbeatSecs: Number(result.updateConditions.heartbeatSecs),
+                    maxDeviationPercentage: Number(result.updateConditions.maxDeviation1000) / 10,
+                    minWitnesses: Number(result.updateConditions.minWitnesses),
                 },
                 lastUpdate: {
-                    delta1000: BigInt(result.conf),
-                    exponent: Number(result.expo),
-                    timestamp: BigInt(result.publishTime),
-                    trackHash: result.track,
-                    value: Number(result.price) / 10 ** Number(result.expo),
+                    price: Number(result.lastUpdate.price) / 10 ** Number(result.lastUpdate.exponent),
+                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(result.lastUpdate.exponent),
+                    exponent: Number(result.lastUpdate.exponent),
+                    timestamp: BigInt(result.lastUpdate.timestamp),
+                    trail: result.lastUpdate.trail,
                 },
             }))
     }
@@ -1170,7 +1176,7 @@ class WitPriceFeeds extends WitApplianceWrapper {
 
 }
 
-class WitPriceFeedsLegacy extends WitApplianceWrapper {
+export class WitPriceFeedsLegacy extends WitApplianceWrapper {
     
     protected constructor (witOracle: WitOracle, at: string) {
         super(witOracle, "WitPriceFeedsLegacy", at)
@@ -1191,57 +1197,11 @@ class WitPriceFeedsLegacy extends WitApplianceWrapper {
             .staticCall()
     }
 
-    // public async getPrice(id4: Witnet.HexString): Promise<PriceFeedUpdate> {
-    //     return this.contract
-    //         .latestPrice
-    //         .staticCall(id4)
-    //         .then((result: any) => ({
-    //             timestamp: BigInt(result?.timestamp),
-    //             trackHash: result?.drTxHash,
-    //             value: Number(result?.value) / 10 ** exponent,
-    //         }))
-    // }
-
     public async isCaptionSupported(caption: string): Promise<boolean> {
         return this.contract
             .supportsCaption
             .staticCall(caption)
     }
-
-    // public async lookupPriceFeed(id4: Witnet.HexString): Promise<PriceFeed> {
-    //     return this.contract
-    //         .lookupPriceFeed
-    //         .staticCall(id4)
-    //         .then((result: any) => ({
-    //             id: result.id,
-    //             exponent: Number(result.exponent),
-    //             symbol: result.symbol,
-    //             mapper: {
-    //                 algorithm: abiDecodePriceFeedMappingAlgorithm(result.mapper.algo),
-    //                 description: result.mapper.desc,
-    //                 dependencies: result.mapper.deps,
-    //             },
-    //             oracle: {
-    //                 address: result.oracle.addr,
-    //                 name: result.oracle.name,
-    //                 dataSources: result.oracle.dataSources,
-    //                 interfaceId: result.oracle.interfaceId,
-    //             },
-    //             updateConditions: {
-    //                 computeEMA: result.computeEma,
-    //                 cooldownSecs: result.cooldownSecs,
-    //                 heartbeatSecs: result.heartbeatSecs,
-    //                 maxDeviation1000: result.maxDeviation100,
-    //             },
-    //             lastUpdate: {
-    //                 delta1000: BigInt(result.conf),
-    //                 exponent: Number(result.expo),
-    //                 timestamp: BigInt(result.publishTime),
-    //                 trackHash: result.track,
-    //                 value: BigInt(result.price),
-    //             },
-    //         }))
-    // }
 
     public async lookupPriceFeedCaption(id4: Witnet.HexString): Promise<string> {
         return this.contract
@@ -1257,48 +1217,46 @@ class WitPriceFeedsLegacy extends WitApplianceWrapper {
     }
 
     public async lookupPriceFeeds(): Promise<Array<PriceFeed>> {
-        const interfaceId = await this.witOracle.getEvmImplSpecs()
         let priceFeeds: Array<PriceFeed> = await this.contract
             .supportedFeeds
             .staticCall()
             .then(results => {
                 const [ id4s, captions, dataSources ] = results
                 return id4s.map((id4: string, index: number) => ({
-                    id: id4,
+                    id4,
                     exponent: Number(captions[index].split('-').slice(-1)[0]),
-                    symbol: captions[index], //.split('-').slice(1, -1).join('-'),
+                    symbol: captions[index],
                     oracle: {
-                        address: this.witOracle.address,
-                        name: "WitOracle",
-                        dataSources: dataSources[index],
-                        interfaceId,
+                        class: "Witnet",
+                        target: this.witOracle.address,
+                        sources: dataSources[index],
                     }
                 }))
             })
         
         let latestPrices = await this.contract
             .latestPrices
-            .staticCall(priceFeeds.map(pf => pf.id))
+            .staticCall(priceFeeds.map(pf => pf.id4))
         
         return priceFeeds.map((pf, index) => ({
             ...pf,
             lastUpdate: {
                 timestamp: latestPrices[index].timestamp,
-                trackHash: latestPrices[index].drTxHash,
-                value: Number(latestPrices[index].value) / 10 ** pf.exponent
+                trail: latestPrices[index].drTxHash,
+                price: Number(latestPrices[index].value) / 10 ** pf.exponent
             }
         }))
     }
 
 }
 
-class WitRandomness extends WitApplianceWrapper {
+export class WitRandomness extends WitApplianceWrapper {
 
     protected _legacy: Contract;
 
     protected constructor (witOracle: WitOracle, at: string) {
-        super(witOracle, "WitRandomness", at)
-        this._legacy = new Contract(at, ABIs["WitRandomnessLegacy"], this.signer)
+        super(witOracle, "WitRandomnessV3", at)
+        this._legacy = new Contract(at, ABIs["WitRandomnessV2"], this.signer)
     }
 
     static async at(witOracle: WitOracle, target: string): Promise<WitRandomness> {

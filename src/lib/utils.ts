@@ -12,13 +12,13 @@ import {
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
 } from "../bin/helpers.js"
 
-import { DataPushReport, WitAppliance, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
+import { DataPushReport, PriceFeedUpdateConditions, WitOracleArtifact, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
 
 export * from "@witnet/sdk/utils"
 
 export const ABIs = WSB.ABIs;
 
-export async function fetchWitAppliance(provider: JsonRpcProvider): Promise<Array<WitAppliance>> {
+export async function fetchWitOracleFramework(provider: JsonRpcProvider): Promise<{ [key: string]: WitOracleArtifact }> {
     return provider
         .getNetwork()
         .then(async value => {
@@ -93,13 +93,13 @@ export async function fetchWitAppliance(provider: JsonRpcProvider): Promise<Arra
         });
 }
 
-function _findBase (obj: { [k: string]: any; }, value: string): string {
+function _findBase(obj: { [k: string]: any; }, value: string): string {
     return Object.entries(obj).find(([, impl]) => impl === value)?.[0] || ""
 }
-function _versionTagOf (version?: string) { return version?.slice(0, 5) }
-function _versionLastCommitOf (version?: string) { 
+function _versionTagOf(version?: string) { return version?.slice(0, 5) }
+function _versionLastCommitOf(version?: string) {
     if (version) {
-        return version?.length >= 21 ? version?.slice(-15, -8) : "" 
+        return version?.length >= 21 ? version?.slice(-15, -8) : ""
     } else {
         return undefined
     }

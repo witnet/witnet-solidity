@@ -1,9 +1,12 @@
 import { Witnet } from "@witnet/sdk"
 
+import { ContractWrapper } from "./wrappers"
+
 export type DataPushReport = Witnet.GetDataRequestEtherealReport & { evm_proof?: Witnet.HexString }
 
 export type PriceFeed = {
-    id: string,
+    id?: string,
+    id4: string
     exponent: number,
     symbol: string,
     mapper?: PriceFeedMapper,
@@ -13,38 +16,53 @@ export type PriceFeed = {
 }
 
 export type PriceFeedMapper = {
-    algorithm: string,
-    description: string,
-    dependencies: Array<string>,
+    class: string,
+    deps: Array<string>,
+}
+
+export enum PriceFeedMappers {
+    None,
+    Fallback,
+    Hottest,
+    Product,
+    // Inverse,
 }
 
 export type PriceFeedOracle = {
-    address: string,
-    name: string,
-    dataBytecode?: Witnet.HexString,
-    dataSources: Witnet.Hash,
-    interfaceId: Witnet.HexString,
+    class: string,
+    target: string,
+    sources: Witnet.Hash,
+}
+
+export enum PriceFeedOracles {
+    Witnet,
+    Erc2362,
+    Chainlink,
+    // Pyth,
+    // Redstone,
 }
 
 export type PriceFeedUpdate = {
-    delta1000?: BigInt,
+    price: number,
+    deltaPrice?: number,
     exponent?: number,
     timestamp: BigInt,
-    trackHash: Witnet.Hash,
-    value: number,
+    trail: Witnet.Hash,
 }
 
 export type PriceFeedUpdateConditions = {
+    callbackGas: number,
     computeEMA: boolean,
     cooldownSecs: number,
     heartbeatSecs: number,
-    maxDeviation1000: number,
+    maxDeviationPercentage: number,
+    minWitnesses: number,
 }
 
 export type RandomizeStatus = "Void" | "Awaiting"  | "Finalizing" | "Ready" | "Error"
 export { TransactionReceipt } from "ethers"
 
-export type WitAppliance = {
+export type WitOracleArtifact = {
     address: Witnet.HexString,
     abi: any,
     class: string,
@@ -53,6 +71,7 @@ export type WitAppliance = {
     isUpgradable: boolean,
     semVer?: string,
     version?: string,
+    wrapper?: ContractWrapper
 }
 
 export type WitOracleQuery = {
