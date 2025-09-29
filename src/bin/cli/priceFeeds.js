@@ -24,7 +24,7 @@ module.exports = async function (options = {}, args = []) {
       target = artifacts[0][1].address
     } else {
       const selection = await prompt([{
-        choices: artifacts.map(([key, artifact]) => artifact.address),
+        choices: artifacts.map(([, artifact]) => artifact.address),
         message: "Price feeds contract:",
         name: "target",
         type: "rawlist",
@@ -58,65 +58,70 @@ module.exports = async function (options = {}, args = []) {
     }`
   )
 
-  let priceFeeds = await pfs.lookupPriceFeeds()
+  let priceFeeds = (await pfs.lookupPriceFeeds()).sort((a, b) => a.symbol.localeCompare(b.symbol))
 
-  const traceBack = options["trace-back"]
-  const dryRun = options["dry-run"]
-  if (!traceBack || dryRun) {
-    const registry = await witOracle.getWitOracleRadonRegistry()
-    priceFeeds = await helpers.prompter(
-      Promise.all(
-        priceFeeds.map(async pf => {
-          let providers, dryrun
-          const bytecode = await registry.lookupRadonRequestBytecode(pf.oracle.dataSources)
-          if (!traceBack) {
-            const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
-            providers = request.sources.map(source => {
-              const authority = source.authority.split(".").slice(-2)[0]
-              return authority[0].toUpperCase() + authority.slice(1)
-            })
-          }
-          if (dryRun) {
+  const registry = await witOracle.getWitOracleRadonRegistry()
+  priceFeeds = await helpers.prompter(
+    Promise.all(
+      priceFeeds.map(async pf => {
+        let providers = []
+        if (pf?.oracle && pf.oracle.class === "Witnet") {
+          const bytecode = await registry.lookupRadonRequestBytecode(pf.oracle.sources)
+          if (options["dry-run"]) {
             // TODO
           }
-          return {
-            ...pf,
-            dryrun,
-            providers,
-          }
-        })
-      ).catch(err => console.error(err))
-    )
-  }
+          const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
+          providers = request.sources.map(source => {
+            const authority = source.authority.split(".").slice(-2)[0]
+            return helpers.colors.mmagenta(authority[0].toUpperCase() + authority.slice(1))
+          }).sort((a, b) => a.localeCompare(b))
+        } else if (pf?.oracle) {
+          providers = [helpers.colors.mblue(`${pf.oracle.class}:${
+            pf.oracle.sources !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
+            ? `${pf.oracle.target}:${pf.oracle.sources.slice(2, 10)}`
+            : pf.oracle.target
+          }`)]
+        } else if (pf?.mapper) {
+          providers = pf.mapper.deps.map(dep => helpers.colors.gray(dep.split(".").pop().toLowerCase()))
+        }
+        return {
+          ...pf,
+          providers,
+        }
+      })
+    ).catch(err => console.error(err))
+  )
 
   if (priceFeeds?.length > 0) {
     helpers.traceTable(
       priceFeeds.map(pf => [
-        pf.id,
+        pf.id4,
         pf.symbol,
-        helpers.colors.mgreen(`${pf.oracle?.dataSources?.slice(2).slice(0, 6)}..${pf.oracle?.dataSources.slice(-5)}`),
-        pf.lastUpdate.value.toFixed(6),
-        moment.unix(Number(pf.lastUpdate.timestamp)).fromNow(),
-        ...(traceBack ? [pf.lastUpdate.trackHash.slice(2)] : [pf?.providers.join(", ")]),
+        pf.lastUpdate.timestamp ? pf.lastUpdate.price.toFixed(6) : "",
+        pf.lastUpdate.timestamp ? moment.unix(Number(pf.lastUpdate.timestamp)).fromNow() : "",
+        ...(options["trace-back"] ? [
+          pf.lastUpdate.trail !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
+            ? helpers.colors.mmagenta(pf.lastUpdate.trail.slice(2))
+            : ""
+        ] : [
+          pf?.providers && pf.providers.join(" ")
+        ]),
       ]),
       {
         colors: [
           helpers.colors.lwhite,
-          helpers.colors.lgreen,
           helpers.colors.mgreen,
           helpers.colors.mcyan,
-          helpers.colors.magenta,
-          helpers.colors.mmagenta,
+          helpers.colors.yellow,,
         ],
         headlines: [
           ":ID4",
           ":CAPTION",
-          ":RADON REQUEST",
           "LAST PRICE:",
           "FRESHNESS:",
           options["trace-back"]
-            ? `DATA WITNESSING ACT ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`
-            : "DATA PROVIDERS",
+            ? `DATA WITNESSING TRAIL ON ${helpers.colors.lwhite(`WITNET ${utils.isEvmNetworkMainnet(network) ? "MAINNET" : "TESTNET"}`)}`
+            : ":DATA PROVIDERS",
         ],
       }
     )
