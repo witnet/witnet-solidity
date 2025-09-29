@@ -1,9 +1,16 @@
+import { Witnet } from "@witnet/sdk"
 import * as cbor from "cbor"
 import { AbiCoder, Contract, JsonRpcProvider, solidityPackedKeccak256 } from "ethers"
-
-import { Witnet } from "@witnet/sdk"
-
 import WSB from "witnet-solidity-bridge"
+
+import {
+    WitOracle,
+    WitOracleRadonRegistry,
+    WitOracleRadonRequestFactory,
+    WitPriceFeeds,
+    WitPriceFeedsLegacy,
+    WitRandomness,
+} from "./wrappers"
 
 import {
     flattenObject,
@@ -34,61 +41,96 @@ export async function fetchWitOracleFramework(provider: JsonRpcProvider): Promis
                     "WitOracleRadonRequestFactory",
                     "WitPriceFeeds",
                     "WitPriceFeedsLegacy",
+                    "WitPriceFeedsV3",
                     "WitRandomnessV2",
-                    "WitRandomnessV3",  
+                    "WitRandomnessV3",
                 ]
                 const contracts = Object.fromEntries(
                     Object.entries(flattenObject(_getNetworkArtifacts(network)))
                         .map(([key, value]) => [key.split(".").pop(), value])
                 );
-                return Object.fromEntries(
-                    await Promise.all(
-                        Object.entries(flattenObject(_getNetworkAddresses(network)))
-                            .map(([key, address]) => [
-                                key.split(".").pop(),
-                                address
-                            ])
-                            .sort(([a], [b]) => (a as string).localeCompare(b))
-                            .filter(([key,]) => {
-                                const base = _findBase(contracts, key)
-                                return (
-                                    targets.includes(key)
-                                        && !exclusions.includes(base) 
-                                        && (ABIs[key] || ABIs[base])
-                                )
-                            })
-                            .map(async ([key, address]) => {
-                                const bytecode = await provider.getCode(address).catch(err => console.error(`Warning: ${key}: ${err}`))
-                                if (bytecode?.length && bytecode.length > 2) {
-                                    let impl, isUpgradable = false, interfaceId, version
-                                    const appliance = new Contract(address, ABIs.WitAppliance, provider)
-                                    try { impl = await appliance.class.staticCall() } catch { impl = key }
-                                    try { interfaceId = await appliance.specs.staticCall() } catch {}
-                                    const upgradable = new Contract(address, ABIs.WitnetUpgradableBase, provider)
-                                    try { isUpgradable = await upgradable.isUpgradable.staticCall() } catch { isUpgradable = false }
-                                    try { version = await upgradable.version.staticCall() } catch {}
+                return await Promise.all(
+                    Object.entries(flattenObject(_getNetworkAddresses(network)))
+                        .map(([key, address]) => [
+                            key.split(".").pop(),
+                            address
+                        ])
+                        .sort(([a], [b]) => (a as string).localeCompare(b))
+                        .filter(([key,]) => {
+                            const base = _findBase(contracts, key)
+                            return (
+                                targets.includes(key)
+                                && !exclusions.includes(base)
+                                && (ABIs[key] || ABIs[base])
+                            )
+                        })
+                        .map(async ([key, address]) => {
+                            const bytecode = await provider.getCode(address).catch(err => console.error(`Warning: ${key}: ${err}`))
+                            if (bytecode?.length && bytecode.length > 2) {
+                                let impl, isUpgradable = false, interfaceId, version
+                                const appliance = new Contract(address, ABIs.WitAppliance, provider)
+                                try { impl = await appliance.class.staticCall() } catch { impl = key }
+                                try { interfaceId = await appliance.specs.staticCall() } catch { }
+                                const upgradable = new Contract(address, ABIs.WitnetUpgradableBase, provider)
+                                try { isUpgradable = await upgradable.isUpgradable.staticCall() } catch { isUpgradable = false }
+                                try { version = await upgradable.version.staticCall() } catch { }
+                                return [
+                                    key,
+                                    {
+                                        abi: ABIs[key] || ABIs[impl],
+                                        address,
+                                        class: impl,
+                                        gitHash: _versionLastCommitOf(version),
+                                        interfaceId,
+                                        isUpgradable,
+                                        semVer: _versionTagOf(version),
+                                        version,
+                                    } as WitOracleArtifact
+                                ]
+                            } else {
+                                return [key, undefined]
+                            }
+                        })
+                    )
+                    .then(artifacts => artifacts.filter(([, artifact]) => artifact !== undefined))
+                    .then(async artifacts => {
+                        if (Object.fromEntries(artifacts).WitOracle) {
+                            const signer = await provider.getSigner()
+                            const witOracle = new WitOracle(signer, network)
+                            let witOracleRadonRegistry: WitOracleRadonRegistry
+                            if (Object.fromEntries(artifacts).WitOraclRadonRegistry) {
+                                witOracleRadonRegistry = new WitOracleRadonRegistry(signer, network);
+                            }
+                            artifacts = await Promise.all(
+                                artifacts.map(async ([key, artifact]) => {
+                                    let wrapper
+                                    switch (key) {
+                                        case "WitOracle": wrapper = witOracle; break;
+                                        case "WitOracleRadonRegistry": wrapper = witOracleRadonRegistry; break;
+                                        case "WitOracleRadonRequestFactory":
+                                            if (witOracleRadonRegistry) {
+                                                wrapper = await WitOracleRadonRequestFactory.deployed(witOracle, witOracleRadonRegistry);
+                                            };
+                                            break;
+                                        case "WitPriceFeeds": wrapper = await WitPriceFeeds.at(witOracle, artifact.address); break;
+                                        case "WitPriceFeedsLegacy": wrapper = await WitPriceFeedsLegacy.at(witOracle, artifact.address); break;
+                                        default:
+                                            if (key.startsWith("WitRandomness") || key.startsWith("WitnetRandomness")) {
+                                                wrapper = await WitRandomness.at(witOracle, artifact.address);
+                                            }
+                                    }
                                     return [
                                         key,
-                                        { 
-                                            abi: ABIs[key],
-                                            address,
-                                            class: impl,
-                                            gitHash: _versionLastCommitOf(version),
-                                            interfaceId,
-                                            isUpgradable, 
-                                            semVer: _versionTagOf(version),
-                                            version,
-                                        } as WitAppliance
+                                        { ...artifact, wrapper } as WitOracleArtifact
                                     ]
-                                } else {
-                                    return [key, undefined]
-                                }
-                                
-                            })
-                    ).then(artifacts => artifacts.filter(value => value[1] !== undefined))
-                );
+                                })
+                            );
+                        }
+                        return Object.fromEntries(artifacts)
+                    })
+
             } else {
-                return []
+                return {}
             }
         });
 }
