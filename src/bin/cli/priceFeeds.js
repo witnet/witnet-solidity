@@ -45,7 +45,7 @@ module.exports = async function (options = {}, args = []) {
     pfs = await witOracle.getWitPriceFeedsLegacyAt(target)
   }
   const version = await pfs.getEvmImplVersion()
-  const maxWidth = Math.max(18, artifact.length + 2)
+  const maxWidth = Math.max(21, artifact.length + 2)
   console.info(
     `> ${
       helpers.colors.lwhite(artifact)
@@ -60,37 +60,51 @@ module.exports = async function (options = {}, args = []) {
 
   let priceFeeds = (await pfs.lookupPriceFeeds()).sort((a, b) => a.symbol.localeCompare(b.symbol))
 
-  const registry = await witOracle.getWitOracleRadonRegistry()
-  priceFeeds = await helpers.prompter(
-    Promise.all(
-      priceFeeds.map(async pf => {
-        let providers = []
-        if (pf?.oracle && pf.oracle.class === "Witnet") {
-          const bytecode = await registry.lookupRadonRequestBytecode(pf.oracle.sources)
-          if (options["dry-run"]) {
-            // TODO
+  if (!options["trace-back"]) {
+    const registry = await witOracle.getWitOracleRadonRegistry()
+    priceFeeds = await helpers.prompter(
+      Promise.all(
+        priceFeeds.map(async pf => {
+          let providers = []
+          if (pf?.oracle && pf.oracle.class === "Witnet") {
+            const bytecode = await registry.lookupRadonRequestBytecode(pf.oracle.sources)
+            const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
+            try {
+              const dryrun = JSON.parse(await request.execDryRun(true))
+              // const result = dryrun.tally.result
+              providers = request.sources.map((source, index) => {
+                let authority = source.authority.split(".").slice(-2)[0]
+                authority = authority[0].toUpperCase() + authority.slice(1)
+                return (
+                  dryrun.retrieve[index].result?.RadonInteger 
+                    ? helpers.colors.mmagenta(authority) 
+                    : helpers.colors.red(authority)
+                );
+              }).sort((a, b) => helpers.colorstrip(a).localeCompare(helpers.colorstrip(b)))
+            } catch (err) {
+              console.log(err)
+              providers = request.sources.map(source => {
+                const authority = source.authority.split(".").slice(-2)[0]
+                return helpers.colors.magenta(authority[0].toUpperCase() + authority.slice(1))
+              }).sort((a, b) => helpers.colorstrip(a).localeCompare(helpers.colorstrip(b)))
+            }
+          } else if (pf?.oracle) {
+            providers = [helpers.colors.mblue(`${pf.oracle.class}:${
+              pf.oracle.sources !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
+              ? `${pf.oracle.target}:${pf.oracle.sources.slice(2, 10)}`
+              : pf.oracle.target
+            }`)]
+          } else if (pf?.mapper) {
+            providers = pf.mapper.deps.map(dep => helpers.colors.gray(dep.split(".").pop().toLowerCase()))
           }
-          const request = Witnet.Radon.RadonRequest.fromBytecode(bytecode)
-          providers = request.sources.map(source => {
-            const authority = source.authority.split(".").slice(-2)[0]
-            return helpers.colors.mmagenta(authority[0].toUpperCase() + authority.slice(1))
-          }).sort((a, b) => a.localeCompare(b))
-        } else if (pf?.oracle) {
-          providers = [helpers.colors.mblue(`${pf.oracle.class}:${
-            pf.oracle.sources !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
-            ? `${pf.oracle.target}:${pf.oracle.sources.slice(2, 10)}`
-            : pf.oracle.target
-          }`)]
-        } else if (pf?.mapper) {
-          providers = pf.mapper.deps.map(dep => helpers.colors.gray(dep.split(".").pop().toLowerCase()))
-        }
-        return {
-          ...pf,
-          providers,
-        }
-      })
-    ).catch(err => console.error(err))
-  )
+          return {
+            ...pf,
+            providers,
+          }
+        })
+      ).catch(err => console.error(err))
+    )
+  }
 
   if (priceFeeds?.length > 0) {
     helpers.traceTable(
