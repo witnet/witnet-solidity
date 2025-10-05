@@ -1020,8 +1020,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         evmConfirmations?: number,
         evmGasPrice?: bigint,
         evmTimeout?: number,
-        onCreateChainlinkAggregatorTransaction?: (txHash: Witnet.Hash) => any,
-        onCreateChainlinkAggregatorTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        onTransaction?: (txHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
             .createChainlinkAggregator
@@ -1030,14 +1030,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onCreateChainlinkAggregatorTransaction) {
-                    options.onCreateChainlinkAggregatorTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onCreateChainlinkAggregatorTransactionReceipt) {
-                    options.onCreateChainlinkAggregatorTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1047,8 +1047,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         evmConfirmations?: number,
         evmGasPrice?: bigint,
         evmTimeout?: number,
-        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        onTransaction?: (txHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
             .settlePriceFeedRadonHash
@@ -1057,14 +1057,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1080,8 +1080,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             evmConfirmations?: number,
             evmGasPrice?: bigint,
             evmTimeout?: number,
-            onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-            onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+            onTransaction?: (txHash: Witnet.Hash) => any,
+            onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
         }
     ): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
@@ -1097,14 +1097,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1119,8 +1119,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             evmConfirmations?: number,
             evmGasPrice?: bigint,
             evmTimeout?: number,
-            onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-            onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+            onTransaction?: (txHash: Witnet.Hash) => any,
+            onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
         }
     ): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
@@ -1135,14 +1135,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1152,8 +1152,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         evmConfirmations?: number,
         evmGasPrice?: bigint,
         evmTimeout?: number,
-        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        onTransaction?: (txHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
             .removePriceFeed
@@ -1162,14 +1162,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1179,8 +1179,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         evmConfirmations?: number,
         evmGasPrice?: bigint,
         evmTimeout?: number,
-        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        onTransaction?: (txHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
             .settleDefaultUpdateConditions
@@ -1191,14 +1191,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
@@ -1208,8 +1208,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         evmConfirmations?: number,
         evmGasPrice?: bigint,
         evmTimeout?: number,
-        onSettlePriceFeedTransaction?: (txHash: Witnet.Hash) => any,
-        onSettlePriceFeedTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+        onTransaction?: (txHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
     }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
         const evmTransaction: ContractTransaction = await this.contract
             .settlePriceFeedUpdateConditions
@@ -1221,14 +1221,14 @@ export class WitPriceFeeds extends WitApplianceWrapper {
         return this.signer
             .sendTransaction(evmTransaction)
             .then(response => {
-                if (options?.onSettlePriceFeedTransaction) {
-                    options.onSettlePriceFeedTransaction(response.hash);
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
             })
             .then(receipt => {
-                if (options?.onSettlePriceFeedTransactionReceipt) {
-                    options.onSettlePriceFeedTransactionReceipt(receipt);
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
                 }
                 return receipt
             })
