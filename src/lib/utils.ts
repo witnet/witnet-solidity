@@ -1,6 +1,7 @@
 import { Witnet } from "@witnet/sdk"
 import * as cbor from "cbor"
 import { AbiCoder, Contract, JsonRpcProvider, solidityPackedKeccak256 } from "ethers"
+import { default as merge } from "lodash.merge"
 import WSB from "witnet-solidity-bridge"
 
 import {
@@ -17,6 +18,7 @@ import {
     getNetworkAddresses as _getNetworkAddresses,
     getNetworkArtifacts as _getNetworkArtifacts,
     getNetworkConstructorArgs as _getNetworkConstructorArgs,
+    readWitnetJsonFiles
 } from "../bin/helpers.js"
 
 import { DataPushReport, PriceFeedUpdateConditions, WitOracleArtifact, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
@@ -48,8 +50,10 @@ export async function fetchWitOracleFramework(provider: JsonRpcProvider): Promis
                     Object.entries(flattenObject(_getNetworkArtifacts(network)))
                         .map(([key, value]) => [key.split(".").pop(), value])
                 );
+                let { addresses } = readWitnetJsonFiles("addresses")
+                addresses = merge(_getNetworkAddresses(network), addresses[network])
                 return await Promise.all(
-                    Object.entries(flattenObject(_getNetworkAddresses(network)))
+                    Object.entries(flattenObject(addresses))
                         .map(([key, address]) => [
                             key.split(".").pop(),
                             address
