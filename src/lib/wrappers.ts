@@ -1214,6 +1214,31 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             })
     }
 
+    public async clone(curator: string, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onTransaction?: (TxHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const tx: ContractTransaction = await this.contract.clone.populateTransaction(curator)
+        tx.gasPrice = options?.evmGasPrice || tx?.gasPrice
+        return this.signer
+            .sendTransaction(tx)
+            .then(response => {
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash)
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt)
+                }
+                return receipt;
+            })
+    }
+
     public async getDefaultUpdateConditions(): Promise<PriceFeedUpdateConditions> {
         return this.contract
             .defaultUpdateConditions
