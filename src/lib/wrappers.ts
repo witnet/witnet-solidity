@@ -1,5 +1,6 @@
 import { 
     AbiCoder,
+    Addressable,
     BlockTag,
     Contract, 
     ContractRunner,
@@ -45,23 +46,42 @@ import {
 
 export abstract class ContractWrapper {
 
-    constructor (signer: JsonRpcSigner, network: string, abi: Interface | InterfaceAbi, target: string) {
-        this.address = target
-        this.contract = new Contract(target, abi, signer as ContractRunner)
+    constructor (signer: JsonRpcSigner, network: string, abi: Interface | InterfaceAbi, target: string | Addressable) {
+        this._address = target
+        this._contract = new Contract(target, abi, signer as ContractRunner)
+        this.abi = abi
         this.network = network
         this.provider = signer.provider
         this.signer = signer
     }
 
+    protected _address: string | Addressable;
+    protected _contract: Contract;
+
+    public attach(target: string | Addressable): any {
+        this._contract = new Contract(target, this.abi, this.signer)
+        this._address = target
+        return this
+    }
+
+    /**
+     * The contract's ABI.
+     */
+    public readonly abi: Interface | InterfaceAbi
+
     /**
      * The address of the underlying Wit/Oracle Framework artifact.
      */
-    public readonly address: string;
+    public get address(): string | Addressable{
+        return this._address
+    }
 
     /**
      * The underlying Ethers' contract wrapper.
      */
-    public readonly contract: Contract;
+    public get contract(): Contract {
+        return this._contract
+    }
     
     /**
      * The EVM network currently connected to.
