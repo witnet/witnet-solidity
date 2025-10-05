@@ -41,7 +41,6 @@ export async function fetchWitOracleFramework(provider: JsonRpcProvider): Promis
                     "WitOracleRadonRequestFactory",
                     "WitPriceFeeds",
                     "WitPriceFeedsLegacy",
-                    "WitPriceFeedsV3",
                     "WitRandomnessV2",
                     "WitRandomnessV3",
                 ]
