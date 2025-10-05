@@ -1226,6 +1226,18 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             .staticCall(id4)
     }
 
+    public async getEvmClonableBase(): Promise<string> {
+        return this.contract
+            .base
+            .staticCall()
+    }
+
+    public async getEvmClonableMaster(): Promise<string> {
+        return this.contract
+            .master
+            .staticCall()
+    }
+
     public async getEvmConsumer(): Promise<Witnet.HexString> {
         return this.contract
             .consumer
@@ -1244,11 +1256,7 @@ export class WitPriceFeeds extends WitApplianceWrapper {
             .staticCall()
     }
 
-    public async getEvmMaster(): Promise<string> {
-        return this.contract
-            .master
-            .staticCall()
-    }
+    
 
     public async getId4(caption: string): Promise<Witnet.HexString> {
         return this.contract
