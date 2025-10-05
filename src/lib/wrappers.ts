@@ -1332,8 +1332,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
                     minWitnesses: Number(result.updateConditions.minWitnesses),
                 },
                 lastUpdate: {
-                    price: Number(result.lastUpdate.price) / 10 ** Number(result.lastUpdate.exponent),
-                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(result.lastUpdate.exponent),
+                    price: Number(result.lastUpdate.price) / 10 ** Number(-result.lastUpdate.exponent),
+                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(-result.lastUpdate.exponent),
                     exponent: Number(result.lastUpdate.exponent),
                     timestamp: BigInt(result.lastUpdate.timestamp),
                     trail: result.lastUpdate.trail,
@@ -1390,8 +1390,8 @@ export class WitPriceFeeds extends WitApplianceWrapper {
                     minWitnesses: Number(result.updateConditions.minWitnesses)
                 },
                 lastUpdate: {
-                    price: Number(result.lastUpdate.price) / 10 ** Number(result.lastUpdate.exponent),
-                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(result.lastUpdate.exponent),
+                    price: Number(result.lastUpdate.price) / 10 ** Number(-result.lastUpdate.exponent),
+                    deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(-result.lastUpdate.exponent),
                     exponent: Number(result.lastUpdate.exponent),
                     timestamp: BigInt(result.lastUpdate.timestamp),
                     trail: result.lastUpdate.trail,
