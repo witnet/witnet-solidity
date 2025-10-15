@@ -1,7 +1,7 @@
 {
   "name": "@witnet/ethers",
-  "version": "1.2.2",
-  "description": "Wit/Oracle Ethers SDK Framework package for EVM-compatible projects",
+  "version": "1.3.0",
+  "description": "Wit/Oracle Ethers Framework package for EVM-compatible projects",
   "author": "Witnet Foundation",
   "license": "MIT",
   "repository": {

@@ -20,7 +20,7 @@ module.exports = async function (flags = {}, params = []) {
     throw new Error(`Connected to unsupported EVM chain id: ${chainId}`)
   }
   helpers.traceHeader(`${network.toUpperCase()}`, helpers.colors.lcyan)
-  
+
   let artifacts = {}
   if (flags?.templates || flags?.modals) {
     const assets = helpers.importRadonAssets(flags)
@@ -30,7 +30,7 @@ module.exports = async function (flags = {}, params = []) {
         artifacts.templates = Object.fromEntries(
           Object
             .entries(deployables.templates[network])
-            .filter(([key]) => dict[key] !== undefined) 
+            .filter(([key]) => dict[key] !== undefined)
             .map(([key, address]) => [key, { address }])
         )
       }
@@ -45,7 +45,7 @@ module.exports = async function (flags = {}, params = []) {
             .map(([key, address]) => [key, { address }])
         )
       }
-    }   
+    }
   } else {
     const framework = await helpers.prompter(utils.fetchWitOracleFramework(provider).catch(err => console.error(err)))
     artifacts = Object.entries(framework)
@@ -60,28 +60,26 @@ module.exports = async function (flags = {}, params = []) {
         match ? helpers.colors.lwhite(key) : helpers.colors.white(key),
         match ? helpers.colors.mblue(obj.address) : helpers.colors.blue(obj.address),
         match ? helpers.colors.mgreen(obj?.interfaceId || "") : helpers.colors.green(obj?.interfaceId || ""),
-        ...(flags?.verbose ? [
-          match ? helpers.colors.myellow(obj?.class || "") : helpers.colors.yellow(obj?.class || ""),
-          match ? helpers.colors.white(obj?.version || "") : helpers.colors.gray(obj?.version || ""),
-        ] : [])
+        ...(flags?.verbose
+          ? [
+            match ? helpers.colors.myellow(obj?.class || "") : helpers.colors.yellow(obj?.class || ""),
+            match ? helpers.colors.white(obj?.version || "") : helpers.colors.gray(obj?.version || ""),
+          ]
+          : []),
       ]
     }), {
-      headlines: [ 
-        ":WIT/ORACLE FRAMEWORK", 
+      headlines: [
+        ":WIT/ORACLE FRAMEWORK",
         ":EVM CONTRACT ADDRESS",
-        ":EVM SPECS", 
-        ...(flags?.verbose ? [":EVM CONTRACT CLASS", ":EVM VERSION TAG" ] : []) 
+        ":EVM SPECS",
+        ...(flags?.verbose ? [":EVM CONTRACT CLASS", ":EVM VERSION TAG"] : []),
       ],
     }
   )
 }
 
-const findBase = (obj, value) => {
-  Object.entries(obj).find(([, impl]) => impl === value)?.[0]
-}
-
 const includes = (selection, key) => {
-    return selection.filter(
-      artifact => key.toLowerCase().endsWith(artifact.toLowerCase())
-    ).length > 0
-  }
+  return selection.filter(
+    artifact => key.toLowerCase().endsWith(artifact.toLowerCase())
+  ).length > 0
+}

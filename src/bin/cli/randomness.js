@@ -38,7 +38,7 @@ module.exports = async function (options = {}, args = []) {
   }
   const randomizer = await witOracle.getWitRandomnessAt(target)
   const symbol = utils.getEvmNetworkSymbol(network)
-  
+
   const artifact = await randomizer.getEvmImplClass()
   const version = await randomizer.getEvmImplVersion()
   const maxWidth = Math.max(20, artifact.length + 2)
@@ -77,7 +77,9 @@ module.exports = async function (options = {}, args = []) {
       console.info(`> EVM tx fee:${" ".repeat(maxWidth - 10)}${helpers.colors.lwhite(ethers.formatEther(receipt.fee))} ETH`)
       const value = (await receipt.getTransaction()).value
       console.info(`> EVM randomize fee:${" ".repeat(maxWidth - 17)}${helpers.colors.lwhite(ethers.formatEther(value))} ETH`)
-      console.info(`> EVM effective gas:${" ".repeat(maxWidth - 17)}${helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))} gas units`)
+      console.info(`> EVM effective gas:${" ".repeat(maxWidth - 17)}${
+        helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))
+      } gas units`)
     }
   }
 

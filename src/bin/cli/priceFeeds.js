@@ -76,10 +76,10 @@ module.exports = async function (options = {}, args = []) {
                 let authority = source.authority.split(".").slice(-2)[0]
                 authority = authority[0].toUpperCase() + authority.slice(1)
                 return (
-                  dryrun.retrieve[index].result?.RadonInteger 
-                    ? helpers.colors.mmagenta(authority) 
+                  dryrun.retrieve[index].result?.RadonInteger
+                    ? helpers.colors.mmagenta(authority)
                     : helpers.colors.red(authority)
-                );
+                )
               }).sort((a, b) => helpers.colorstrip(a).localeCompare(helpers.colorstrip(b)))
             } catch (err) {
               providers = request.sources.map(source => {
@@ -89,9 +89,9 @@ module.exports = async function (options = {}, args = []) {
             }
           } else if (pf?.oracle) {
             providers = [helpers.colors.mblue(`${pf.oracle.class}:${
-              pf.oracle.sources !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
-              ? `${pf.oracle.target}:${pf.oracle.sources.slice(2, 10)}`
-              : pf.oracle.target
+              pf.oracle.sources !== "0x0000000000000000000000000000000000000000000000000000000000000000"
+                ? `${pf.oracle.target}:${pf.oracle.sources.slice(2, 10)}`
+                : pf.oracle.target
             }`)]
           } else if (pf?.mapper) {
             providers = pf.mapper.deps.map(dep => helpers.colors.gray(dep.split(".").pop().toLowerCase()))
@@ -112,13 +112,15 @@ module.exports = async function (options = {}, args = []) {
         pf.symbol,
         pf.lastUpdate.timestamp ? pf.lastUpdate.price.toFixed(6) : "",
         pf.lastUpdate.timestamp ? moment.unix(Number(pf.lastUpdate.timestamp)).fromNow() : "",
-        ...(options["trace-back"] ? [
-          pf.lastUpdate.trail !== "0x0000000000000000000000000000000000000000000000000000000000000000" 
-            ? helpers.colors.mmagenta(pf.lastUpdate.trail.slice(2))
-            : ""
-        ] : [
-          pf?.providers && pf.providers.join(" ")
-        ]),
+        ...(options["trace-back"]
+          ? [
+            pf.lastUpdate.trail !== "0x0000000000000000000000000000000000000000000000000000000000000000"
+              ? helpers.colors.mmagenta(pf.lastUpdate.trail.slice(2))
+              : "",
+          ]
+          : [
+            pf?.providers && pf.providers.join(" "),
+          ]),
       ]),
       {
         colors: [

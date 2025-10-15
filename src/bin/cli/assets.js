@@ -33,7 +33,7 @@ module.exports = async function (flags = {}, params = []) {
   } else {
     assets = clearEmptyBranches(network, assets, args, !flags?.all)
   }
-  
+
   const selection = (
     await selectWitnetArtifacts(registry, assets, args, "  ", !flags?.all)
   ).sort(([a], [b]) => (a > b) - (a < b))
@@ -54,7 +54,7 @@ module.exports = async function (flags = {}, params = []) {
               default: true,
             }])
           } else {
-              console.info(color(key))
+            console.info(color(key))
           }
           if (force || user?.continue) {
             let gasUsed = BigInt(0)
@@ -115,7 +115,7 @@ module.exports = async function (flags = {}, params = []) {
               default: true,
             }])
           } else {
-              console.info(color(key))
+            console.info(color(key))
           }
           if (force || user?.continue) {
             let target
@@ -198,9 +198,9 @@ module.exports = async function (flags = {}, params = []) {
               default: true,
             }])
           } else {
-              console.info(helpers.colors.lwhite(`  ${key}`))
+            console.info(helpers.colors.lwhite(`  ${key}`))
           }
-          if (force ||user?.continue) {
+          if (force || user?.continue) {
             let gasUsed = BigInt(0)
             const radHash = await registry.verifyRadonRequest(asset, {
               confirmations: 1,
