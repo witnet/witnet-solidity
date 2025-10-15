@@ -1515,11 +1515,22 @@ export class WitPriceFeedsLegacy extends WitApplianceWrapper {
                     id4,
                     exponent: Number(captions[index].split('-').slice(-1)[0]),
                     symbol: captions[index],
-                    oracle: {
-                        class: "Witnet",
-                        target: this.witOracle.address,
-                        sources: dataSources[index],
-                    }
+                    ...(dataSources[index].endsWith("00000000000000")
+                        ? {
+                            mapper: {
+                                class: "product",
+                                deps: [ 
+                                    dataSources[index].slice(0, 42),
+                                ],
+                            },
+                        } : {
+                            oracle: {
+                                class: "Witnet",
+                                target: this.witOracle.address,
+                                sources: dataSources[index],
+                            },
+                        }
+                    ),
                 }))
             })
         
