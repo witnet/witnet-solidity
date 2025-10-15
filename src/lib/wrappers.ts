@@ -1624,24 +1624,24 @@ export class WitRandomness extends WitApplianceWrapper {
         fromBlock: BlockTag,
         toBlock?: BlockTag,
     }): Promise<Array<{
-        blockNumber: bigint,
         queryId: bigint,
+        randomizeBlock: bigint,
         requester?: string,
         transactionHash: string,
     }>> {
         let logs = await this._legacy.queryFilter("Randomizing", options.fromBlock, options?.toBlock)
         if (logs && logs.length > 0) {
             return logs.filter(log => !log.removed).map(log => ({
-                blockNumber: BigInt(log.blockNumber),
                 queryId: (log as EventLog)?.args[3],
+                randomizeBlock: (log as EventLog)?.args[0],
                 transactionHash: log.transactionHash,
             }))
         } else {
             return this.contract.queryFilter("Randomizing", options.fromBlock, options?.toBlock)
                 .then(logs => logs.filter(log => !log.removed))
                 .then(logs => logs.map(log => ({
-                    blockNumber: BigInt(log.blockNumber),
-                    queryId: (log as EventLog)?.args[1],
+                    queryId: (log as EventLog)?.args[2],
+                    randomizeBlock: (log as EventLog)?.args[1],
                     requester: (log as EventLog)?.args[0],
                     transactionHash: log.transactionHash,
                 })))
