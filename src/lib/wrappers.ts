@@ -1009,7 +1009,18 @@ export class WitPriceFeeds extends WitApplianceWrapper {
 
     static async at(witOracle: WitOracle, target: string): Promise<WitPriceFeeds> {
         const priceFeeds = new WitPriceFeeds(witOracle, target)
-        const oracleAddr = await priceFeeds.contract.witOracle.staticCall()
+        let oracleAddr = await priceFeeds.contract.witOracle.staticCall()
+        try {
+            oracleAddr = await priceFeeds.contract.witOracle.staticCall()
+        } catch {
+            oracleAddr = await priceFeeds.provider
+                .call({
+                    to: target,
+                    data: "0x46d1d21a", // funcSig for 'witnet()'
+                })
+                .then(result => AbiCoder.defaultAbiCoder().decode(["address"], result))
+                .then(result => result.toString());
+        }
         if (oracleAddr !== witOracle.address) {
             throw new Error(`${this.constructor.name} at ${target}: mismatching Wit/Oracle address (${oracleAddr})`)
         }
