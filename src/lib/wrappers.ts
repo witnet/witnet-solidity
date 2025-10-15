@@ -327,25 +327,25 @@ export class WitOracle extends WitArtifactWrapper {
             .getQuery
             .staticCall(queryId)
             .then(result => ({
-                checkpoint: BigInt(result[5]),
-                hash: result[3],
-                params: {
-                    resultMaxSize: result[2][0],
-                    unitaryReward: result[2][2],
-                    witnesses: result[2][1],
-                },
-                request: {
-                    callbackGas: Number(result[0][1]),
-                    radonHash: result[0][4],
-                    requester: result[0][0],
-                },
-                response: {
-                    disputer: result[1][5],
-                    reporter: result[1][0],
-                    resultTimestamp: Number(result[1][2].toString()),
-                    resultDrTxHash: result[1][3],
-                    resultCborBytes: result[1][4],
-                },
+                    checkpoint: BigInt(result[5]),
+                    hash: result[3],
+                    params: {
+                        resultMaxSize: result[2][0],
+                        unitaryReward: result[2][2],
+                        witnesses: result[2][1],
+                    },
+                    request: {
+                        callbackGas: Number(result[0][1]),
+                        radonHash: result[0][3],
+                        requester: result[0][0],
+                    },
+                    response: {
+                        disputer: result[1][4],
+                        reporter: result[1][0],
+                        resultTimestamp: Number(result[1][1].toString()),
+                        resultDrTxHash: result[1][2],
+                        resultCborBytes: result[1][3],
+                    },
             }));
     }
 
@@ -354,11 +354,11 @@ export class WitOracle extends WitArtifactWrapper {
             .getQueryResponse
             .staticCall(queryId)
             .then(result => ({
-                disputer: result[5],
+                disputer: result[4],
                 reporter: result[0],
-                resultTimestamp: Number(result[2].toString()),
-                resultDrTxHash: result[3],
-                resultCborBytes: result[4],
+                resultTimestamp: Number(result[1].toString()),
+                resultDrTxHash: result[2],
+                resultCborBytes: result[3],
             }));
     }
 
