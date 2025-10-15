@@ -82,7 +82,6 @@ module.exports = async function (options = {}, args = []) {
                 );
               }).sort((a, b) => helpers.colorstrip(a).localeCompare(helpers.colorstrip(b)))
             } catch (err) {
-              console.log(err)
               providers = request.sources.map(source => {
                 const authority = source.authority.split(".").slice(-2)[0]
                 return helpers.colors.magenta(authority[0].toUpperCase() + authority.slice(1))
