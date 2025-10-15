@@ -240,13 +240,6 @@ async function main () {
         "testnets",
       ],
     },
-    wizard: {
-      hint: "Generate Solidity mockup contracts adapted to your use case.",
-      options: [
-        "contract",
-        "network",
-      ],
-    },
     commands: {
       accounts: require("./cli/accounts.js"),
       assets: require("./cli/assets.js"),
@@ -257,7 +250,6 @@ async function main () {
       queries: require("./cli/queries.js"),
       randomness: require("./cli/randomness.js"),
       reports: require("./cli/reports.js"),
-      wizard: require("./cli/wizard.js"),
     },
   }
 
