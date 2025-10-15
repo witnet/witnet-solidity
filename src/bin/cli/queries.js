@@ -108,7 +108,7 @@ module.exports = async function (options = {}, args = []) {
     )
   }
 
-  if (logs.length > 0) {
+  if (logs?.length > 0) {
     if (!options["trace-back"]) {
       helpers.traceTable(
         logs.map(log => [
@@ -118,7 +118,7 @@ module.exports = async function (options = {}, args = []) {
           Number(Number(log?.evmTransactionCost || 0n) / 10 ** 18).toFixed(7),
           `${log.queryRadHash?.slice(2).slice(0, 6)}..${log.queryRadHash.slice(-5)}`,
           `${log.queryParams.witnesses}`,
-          `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
+          // `${Witnet.Coins.fromPedros(BigInt(log.queryParams.unitaryReward) * (3n + log.queryParams.witnesses)).toString(2)}`,
           log.resultTTR,
           log.queryStatus,
           log.resultStatus,
@@ -131,7 +131,7 @@ module.exports = async function (options = {}, args = []) {
             helpers.colors.gray,
             helpers.colors.mgreen,
             helpers.colors.green,
-            helpers.colors.green,
+            // helpers.colors.green,
             helpers.colors.cyan,
             helpers.colors.mcyan,
             helpers.colors.magenta,
@@ -143,7 +143,7 @@ module.exports = async function (options = {}, args = []) {
             `$${helpers.colors.lwhite(symbol)} COST`,
             "radon request",
             "witnesses",
-            "witnet fees",
+            // "witnet fees",
             "T.T.R.:",
             ":QUERY STATUS",
             ":RESULT STATUS",
