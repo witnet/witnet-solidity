@@ -108,21 +108,23 @@ module.exports = async function (options = {}, args = []) {
   logs = await helpers.prompter(
     Promise.all(
       logs.map(async log => {
-        const block = await provider.getBlock(log.blockNumber)
+        const block = await provider.getBlock(log.randomizeBlock)
         const receipt = await provider.getTransactionReceipt(log.transactionHash)
-        const status = await randomizer.getRandomizeStatus(log.blockNumber)
+        const status = await randomizer.getRandomizeStatus(log.randomizeBlock)
         const transaction = await provider.getTransaction(log.transactionHash)
         let readiness = {}
-        if (status === "Ready") {
-          const randomness = options["trace-back"] ? await randomizer.fetchRandomnessAfter(log.blockNumber) : undefined
-          let { btr, finality, trail, timestamp } = await randomizer.fetchRandomnessAfterProof(log.blockNumber)
-          if (finality) {
-            timestamp = (await provider.getBlock(finality)).timestamp
-            btr = finality - log.blockNumber
+        try {
+          if (status === "Ready") {
+            const randomness = options["trace-back"] ? await randomizer.fetchRandomnessAfter(log.randomizeBlock) : undefined
+            let { btr, finality, trail, timestamp } = await randomizer.fetchRandomnessAfterProof(log.randomizeBlock)
+            if (finality) {
+              timestamp = (await provider.getBlock(finality)).timestamp
+              btr = finality - log.randomizeBlock
+            }
+            const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
+            readiness = { btr, finality, randomness, trail, ttr }
           }
-          const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
-          readiness = { btr, finality, randomness, trail, ttr }
-        }
+        } catch {}
         return {
           ...log,
           cost: transaction.value + receipt.gasPrice * receipt.gasUsed,
@@ -139,7 +141,7 @@ module.exports = async function (options = {}, args = []) {
     if (options["trace-back"]) {
       helpers.traceTable(
         logs.map(log => [
-          log.blockNumber,
+          log.randomizeBlock,
           log.btr,
           log.trail?.slice(2),
           log.randomness,
@@ -163,7 +165,7 @@ module.exports = async function (options = {}, args = []) {
     } else {
       helpers.traceTable(
         logs.map(log => [
-          log.blockNumber,
+          log.randomizeBlock,
           moment.unix(log.blockTimestamp),
           log.origin, // `${log.origin?.slice(0, 8)}..${log.origin?.slice(-4)}`,
           (
