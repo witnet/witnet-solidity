@@ -1,5 +1,5 @@
 const cbor = require("cbor")
-const framework = require("witnet-solidity-bridge/utils")
+const framework = require("@witnet/solidity/utils")
 const { utils, Witnet } = require("@witnet/sdk")
 
 module.exports = {

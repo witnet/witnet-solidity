@@ -1,6 +1,6 @@
 const fs = require("fs")
 const merge = require("lodash.merge")
-const framework = require("witnet-solidity-bridge").default
+const framework = require("@witnet/solidity").default
 
 const DEFAULT_BATCH_SIZE = 64
 const DEFAULT_LIMIT = 64

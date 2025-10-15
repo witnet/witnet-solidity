@@ -1,5 +1,5 @@
 const { JsonRpcProvider } = require("ethers")
-const { supportedNetworks } = require("witnet-solidity-bridge").default
+const { supportedNetworks } = require("@witnet/solidity").default
 const { utils } = require("../../../dist/src/lib")
 const helpers = require("../helpers.js")
 

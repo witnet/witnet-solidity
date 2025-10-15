@@ -43,5 +43,5 @@
     "src/**/*.d.ts",
     "witnet/addresses.json",
     "types"
-  ]
+, "src/lib/witnet-solidity.d.ts"  ]
 }

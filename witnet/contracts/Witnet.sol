@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 // Witnet Requests deployment dependencies:
-import "witnet-solidity-bridge/contracts/mockups/UsingWitOracle.sol";
-import "witnet-solidity-bridge/contracts/WitPriceFeeds.sol";
+import "@witnet/solidity/contracts/UsingWitOracle.sol";
+import "@witnet/solidity/contracts/WitPriceFeeds.sol";
 
 // Witnet mocking contracts (only for local/unitary testing):
-import "witnet-solidity-bridge/mockups/tests/WitMockedOracle.sol";
-import "witnet-solidity-bridge/mockups/tests/WitMockedPriceFeeds.sol";
+import "@witnet/solidity/mockups/tests/WitMockedOracle.sol";
+import "@witnet/solidity/mockups/tests/WitMockedPriceFeeds.sol";

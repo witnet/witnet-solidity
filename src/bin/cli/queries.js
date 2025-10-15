@@ -1,4 +1,3 @@
-const { Witnet } = require("@witnet/sdk")
 const moment = require("moment")
 const { utils, WitOracle } = require("../../../dist/src/lib")
 const helpers = require("../helpers.js")

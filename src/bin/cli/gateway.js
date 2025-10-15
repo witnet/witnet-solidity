@@ -1,6 +1,6 @@
 const { spawn } = require("node:child_process")
 const os = require("os")
-const { supportsNetwork } = require("witnet-solidity-bridge").default
+const { supportsNetwork } = require("@witnet/solidity").default
 
 const helpers = require("../helpers.js")
 

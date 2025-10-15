@@ -181,7 +181,7 @@ Shows verified data reports pushed into `IWitOracleConsumer` contracts. It also 
 - [ETH/RPC Gateway](https://npmjs.com/ethrpc-gateway) 
 - Node.js
 - [Witnet SDK](https://npmjs.com/@witnet/sdk)
-- [Witnet Solidity Bridge](https://npmjs.com/witnet-solidity-bridge)
+- [Witnet Solidity Framework](https://npmjs.com/@witnet/solidity)
 
 ## 🔐 Security
 - Do not share your private keys.

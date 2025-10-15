@@ -2,7 +2,7 @@ const fs = require("fs")
 const inquirer = require("inquirer")
 const path = require("path")
 
-const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("witnet-solidity-bridge").default
+const { supportsNetwork, supportedEcosystems, supportedNetworks } = require("@witnet/solidity").default
 
 const helpers = require("../helpers.js")
 
@@ -197,7 +197,7 @@ module.exports = async function (flags = {}) {
         throw Error(`Sorry, required ${artifact} contract is not available on selected ecosystems: ${answers?.ecosystems}`)
       }
     } else {
-      importWitnetMocks = "\nimport \"witnet-solidity-bridge/contracts/mocks/WitMockedOracle.sol\";"
+      importWitnetMocks = "\nimport \"@witnet/solidity/contracts/mocks/WitMockedOracle.sol\";"
     }
   }
 
