@@ -1649,25 +1649,23 @@ export class WitRandomness extends WitApplianceWrapper {
     }
 
     public async getSettings(): Promise<{
-        feeOverHeadPercentage: number,
-        maxCallbackGasLimit: number,
-        minWitCommitteeSize: number,
-        minWitInclusionFees: bigint,
+        callbackGasLimit: number,
+        extraFeePercentage: number,
         randomizeWaitBlocks: number,
+        witCommitteeSize: number,
+        witInclusionFees: bigint,
     }> {
-        const abi = [ "function settings() public view returns (uint16, uint24, uint16, uint64, uint16)", ]
-        const contract = new Contract(this.address, abi, this.signer)
-        return contract
-            .settings
-            .staticCall()
-            .then(result => ({
-                feeOverHeadPercentage: Number(result[0]),
-                maxCallbackGasLimit: Number(result[1]),
-                minWitCommitteeSize: Number(result[2]),
-                minWitInclusionFees: BigInt(result[3]),
-                randomizeWaitBlocks: Number(result[4]),
-            }))
-        
+        const [ queryParams, waitingBlocks ] = await Promise.all([
+            this.contract.getRandomizeQueryParams(),
+            this.contract.getRandomizeWaitingBlocks(),
+        ])
+        return {
+            callbackGasLimit: Number(queryParams[0]),
+            extraFeePercentage: Number(queryParams[1]),
+            randomizeWaitBlocks: Number(waitingBlocks),
+            witCommitteeSize: Number(queryParams[2]),
+            witInclusionFees: BigInt(queryParams[3]),
+        }
     }
 
     public async getLastRandomizeBlock(): Promise<bigint> {
