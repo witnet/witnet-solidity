@@ -1,6 +1,5 @@
 import { Witnet } from "@witnet/sdk"
-
-import { ContractWrapper } from "./wrappers"
+import { ContractWrapper } from "./wrappers/ContractWrapper"
 
 export type DataPushReport = Witnet.GetDataRequestEtherealReport & { evm_proof?: Witnet.HexString }
 

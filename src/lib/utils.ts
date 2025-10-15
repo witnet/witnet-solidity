@@ -1,8 +1,8 @@
 import { Witnet } from "@witnet/sdk"
+import WSB from "@witnet/solidity"
 import * as cbor from "cbor"
 import { AbiCoder, Contract, JsonRpcProvider, solidityPackedKeccak256 } from "ethers"
 import { default as merge } from "lodash.merge"
-import WSB from "witnet-solidity-bridge"
 
 import {
     WitOracle,
@@ -21,7 +21,13 @@ import {
     readWitnetJsonFiles
 } from "../bin/helpers.js"
 
-import { DataPushReport, PriceFeedUpdateConditions, WitOracleArtifact, WitOracleQueryParams, WitOracleQueryStatus } from "./types"
+import { 
+    DataPushReport, 
+    PriceFeedUpdateConditions, 
+    WitOracleArtifact, 
+    WitOracleQueryParams, 
+    WitOracleQueryStatus 
+} from "./types"
 
 export * from "@witnet/sdk/utils"
 

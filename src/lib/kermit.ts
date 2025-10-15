@@ -1,6 +1,6 @@
+import { utils, Witnet } from "@witnet/sdk"
 import { default as axios } from "axios"
 const jsonBig = require('json-bigint');
-import { utils, Witnet } from "@witnet/sdk"
 import { DataPushReport } from "./types.js"
 
 const stringify = (query: any) => Object.entries(query).map(([key, value]) => `&${key}=${value}`).join("").slice(1)
