@@ -12,8 +12,8 @@ importers:
         specifier: ^1.1.2
         version: 1.1.2(@types/node@22.18.10)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@witnet/solidity':
-        specifier: ^3.0.1
-        version: 3.0.1
+        specifier: ^3.0.2
+        version: 3.0.2
       axios:
         specifier: ^1.12.2
         version: 1.12.2
@@ -442,8 +442,8 @@ packages:
     resolution: {integrity: sha512-Q8fTE9JjvlKgWA7wWMKZp9ckr6yXlIHn57c6cgJLUu2Tfpsp2oSQwQOYoNb4N97KaJWx8r1Ply1/gImwmBoTyA==}
     hasBin: true
 
-  '@witnet/solidity@3.0.1':
-    resolution: {integrity: sha512-JfWUfdOfHJFTvi1H1xHs5xIwcuJRuqkSr+QDyMFq5BzYsdlL5JWDTCJiF8JhbCmP8CgtQ7E0mXqw9TnWdnV4OA==}
+  '@witnet/solidity@3.0.2':
+    resolution: {integrity: sha512-oLBuYtnlxrpOk0eD2cUuACOjKAydFlxKLlQ6tMY6APQMRV4hJEez7x9WJM60XNiemqTVt/g1aCSPOmp/4YvgnQ==}
 
   abi-util-lite@0.1.0:
     resolution: {integrity: sha512-iUXhIEXq2RFrT+Cc4lkG+H+Q+7xfZYnmv531oP4wgyP/wRfC15j5nbUNvE6LqoJyvEwRkV9ku+36w+MWor0jpA==}
@@ -2686,7 +2686,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@witnet/solidity@3.0.1':
+  '@witnet/solidity@3.0.2':
     dependencies:
       dotenv: 16.6.1
       lodash.merge: 4.6.2
