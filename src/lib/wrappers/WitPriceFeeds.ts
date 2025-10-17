@@ -305,12 +305,6 @@ export class WitPriceFeeds extends WitAppliance {
             .staticCall()
     }
 
-    public async getEvmClonableMaster(): Promise<string> {
-        return this.contract
-            .master
-            .staticCall()
-    }
-
     public async getEvmConsumer(): Promise<Witnet.HexString> {
         return this.contract
             .consumer
@@ -328,8 +322,6 @@ export class WitPriceFeeds extends WitAppliance {
             .footprint
             .staticCall()
     }
-
-    
 
     public async getId4(caption: string): Promise<Witnet.HexString> {
         return this.contract

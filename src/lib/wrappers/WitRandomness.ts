@@ -49,6 +49,31 @@ export class WitRandomness extends WitAppliance {
         return this.contract.class.staticCall()
     }
 
+    public async clone(curator: string, options?: {
+        evmConfirmations?: number,
+        evmGasPrice?: bigint,
+        evmTimeout?: number,
+        onTransaction?: (TxHash: Witnet.Hash) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        const tx: ContractTransaction = await this.contract.clone.populateTransaction(curator)
+        tx.gasPrice = options?.evmGasPrice || tx?.gasPrice
+        return this.signer
+            .sendTransaction(tx)
+            .then(response => {
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash)
+                }
+                return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt)
+                }
+                return receipt;
+            })
+    }
+
     public async estimateRandomizeFee(evmGasPrice: bigint): Promise<bigint> {
         return this.contract
             .getFunction("estimateRandomizeFee(uint256)")
@@ -110,6 +135,24 @@ export class WitRandomness extends WitAppliance {
                     transactionHash: log.transactionHash,
                 })))
         }
+    }
+
+    public async getEvmBase(): Promise<string> {
+        return this.contract
+            .base
+            .staticCall()
+    }
+
+    public async getEvmConsumer(): Promise<Witnet.HexString> {
+        return this.contract
+            .consumer
+            .staticCall()
+    }
+
+    public async getEvmCurator(): Promise<Witnet.HexString> {
+        return this.contract
+            .owner
+            .staticCall()
     }
 
     public async getSettings(): Promise<{
