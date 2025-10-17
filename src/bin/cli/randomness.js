@@ -4,12 +4,12 @@ const moment = require("moment")
 const prompt = require("inquirer").createPromptModule()
 
 const { utils, WitOracle } = require("../../../dist/src/lib")
-const { DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
+const { colors, DEFAULT_LIMIT, DEFAULT_SINCE } = helpers
 
 module.exports = async function (options = {}, args = []) {
   [args] = helpers.deleteExtraFlags(args)
 
-  const { limit, offset, since } = options
+  const { limit, offset, since, clone } = options
 
   const witOracle = await WitOracle.fromJsonRpcUrl(
     `http://127.0.0.1:${options?.port || 8545}`,
@@ -39,29 +39,89 @@ module.exports = async function (options = {}, args = []) {
   const randomizer = await witOracle.getWitRandomnessAt(target)
   const symbol = utils.getEvmNetworkSymbol(network)
 
-  const artifact = await randomizer.getEvmImplClass()
-  const version = await randomizer.getEvmImplVersion()
+  const [artifact, version, base, consumer ] = await Promise.all([
+    await randomizer.getEvmImplClass(),
+    await randomizer.getEvmImplVersion(),
+    await randomizer.getEvmBase(),
+    await randomizer.getEvmConsumer(),
+  ])
+  let curator = await randomizer.getEvmCurator()
+
   const maxWidth = Math.max(20, artifact.length + 2)
   console.info(
-    `> ${
-      helpers.colors.lwhite(artifact)
-    }:${
-      " ".repeat(maxWidth - artifact.length)
-    }${
-      chosen ? "" : helpers.colors.lblue(target) + " "
-    }${
-      helpers.colors.blue(`[ ${version} ]`)
+    `> ${helpers.colors.lwhite(artifact)
+    }:${" ".repeat(maxWidth - artifact.length)
+    }${chosen ? "" : helpers.colors.lblue(target) + " "
+    }${helpers.colors.blue(`[ ${version} ]`)
     }`
   )
+  if (base !== randomizer.address) {
+    console.info(`> Master address:      ${colors.blue(base)}`)
+    if (randomizer.signer.address !== curator) {
+      console.info(`> Curator address:     ${colors.magenta(curator)}`)
+    } else {
+      console.info(`> Curator address:     ${colors.mmagenta(curator)}`)
+    }
+  }
+
+  if (clone) {
+    console.info()
+    await prompt([
+      {
+        name: "setDefault",
+        type: "confirm",
+        message: "Do you want the new clone to become your default address?",
+        default: true,
+      },
+      {
+        name: "curator",
+        type: "list",
+        message: "Please, select a new curator address:",
+        choices: (await randomizer.provider.listAccounts()).map(signer => signer.address),
+      },
+    ]).then(async answer => {
+      console.info(colors.lyellow(`\n  >>> CLONING THE WIT/RANDOMNESS CONTRACT <<<`))
+      console.info(`  > Master address:    ${colors.blue(randomizer.address)}`)
+      if (answer.curator === randomizer.signer.address) {
+        console.info(`  > Curator address:   ${colors.mmagenta(answer.curator)}`)
+      } else {
+        console.info(`  > Signer address:    ${colors.yellow(randomizer.signer.address)}`)
+        console.info(`  > Curator address:   ${colors.magenta(answer.curator)}`)
+      }
+      const { logs } = await _invokeAdminTask(randomizer.clone.bind(randomizer), answer.curator)
+      if (logs && logs[0]) {
+        const cloned = logs[0].address
+        console.info(`  > Cloned address: ${colors.mblue(cloned)}`)
+        randomizer.attach(cloned)
+        if (answer.setDefault) {
+          let { addresses } = helpers.readWitnetJsonFiles("addresses")
+          if (!addresses[network]) addresses[network] = {}
+          if (!addresses[network].apps) addresses[network].apps = {}
+          addresses[network].apps[artifact] = cloned
+          helpers.saveWitnetJsonFiles({ addresses })
+        }
+
+      } else {
+        console.error(colors.mred(`  Error: no Cloned event was emitted.`))
+        process.exit(0)
+      }
+      curator = answer.curator
+    })
+  } else {
+    if (consumer !== "0x0000000000000000000000000000000000000000") {
+      console.info(`> Consumer address:    ${colors.cyan(consumer)}`)
+    }
+  }
 
   if (options?.randomize) {
+    console.info(colors.lyellow(`\n  >>> REQUESTING NEW RANDOMIZE <<<`))
     const receipt = await randomizer.randomize({
       evmConfirmations: options?.confirmations || 1,
       evmGasPrice: options?.gasPrice,
       evmTimeout: options?.timeout,
       onRandomizeTransaction: (txHash) => {
-        console.info(`> EVM signer:${" ".repeat(maxWidth - 10)}${helpers.colors.gray(randomizer.signer.address)}`)
-        process.stdout.write(`> EVM transaction:${" ".repeat(maxWidth - 15)}${helpers.colors.gray(txHash)} ... `)
+        console.info(`  > EVM signer:${" ".repeat(maxWidth - 10)}${helpers.colors.gray(randomizer.signer.address)}`)
+        process.stdout.write(`  > EVM transaction:${" ".repeat(maxWidth - 15)}${helpers.colors.gray(txHash)} ... `)
       },
       onRandomizeTransactionReceipt: () => {
         process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
@@ -72,14 +132,13 @@ module.exports = async function (options = {}, args = []) {
       throw err
     })
     if (receipt) {
-      console.info(`> EVM block number:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.blockNumber))}`)
-      console.info(`> EVM tx gas price:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.gasPrice))} weis`)
-      console.info(`> EVM tx fee:${" ".repeat(maxWidth - 10)}${helpers.colors.lwhite(ethers.formatEther(receipt.fee))} ETH`)
+      console.info(`  > EVM block number:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.blockNumber))}`)
+      console.info(`  > EVM tx gas price:${" ".repeat(maxWidth - 16)}${helpers.colors.lwhite(helpers.commas(receipt?.gasPrice))} weis`)
+      console.info(`  > EVM tx fee:${" ".repeat(maxWidth - 10)}${helpers.colors.lwhite(ethers.formatEther(receipt.fee))} ETH`)
       const value = (await receipt.getTransaction()).value
-      console.info(`> EVM randomize fee:${" ".repeat(maxWidth - 17)}${helpers.colors.lwhite(ethers.formatEther(value))} ETH`)
-      console.info(`> EVM effective gas:${" ".repeat(maxWidth - 17)}${
-        helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))
-      } gas units`)
+      console.info(`  > EVM randomize fee:${" ".repeat(maxWidth - 17)}${helpers.colors.lwhite(ethers.formatEther(value))} ETH`)
+      console.info(`  > EVM effective gas:${" ".repeat(maxWidth - 17)}${helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))
+        } gas units`)
     }
   }
 
@@ -126,7 +185,7 @@ module.exports = async function (options = {}, args = []) {
             const ttr = moment.duration(moment.unix(timestamp).diff(moment.unix(Number(block.timestamp)))).humanize()
             readiness = { btr, finality, randomness, trail, ttr }
           }
-        } catch {}
+        } catch { }
         return {
           ...log,
           cost: transaction.value + receipt.gasPrice * receipt.gasUsed,
@@ -191,7 +250,7 @@ module.exports = async function (options = {}, args = []) {
             helpers.colors.lwhite,
             helpers.colors.mblue,
             helpers.colors.blue,
-            helpers.colors.gray,,
+            helpers.colors.gray, ,
             helpers.colors.magenta,
           ],
           headlines: [
@@ -203,14 +262,38 @@ module.exports = async function (options = {}, args = []) {
             "T.T.R.",
             ":STATUS",
           ],
-          humanizers: [helpers.commas,,, helpers.commas],
+          humanizers: [helpers.commas, , , helpers.commas],
         }
       )
     }
-    console.info(`^ Listed ${logs.length} out of ${totalLogs} randomness requests${
-      fromBlock ? ` since block #${helpers.commas(fromBlock)}.` : ` up until current block #${helpers.colors.lwhite(helpers.commas(blockNumber))}.`
-    }`)
+    console.info(`^ Listed ${logs.length} out of ${totalLogs} randomness requests${fromBlock ? ` since block #${helpers.commas(fromBlock)}.` : ` up until current block #${helpers.colors.lwhite(helpers.commas(blockNumber))}.`
+      }`)
   } else {
     console.info(`^ No randomness requests${fromBlock ? ` since block #${helpers.colors.lwhite(helpers.commas(fromBlock))}.` : "."}`)
   }
+}
+
+async function _invokeAdminTask(func, ...params) {
+    const receipt = await func(...params, {
+        // evmConfirmations: helpers.parseIntFromArgs(process.argv, `--confirmations`) || 2,
+        onTransaction: (txHash) => {
+            process.stdout.write(`  - EVM transaction:   ${helpers.colors.gray(txHash)} ... `)
+        },
+        onTransactionReceipt: () => {
+            process.stdout.write(`${helpers.colors.lwhite("OK")}\n`)
+        },
+    }).catch(err => {
+        process.stdout.write(`${helpers.colors.mred("FAIL:\n")}`)
+        console.error(err)
+        process.exit(1)
+    })
+    if (receipt) {
+        console.info(`  - EVM block number:  ${helpers.colors.lwhite(helpers.commas(receipt?.blockNumber))}`)
+        console.info(`  - EVM tx gas price:  ${helpers.colors.lwhite(helpers.commas(receipt?.gasPrice))} weis`)
+        console.info(`  - EVM tx fee:        ${helpers.colors.lwhite(ethers.formatEther(receipt.fee))} ETH`)
+        const value = (await receipt.getTransaction()).value
+        console.info(`  - EVM randomize fee: ${helpers.colors.lwhite(ethers.formatEther(value))} ETH`)
+        console.info(`  - EVM effective gas: ${helpers.commas(Math.floor(Number((receipt.fee + value) / receipt.gasPrice)))} gas units`)
+    }
+    return receipt
 }

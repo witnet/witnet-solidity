@@ -17,6 +17,7 @@ const settings = {
     apps: "Show addresses of Wit/Oracle appliances.",
     await: "Hold down until next event is triggered.",
     "check-result-status": "Check result status for each oracle query (supersedes --trace-back).",
+    clone: "Clone the WitRandomness contract to a new instance (curated by --signer)",
     debug: "Outputs stack trace in case of error.",
     decode: "Decode selected Radon assets, as currently deployed.",
     deploy: "Deploy selected Radon assets, if not yet deployed.",
@@ -186,6 +187,7 @@ async function main () {
           hint: `Show latest Wit/Randomness seeds randomized from ${helpers.colors.mcyan(ethRpcNetwork.toUpperCase())}.`,
           params: "[EVM_ADDRESS]",
           flags: [
+            "clone",
             "randomize",
             "trace-back",
           ],
@@ -313,7 +315,7 @@ function showUsageError (router, cmd, specs, error, flags) {
     if (flags?.debug) {
       console.error(error)
     } else {
-      console.error(error?.stack?.split('\n')[0] || error)
+      console.error(error?.stack?.split("\n")[0] || error)
     }
   }
 }
