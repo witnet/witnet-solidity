@@ -1,6 +1,6 @@
 {
   "name": "@witnet/ethers",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Wit/Oracle Ethers Framework package for EVM-compatible projects",
   "author": "Witnet Foundation",
   "license": "MIT",
@@ -52,14 +52,14 @@
     "wit/oracle"
   ],
   "dependencies": {
-    "@witnet/sdk": "^1.1.2",
-    "@witnet/solidity": "^3.0.2",
+    "@witnet/sdk": "^1.1.3",
+    "@witnet/solidity": "^3.0.3",
     "axios": "^1.12.2",
     "cbor": "^10.0.11",
     "cross-env": "^10.1.0",
     "dotenv": "^16.6.1",
     "ethers": "^6.15.0",
-    "ethrpc-gateway": "^2.2.12",
+    "ethrpc-gateway": "^2.3.0",
     "inquirer": "^8.2.7",
     "json-bigint": "^1.0.0",
     "lodash.merge": "^4.6.2",
@@ -67,7 +67,7 @@
   },
   "devDependencies": {
     "@types/lodash.merge": "^4.6.9",
-    "@types/node": "^22.18.10",
+    "@types/node": "^22.18.11",
     "eslint": "^8.57.1",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.32.0",
