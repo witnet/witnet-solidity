@@ -330,10 +330,10 @@ export class WitPriceFeeds extends WitAppliance {
             .then(id => id.slice(0, 10))
     }
 
-    public async getPrice(id4: Witnet.HexString, ema = false): Promise<PriceFeedUpdate> {
+    public async getPrice(id4: Witnet.HexString): Promise<PriceFeedUpdate> {
         return this.contract
-            .getPrice
-            .staticCall(id4, ema)
+            .getFunction("getPrice(bytes4)")
+            .staticCall(id4)
             .then((result: any) => ({
                 price: Number(result.price) / 10 ** Number(-result.exponent),
                 deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
@@ -343,10 +343,10 @@ export class WitPriceFeeds extends WitAppliance {
             }))
     }
 
-    public async getPriceNotOlderThan(id4: Witnet.HexString, age: number, ema = false): Promise<PriceFeedUpdate> {
+    public async getPriceNotOlderThan(id4: Witnet.HexString, age: number): Promise<PriceFeedUpdate> {
         return this.contract
-            .getPriceNotOlderThan
-            .staticCall(id4, ema, age)
+            .getFunction("getPriceNotOlderThan(bytes4,uint24)")
+            .staticCall(id4, age)
             .then((result: any) => ({
                 price: Number(result.price) / 10 ** Number(-result.exponent),
                 deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
@@ -356,10 +356,10 @@ export class WitPriceFeeds extends WitAppliance {
             }))
     }
 
-    public async getPriceUnsafe(id4: Witnet.HexString, ema = false): Promise<PriceFeedUpdate> {
+    public async getPriceUnsafe(id4: Witnet.HexString): Promise<PriceFeedUpdate> {
         return this.contract
-            .getPriceUnsafe
-            .staticCall(id4, ema)
+            .getFunction("getPriceUnsafe(bytes4)")
+            .staticCall(id4)
             .then((result: any) => ({
                 price: Number(result.price) / 10 ** Number(-result.exponent),
                 deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
