@@ -51,7 +51,7 @@ export class WitPriceFeedsLegacy extends WitAppliance {
                 const [ id4s, captions, dataSources ] = results
                 return id4s.map((id4: string, index: number) => ({
                     id4,
-                    exponent: Number(captions[index].split('-').slice(-1)[0]),
+                    exponent: -Number(captions[index].split('-').slice(-1)[0]),
                     symbol: captions[index],
                     ...(dataSources[index].endsWith("00000000000000")
                         ? {

@@ -45,7 +45,7 @@ export type PriceFeedUpdate = {
     price: number,
     deltaPrice?: number,
     exponent?: number,
-    timestamp: BigInt,
+    timestamp: number,
     trail: Witnet.Hash,
 }
 

@@ -335,10 +335,10 @@ export class WitPriceFeeds extends WitAppliance {
             .getPrice
             .staticCall(id4, ema)
             .then((result: any) => ({
-                price: Number(result.price) / 10 ** Number(result.exponent),
-                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                price: Number(result.price) / 10 ** Number(-result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
                 exponent: Number(result.exponent),
-                timestamp: BigInt(result.timestamp),
+                timestamp: Number(result.timestamp),
                 trail: result.trail,
             }))
     }
@@ -348,10 +348,10 @@ export class WitPriceFeeds extends WitAppliance {
             .getPriceNotOlderThan
             .staticCall(id4, ema, age)
             .then((result: any) => ({
-                price: Number(result.price) / 10 ** Number(result.exponent),
-                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                price: Number(result.price) / 10 ** Number(-result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
                 exponent: Number(result.exponent),
-                timestamp: BigInt(result.timestamp),
+                timestamp: Number(result.timestamp),
                 trail: result.trail,
             }))
     }
@@ -361,10 +361,10 @@ export class WitPriceFeeds extends WitAppliance {
             .getPriceUnsafe
             .staticCall(id4, ema)
             .then((result: any) => ({
-                price: Number(result.price) / 10 ** Number(result.exponent),
-                deltaPrice: Number(result.deltaPrice) / 10 ** Number(result.exponent),
+                price: Number(result.price) / 10 ** Number(-result.exponent),
+                deltaPrice: Number(result.deltaPrice) / 10 ** Number(-result.exponent),
                 exponent: Number(result.exponent),
-                timestamp: BigInt(result.timestamp),
+                timestamp: Number(result.timestamp),
                 trail: result.trail,
             }))
     }
@@ -408,7 +408,7 @@ export class WitPriceFeeds extends WitAppliance {
                     price: Number(result.lastUpdate.price) / 10 ** Number(-result.lastUpdate.exponent),
                     deltaPrice: Number(result.lastUpdate.deltaPrice) / 10 ** Number(-result.lastUpdate.exponent),
                     exponent: Number(result.lastUpdate.exponent),
-                    timestamp: BigInt(result.lastUpdate.timestamp),
+                    timestamp: Number(result.lastUpdate.timestamp),
                     trail: result.lastUpdate.trail,
                 },
             }))
