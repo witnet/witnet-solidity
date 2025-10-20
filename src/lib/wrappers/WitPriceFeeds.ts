@@ -1,4 +1,5 @@
 import { 
+    formatUnits,
     AbiCoder,
     ContractTransaction, 
     ContractTransactionReceipt, 
@@ -6,8 +7,9 @@ import {
 } from "ethers"
 
 import { Witnet } from "@witnet/sdk"
-import { abiEncodePriceFeedUpdateConditions } from "../utils"
+import { abiEncodeDataPushReport, abiEncodePriceFeedUpdateConditions } from "../utils"
 import { 
+    DataPushReport,
     PriceFeed,
     PriceFeedMappers,
     PriceFeedOracles,
@@ -26,7 +28,7 @@ export class WitPriceFeeds extends WitAppliance {
 
     static async at(witOracle: WitOracle, target: string): Promise<WitPriceFeeds> {
         const priceFeeds = new WitPriceFeeds(witOracle, target)
-        let oracleAddr = await priceFeeds.contract.witOracle.staticCall()
+        let oracleAddr
         try {
             oracleAddr = await priceFeeds.contract.witOracle.staticCall()
         } catch {
@@ -62,6 +64,45 @@ export class WitPriceFeeds extends WitAppliance {
                     options.onTransaction(response.hash);
                 }
                 return response.wait(options?.evmConfirmations || 1, options?.evmTimeout)
+            })
+            .then(receipt => {
+                if (options?.onTransactionReceipt) {
+                    options.onTransactionReceipt(receipt);
+                }
+                return receipt
+            })
+    }
+
+    public async pushDataReport(report: DataPushReport, options?: { 
+        confirmations?: number, 
+        gasPrice?: bigint,
+        gasLimit?: bigint,
+        maxGasPrice?: bigint,
+        timeout?: number,
+        onTransaction?: (txHash: string) => any,
+        onTransactionReceipt?: (receipt: TransactionReceipt | null) => any,
+    }): Promise<ContractTransactionReceipt | TransactionReceipt | null> {
+        return this.contract
+            .pushDataReport
+            .populateTransaction(abiEncodeDataPushReport(report), report?.evm_proof)
+            .then(tx => {
+                if (!options?.gasPrice && tx?.gasPrice && options?.maxGasPrice) {
+                    if (tx.gasPrice > options.maxGasPrice) {
+                        throw new Error(`${this.constructor.name}: network gas price too high: ${
+                            formatUnits(tx.gasPrice, 9)
+                            } > ${
+                            formatUnits(options.maxGasPrice, 9)} gwei`)
+                    }
+                }
+                tx.gasPrice = options?.gasPrice || tx?.gasPrice 
+                tx.gasLimit = options?.gasLimit || tx?.gasLimit
+                return this.signer.sendTransaction(tx)
+            })
+            .then(response => {
+                if (options?.onTransaction) {
+                    options.onTransaction(response.hash);
+                }
+                return response.wait(options?.confirmations || 1, options?.timeout)
             })
             .then(receipt => {
                 if (options?.onTransactionReceipt) {
