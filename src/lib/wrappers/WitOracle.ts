@@ -51,7 +51,9 @@ export class WitOracle extends WitArtifact {
      * @param signer Specific signer address, other than default, to use for signing EVM transactions. 
      */
     public static async fromJsonRpcUrl(url: string, signerId?: number | string): Promise<WitOracle> {
-        const provider = new JsonRpcProvider(url)
+        const provider = new JsonRpcProvider(url, undefined, {
+            pollingInterval: 5000
+        })
         const signer = await provider.getSigner(signerId)
         const chainId = Number((await provider.getNetwork()).chainId)
         const network = getEvmNetworkByChainId(chainId)
