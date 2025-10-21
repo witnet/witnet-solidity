@@ -8,7 +8,7 @@ It also allows the interaction with Witnet-aware consuming contracts, so real-wo
 
 This package contains:
 
-- A **CLI binary** (`npx witeth`) to interact with the Wit/Oracle Framework contracts on supported EVM networks, as to:
+- A **CLI binary** (`npx witnet-solidity`) to interact with the Wit/Oracle Framework contracts on supported EVM networks, as to:
   - List supported ecosystems and chains where the Wit/Oracle Contract Framework is available.
   - List addresses of the Wit/Oracle Framework artifacts for each supported chain.
   - Build, leverage, test and deploy your own customized Witnet-compliant data queries. 

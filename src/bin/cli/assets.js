@@ -212,7 +212,7 @@ module.exports = async function (flags = {}, params = []) {
                 process.stdout.write(helpers.colors.lwhite("OK\n"))
               },
               onVerifyRadonRequest: (hash) => {
-                process.stdout.write(`  > Verifying new RAD hash   => ${helpers.colors.mgreen(hash)} ... `)
+                process.stdout.write(`  > Verifying new RAD hash    => ${helpers.colors.mgreen(hash)} ... `)
               },
               onVerifyRadonRequestReceipt: (receipt) => {
                 gasUsed += receipt?.gasUsed || BigInt(0)
