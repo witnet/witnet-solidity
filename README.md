@@ -1,3 +1,10 @@
+> [!IMPORTANT]
+> ⚠️ Notice
+> - The content of this repository has been merged into [witnet/witnet-solidity-bridge](https://github.com/witnet/witnet-solidity-bridge).
+>- Future updates and maintenance will take place there.
+
+---------------
+
 # Wit/Oracle Ethers SDK and CLI tools
 
 The **Wit/Oracle Ethers SDK** allows you to easily interact with the set of Wit/Oracle appliances deployed on a wide selection of **EVM-compatible ecosystems**, from offchain environments like workstations, Web3 applications, automation scripts, or web services. 

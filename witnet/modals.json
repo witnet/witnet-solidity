@@ -1,0 +1,9 @@
+{
+    "optimism:sepolia": {
+        "WitOracleWebFileExists": "0xfA745404A1D9D28D165574DA9856bf776CD4c957",
+        "WitOracleWitGetBalance": "0x8a97f201928647b0894B78665a58a07378Fb9a82"
+    },
+    "ethereum:sepolia": {
+        "WitOracleIpfsFileExists": "0xaFE6cE2B98f25FA1537B01014da263c25e77F17B"
+    }
+}
