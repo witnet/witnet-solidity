@@ -52,8 +52,8 @@
     "wit/oracle"
   ],
   "dependencies": {
-    "@witnet/sdk": "^1.1.3",
-    "@witnet/solidity": "^3.0.3",
+    "@witnet/sdk": "1.1.5",
+    "@witnet/solidity": "3.0.3",
     "axios": "^1.12.2",
     "cbor": "^10.0.11",
     "cross-env": "^10.1.0",
